@@ -6,6 +6,7 @@
 
 # Logs
 *.log
+*_erro.log
 
 # Backups automáticos
 *.bak-*
