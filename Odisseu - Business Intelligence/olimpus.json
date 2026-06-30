@@ -5,5 +5,5 @@
   "desc": "Painel de BI interativo. Carregue CSV ou Excel, crie gráficos, aplique filtros, compare séries temporais e exporte relatórios — tudo sem sair do navegador.",
   "color": "#4c1d95",
   "icon": "bar-chart",
-  "port": 5100
+  "port": 5085
 }

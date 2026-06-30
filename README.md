@@ -21,7 +21,7 @@ Plataforma integrada de gestão corporativa composta por módulos independentes,
 | **Minotauro** | Merge de Planilhas | 5095 | Motor de VLOOKUP visual — cruza planilhas por chave sem fórmulas ou macros |
 | **Argos** | Monitoração | 5000 | Monitora disponibilidade, tempo de resposta e capturas de tela de aplicações WEB em tempo real |
 | **Hércules** | Gestão de Tarefas | 5001 | Gestão de tarefas e projetos internos com acompanhamento de demandas, prazos e equipes |
-| **Odisseu** | Business Intelligence | — | Painel de BI interativo: gráficos, filtros, séries temporais e exportação de relatórios |
+| **Odisseu** | Business Intelligence | 5085 | Painel de BI interativo: gráficos, filtros, séries temporais e exportação de relatórios |
 | **Higeia** | Higienização de Bases | 8501 | Limpeza de CSV/Excel: textos, CPF/CNPJ/telefones, deduplicação, filtros e exportação |
 
 ---
