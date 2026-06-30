@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TÊMIS — Gestão de Contratos</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%237c3aed'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='serif'>⚖</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#ffffff;--bg3:#f8f9fa;--bg-alt:#f8f9fa;
+  --glass:rgba(255,255,255,0.7);
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+  --accent:#7c3aed;--accent2:#6d28d9;--accent-bg:rgba(124,58,237,0.08);
+  --success:#16a34a;--success-bg:rgba(22,163,74,0.07);
+  --danger:#dc2626;--danger-bg:rgba(220,38,38,0.07);
+  --warn:#d97706;--warn-bg:rgba(217,119,6,0.07);
+  --text:#1f1f1f;--text-mid:#5f6368;--text-dim:#9ca3af;
+  --sans:'Outfit',sans-serif;--display:'Space Grotesk',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --r:12px;--r2:20px;--radius:20px;
+  --sh:0 4px 20px rgba(0,0,0,0.06);
+}
+
+body.dark-mode{
+  --bg:#0b0f1a;--bg2:#1f2937;--bg3:#111827;--bg-alt:#111827;
+  --glass:rgba(17,24,39,0.7);
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+  --text:#f3f4f6;--text-mid:#9ca3af;--text-dim:#6b7280;
+  --sh:0 4px 20px rgba(0,0,0,0.3);
+}
+body.dark-mode .card,body.dark-mode .modal,body.dark-mode .topbar,
+body.dark-mode .sidebar,body.dark-mode .stat-card,
+body.dark-mode .login-card,body.dark-mode .login-box{background:#1f2937}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background-color .4s,color .4s}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:20px}
+
+/* LOGIN */
+#ls{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+#ls.hidden{display:none}
+.lbg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 40%,#7c3aed0c 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 60%,#16a34a08 0%,transparent 70%)}
+.lp{position:relative;width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--sh);overflow:hidden}
+.lt{background:linear-gradient(135deg,#7c3aed0c,#16a34a0a);border-bottom:1px solid var(--border);padding:32px 36px 28px;text-align:center}
+.llo{display:inline-flex;align-items:center;gap:14px;margin-bottom:8px}
+.lico{width:44px;height:44px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;display:grid;place-items:center;font-size:20px}
+.lbrand{font-size:1.8rem;font-weight:700;letter-spacing:.06em;color:var(--text)}
+.lsub{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.14em;margin-top:4px;text-transform:uppercase}
+.lf{padding:28px 36px 32px;display:flex;flex-direction:column;gap:16px}
+.lerr{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:8px 12px;font-size:.8rem;color:var(--danger);display:none}
+.lerr.show{display:block}
+.lfg{display:flex;flex-direction:column;gap:5px}
+.flab{font-size:.72rem;font-weight:500;color:var(--text-mid);letter-spacing:.05em}
+.fi{background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.85rem;padding:10px 14px;border-radius:var(--r);outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:.88rem;font-weight:600;padding:11px;border-radius:var(--r);cursor:pointer;transition:background .15s;letter-spacing:.04em;margin-top:4px}
+.btn-login:hover{background:var(--accent2)}
+.lhint{font-size:.7rem;color:var(--text-dim);text-align:center;font-family:var(--mono)}
+
+/* APP */
+#app{display:flex;flex-direction:column;flex:1}
+.topbar{height:56px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tbl{display:flex;align-items:center;gap:14px}
+.bicon{width:30px;height:30px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:6px;display:grid;place-items:center;font-size:16px}
+.bname{font-size:1rem;font-weight:700;letter-spacing:.08em}
+.bsep{width:1px;height:18px;background:var(--border)}
+.bmod{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.1em}
+.tbr{display:flex;align-items:center;gap:10px}
+.tclock{font-family:var(--mono);font-size:.75rem;color:var(--text-mid)}
+.btic{width:30px;height:30px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--text-mid);cursor:pointer;display:grid;place-items:center;transition:all .15s;font-size:.85rem}
+.btic:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
+.uname{font-size:.78rem;color:var(--text-mid)}
+
+/* KPI */
+.kpi{display:grid;grid-template-columns:repeat(8,1fr);border-bottom:1px solid var(--border);background:var(--bg2)}
+.kc{padding:12px 16px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.kc:last-child{border-right:none}
+.klb{font-size:.63rem;font-weight:500;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase}
+.kv{font-family:var(--mono);font-size:1.3rem;font-weight:600;line-height:1;color:var(--text)}
+.kv.purple{color:var(--accent2)}.kv.green{color:var(--success)}.kv.red{color:var(--danger)}.kv.warn{color:var(--warn)}.kv.blue{color:var(--info)}
+
+/* LAYOUT */
+.bwrap{display:flex;flex:1;overflow:hidden;flex:1;overflow:hidden}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sbhd{padding:12px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sbttl{font-size:.68rem;font-weight:600;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase}
+.btn-new{background:var(--accent);border:none;color:#fff;font-size:.68rem;font-weight:600;padding:4px 10px;border-radius:var(--r);cursor:pointer;transition:background .15s}
+.btn-new:hover{background:var(--accent2)}
+.sb-filter{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.sflab{font-size:.65rem;color:var(--text-dim);font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.sfinp{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.76rem;padding:6px 10px;border-radius:var(--r);outline:none;width:100%}
+.sfinp:focus{border-color:var(--accent)}
+.sblist{flex:1;overflow-y:auto}
+.si{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.si:hover{background:var(--bg3)}
+.si.sel{background:var(--accent-bg);border-left:3px solid var(--accent);padding-left:11px}
+.si-top{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:3px}
+.si-name{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+.si-meta{font-family:var(--mono);font-size:.62rem;color:var(--text-dim)}
+.si-part{font-size:.72rem;color:var(--text-mid);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* STATUS BADGE */
+.sb-badge{font-family:var(--mono);font-size:.6rem;font-weight:600;padding:2px 7px;border-radius:3px;letter-spacing:.06em;white-space:nowrap;text-transform:uppercase}
+.s-rascunho{background:var(--bg3);color:var(--text-dim);border:1px solid var(--border)}
+.s-revisao{background:#fefce8;color:#a16207;border:1px solid #fde047}
+.s-aprovacao{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.s-assinatura{background:var(--info-bg);color:var(--info);border:1px solid #bae6fd}
+.s-vigente{background:var(--success-bg);color:var(--success);border:1px solid #86efac}
+.s-encerrado{background:var(--bg3);color:var(--text-mid);border:1px solid var(--border2)}
+.s-cancelado{background:var(--danger-bg);color:var(--danger);border:1px solid #fca5a5}
+.s-pendente{background:var(--warn-bg);color:var(--warn);border:1px solid #fcd34d}
+.s-concluido{background:var(--success-bg);color:var(--success);border:1px solid #86efac}
+.s-atrasado{background:var(--danger-bg);color:var(--danger);border:1px solid #fca5a5}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:18px}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-dim);padding:60px 20px;text-align:center}
+.empty-ico{font-size:2.5rem;opacity:.25}
+
+/* PAGE HEAD */
+.phd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.pey{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px}
+.ptit{font-size:1.3rem;font-weight:700;letter-spacing:.02em}
+.psub{font-size:.8rem;color:var(--text-mid);margin-top:2px}
+.arow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* BUTTONS */
+.btn{font-family:var(--sans);font-size:.76rem;font-weight:500;padding:6px 13px;border-radius:var(--r);border:1px solid;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;letter-spacing:.02em}
+.bp{background:var(--accent);border-color:var(--accent);color:#fff}.bp:hover{background:var(--accent2);border-color:var(--accent2)}
+.bo{background:transparent;border-color:var(--border2);color:var(--text-mid)}.bo:hover{border-color:var(--text-mid);color:var(--text);background:var(--bg3)}
+.bd{background:transparent;border-color:var(--border);color:var(--text-mid)}.bd:hover{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+.bsuc{background:transparent;border-color:var(--border);color:var(--text-mid)}.bsuc:hover{background:var(--success-bg);border-color:var(--success);color:var(--success)}
+.bw{background:transparent;border-color:var(--border);color:var(--text-mid)}.bw:hover{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.binfo{background:transparent;border-color:var(--border);color:var(--text-mid)}.binfo:hover{background:var(--info-bg);border-color:var(--info);color:var(--info)}
+
+/* CARD */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.chd{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cttl{font-size:.76rem;font-weight:600;letter-spacing:.04em}
+.chint{font-family:var(--mono);font-size:.63rem;color:var(--text-dim)}
+.cbdy{padding:16px}
+
+/* KPI MINI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
+.kpi-mini{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px}
+.kpi-mini .klb{font-size:.62rem;font-weight:500;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.kpi-mini .kv{font-family:var(--mono);font-size:1.1rem;font-weight:600}
+
+/* TABLE */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.66rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:8px 12px;background:var(--bg-alt);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:.78rem}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.mcell{font-family:var(--mono);font-size:.74rem}
+.link-btn{background:none;border:none;color:var(--accent2);cursor:pointer;font-size:.76rem;text-decoration:underline;padding:0}
+.link-btn:hover{color:var(--accent)}
+
+/* DETAIL GRID */
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dgrid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.df{display:flex;flex-direction:column;gap:3px}
+.dlb{font-size:.66rem;font-weight:500;color:var(--text-dim);text-transform:uppercase;letter-spacing:.07em}
+.dv{font-size:.82rem;color:var(--text)}
+.dv.mono{font-family:var(--mono)}
+
+/* TIMELINE */
+.timeline{display:flex;flex-direction:column;gap:0}
+.tl-item{display:flex;gap:12px;padding:10px 0;position:relative}
+.tl-item:not(:last-child)::before{content:'';position:absolute;left:9px;top:28px;bottom:-10px;width:1px;background:var(--border)}
+.tl-dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:.65rem;margin-top:2px}
+.tl-dot.ok{background:var(--success-bg);border:1px solid var(--success);color:var(--success)}
+.tl-dot.info{background:var(--accent-bg);border:1px solid var(--accent);color:var(--accent)}
+.tl-dot.warn{background:var(--warn-bg);border:1px solid var(--warn);color:var(--warn)}
+.tl-dot.neutral{background:var(--bg3);border:1px solid var(--border2);color:var(--text-dim)}
+.tl-body{flex:1}
+.tl-acao{font-size:.78rem;font-weight:500;color:var(--text)}
+.tl-meta{font-family:var(--mono);font-size:.63rem;color:var(--text-dim);margin-top:2px}
+.tl-det{font-size:.72rem;color:var(--text-mid);margin-top:3px}
+
+/* STATUS PIPELINE */
+.pipeline{display:flex;gap:0;margin:4px 0 8px}
+.pipe-step{flex:1;text-align:center;padding:6px 4px;font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--border);border-left:none;color:var(--text-dim);background:var(--bg3);cursor:pointer;transition:all .15s}
+.pipe-step:first-child{border-left:1px solid var(--border);border-radius:var(--r) 0 0 var(--r)}
+.pipe-step:last-child{border-radius:0 var(--r) var(--r) 0}
+.pipe-step.active{background:var(--accent-bg);color:var(--accent);border-color:var(--accent);font-weight:600;z-index:1}
+.pipe-step.done{background:var(--success-bg);color:var(--success);border-color:#86efac}
+.pipe-step:hover:not(.active):not(.done){background:var(--bg2);color:var(--text-mid)}
+
+/* ALERT ITEMS */
+.alert-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.alert-item:last-child{border-bottom:none}
+.alert-item:hover{background:var(--bg3)}
+.ai-ico{width:32px;height:32px;border-radius:var(--r);display:grid;place-items:center;font-size:14px;flex-shrink:0}
+.ai-ico.warn{background:var(--warn-bg)}
+.ai-ico.red{background:var(--danger-bg)}
+.ai-body{flex:1;min-width:0}
+.ai-title{font-size:.8rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ai-meta{font-family:var(--mono);font-size:.63rem;color:var(--text-dim);margin-top:1px}
+.ai-right{font-family:var(--mono);font-size:.7rem;text-align:right;flex-shrink:0}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:#00000088;backdrop-filter:blur(3px);z-index:500;display:none;align-items:center;justify-content:center}
+.ov.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);width:560px;max-width:95vw;max-height:92vh;overflow-y:auto;box-shadow:var(--sh);animation:mup .18s ease}
+.modal.wide{width:720px}
+.modal.xl{width:860px}
+@keyframes mup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.mhd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mttl{font-size:.86rem;font-weight:600}
+.mcls{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.1rem;transition:color .12s}
+.mcls:hover{color:var(--danger)}
+.mbdy{padding:20px;display:flex;flex-direction:column;gap:14px}
+.mft{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.frow{display:flex;gap:12px}
+.fg{display:flex;flex-direction:column;gap:4px;flex:1}
+.fl{font-size:.7rem;font-weight:500;color:var(--text-mid)}
+.finp{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.8rem;padding:8px 11px;border-radius:var(--r);outline:none;width:100%;transition:border-color .14s,box-shadow .14s}
+.finp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.finp::placeholder{color:var(--text-dim)}
+select.finp{cursor:pointer}
+textarea.finp{resize:vertical;min-height:72px;font-family:var(--sans);font-size:.8rem}
+.ssttl{font-size:.7rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.fhint{font-size:.66rem;color:var(--text-dim);font-family:var(--mono)}
+
+/* FILE DROP */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--r);padding:24px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--accent-bg)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-ico{font-size:1.8rem;margin-bottom:6px}
+.dz-txt{font-size:.8rem;color:var(--text-mid)}
+.dz-hint{font-size:.67rem;color:var(--text-dim);font-family:var(--mono);margin-top:3px}
+.dz-name{font-family:var(--mono);font-size:.76rem;color:var(--accent2);margin-top:6px;font-weight:500}
+
+/* SIGN */
+.sign-panel{background:var(--success-bg);border:1px solid #86efac;border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:10px;font-size:.8rem;color:var(--success)}
+.sign-panel.warn{background:var(--warn-bg);border-color:#fcd34d;color:var(--warn)}
+
+/* TOAST */
+.ta{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{font-size:.77rem;padding:9px 14px;border-radius:var(--r);border:1px solid;min-width:200px;display:flex;align-items:center;gap:8px;animation:tin .18s ease;box-shadow:0 2px 8px #00000030}
+@keyframes tin{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.tok{background:var(--success-bg);border-color:#16a34a60;color:var(--success)}
+.terr{background:var(--danger-bg);border-color:#dc262660;color:var(--danger)}
+.tinf{background:var(--accent-bg);border-color:#7c3aed60;color:var(--accent2)}
+.twarn{background:var(--warn-bg);border-color:#d9770660;color:var(--warn)}
+
+/* NAV TABS */
+.ntabs{display:flex;border-bottom:2px solid var(--border);gap:0;margin-bottom:18px}
+.ntab{background:none;border:none;font-family:var(--sans);font-size:.78rem;font-weight:500;color:var(--text-mid);padding:8px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s}
+.ntab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.ntab:hover:not(.active){color:var(--text)}
+
+/* CONFIG TABS */
+.ctabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.ctab{background:none;border:none;font-size:.75rem;font-weight:500;color:var(--text-dim);padding:7px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .14s}
+.ctab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* IA SCORE */
+.ia-score-wrap{display:flex;align-items:center;gap:24px;padding:16px}
+.score-ring{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-family:var(--mono);font-weight:700;font-size:1.6rem;border:4px solid}
+.score-low{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
+.score-mid{border-color:#d97706;color:#d97706;background:#fffbeb}
+.score-high{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+.ia-summary{font-size:.82rem;color:var(--text-mid);line-height:1.6}
+.risk-list{display:flex;flex-direction:column;gap:6px}
+.risk-item{display:flex;align-items:flex-start;gap:10px;padding:8px 12px;border-radius:var(--r);border:1px solid var(--border)}
+.risk-sev{font-family:var(--mono);font-size:.6rem;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap;flex-shrink:0;margin-top:1px}
+.sev-alto{background:var(--danger-bg);color:var(--danger);border:1px solid #fca5a5}
+.sev-medio{background:var(--warn-bg);color:var(--warn);border:1px solid #fcd34d}
+.sev-baixo{background:var(--success-bg);color:var(--success);border:1px solid #86efac}
+.risk-txt{font-size:.78rem;color:var(--text)}
+.rec-list{display:flex;flex-direction:column;gap:5px}
+.rec-item{display:flex;gap:10px;padding:7px 12px;background:var(--accent-bg);border:1px solid #ddd6fe;border-radius:var(--r);font-size:.78rem;color:var(--text)}
+.rec-num{font-family:var(--mono);font-weight:700;color:var(--accent);font-size:.7rem;flex-shrink:0;margin-top:1px}
+.clause-list{display:flex;flex-wrap:wrap;gap:6px}
+.clause-tag{background:var(--warn-bg);border:1px solid #fcd34d;color:var(--warn);font-size:.72rem;padding:3px 10px;border-radius:20px;font-family:var(--mono)}
+
+/* MISC */
+.sep{height:1px;background:var(--border);margin:4px 0}
+.val-brl{font-family:var(--mono);color:var(--success)}
+.val-neg{font-family:var(--mono);color:var(--danger)}
+.pill{display:inline-block;font-family:var(--mono);font-size:.62rem;padding:2px 7px;border-radius:20px;background:var(--bg3);color:var(--text-dim);border:1px solid var(--border)}
+.chip-list{display:flex;flex-wrap:wrap;gap:5px}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0}
+.toggle{position:relative;display:inline-block;width:36px;height:20px}
+.toggle input{opacity:0;width:0;height:0}
+.tslider{position:absolute;inset:0;background:#cbd5e1;border-radius:20px;cursor:pointer;transition:.2s}
+.tslider:before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.tslider{background:var(--accent)}
+.toggle input:checked+.tslider:before{transform:translateX(16px)}
+
+/* ── OLIMPUS LAYOUT ─────────────────────────────────────── */
+body{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.dashboard-layout{padding:20px;height:100vh;overflow:hidden;display:flex;justify-content:center;align-items:stretch}
+.main-area{width:100%;max-width:1500px;display:flex;flex-direction:column;background:var(--bg-alt);border-radius:var(--radius);overflow:hidden;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.main-area::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 120px 60px var(--bg);pointer-events:none;z-index:0}
+.topbar{position:relative;z-index:10;background:transparent;border-bottom:1px solid var(--border)}
+.bwrap,.content-area{position:relative;z-index:1}
+.sidebar{background:transparent;border-right:1px solid var(--border)}
+
+/* ── LOGIN ESTILO OLIMPUS ───────────────────────────────── */
+#login-screen,#ls{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .4s,visibility .4s}
+#login-screen.hidden,#ls.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.login-card,.login-box,.lp{width:420px;text-align:center;padding:0}
+.login-card .login-top,.login-box .lt,.lp .lt{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 6%,transparent),transparent);border-bottom:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:36px 40px 28px}
+.login-card,.login-box,.lp{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.08)}
+.login-brand,.lbrand{font-family:var(--display);font-size:1.8rem;font-weight:700;letter-spacing:.06em;color:var(--text)}
+.login-sub,.lsub{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+.login-form,.lf{padding:28px 40px 36px;display:flex;flex-direction:column;gap:14px}
+.login-err,.lerr{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:9px 12px;font-size:.8rem;color:var(--danger);display:none}
+.login-err.show,.lerr.show{display:block}
+.fi{background:var(--bg-alt);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:.92rem;padding:13px 16px;outline:none;width:100%;transition:border-color .15s,box-shadow .15s}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--display);font-size:.95rem;font-weight:600;padding:13px;border-radius:var(--r);cursor:pointer;transition:background .15s,transform .1s;width:100%;margin-top:4px}
+.btn-login:hover{background:var(--accent2);transform:translateY(-1px)}
+
+/* ── TOAST ──────────────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--text);color:#fff;border-radius:var(--r);padding:10px 20px;font-size:.82rem;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:340px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{background:var(--success)}
+#toast.err{background:var(--danger)}
+
+/* ── THEME TOGGLE ───────────────────────────────────────── */
+.theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.theme-toggle:hover{border-color:var(--accent);transform:scale(1.05)}
+body.dark-mode .theme-toggle{background:var(--bg2)}
+
+
+/* main-area height fix */
+.dashboard-layout{display:flex;align-items:stretch}
+.main-area{display:flex;flex-direction:column;flex:1;height:100%}
+.main-area #app{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="ls">
+  <div class="lbg"></div>
+  <div class="lp">
+    <div class="lt">
+      <div class="llo">
+        <div class="lico">⚖️</div>
+        <span class="lbrand">TÊMIS</span>
+      </div>
+      <div class="lsub">Gestão de Contratos · Olimpus</div>
+    </div>
+    <div class="lf">
+      <div class="lerr" id="lerr"></div>
+      <div class="lfg">
+        <label class="flab">E-MAIL</label>
+        <input class="fi" id="lemail" type="email" placeholder="seu@email.com" autocomplete="username">
+      </div>
+      <div class="lfg">
+        <label class="flab">SENHA</label>
+        <input class="fi" id="lpass" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-login" id="lbtn" onclick="doLogin()">Entrar</button>
+      <p class="lhint">Credenciais gerenciadas pelo Atlas IAM</p>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="tbl">
+      <div class="bicon">⚖️</div>
+      <span class="bname">TÊMIS</span>
+      <div class="bsep"></div>
+      <span class="bmod">GESTÃO DE CONTRATOS</span>
+    </div>
+    <div class="tbr">
+      <span class="uname" id="uname"></span>
+      <div class="bsep"></div>
+      <span class="tclock" id="tclock"></span>
+      <button class="btic" title="Configurações" onclick="openConfig()">⚙</button>
+      <button class="btic" title="Atualizar" onclick="loadAll()">↻</button>
+      <button class="btic" title="Sair" onclick="doLogout()">⏻</button>
+    </div>
+  </div>
+
+  <!-- KPI BAR -->
+  <div class="kpi">
+    <div class="kc"><div class="klb">Total</div><div class="kv purple" id="k-total">—</div></div>
+    <div class="kc"><div class="klb">Vigentes</div><div class="kv green" id="k-vigentes">—</div></div>
+    <div class="kc"><div class="klb">Pendentes</div><div class="kv warn" id="k-pendentes">—</div></div>
+    <div class="kc"><div class="klb">Rascunhos</div><div class="kv" id="k-rascunhos">—</div></div>
+    <div class="kc"><div class="klb">A vencer 60d</div><div class="kv warn" id="k-avencer">—</div></div>
+    <div class="kc"><div class="klb">Vencidos</div><div class="kv red" id="k-vencidos">—</div></div>
+    <div class="kc"><div class="klb">Valor Vigente</div><div class="kv green" id="k-valor">—</div></div>
+    <div class="kc"><div class="klb">Fiscal Vencidos</div><div class="kv red" id="k-fiscal-venc">—</div></div>
+  </div>
+
+  <!-- BODY -->
+  <div class="bwrap">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sbhd">
+        <span class="sbttl">Contratos</span>
+        <button class="btn-new" onclick="openNewContract()">+ Novo</button>
+      </div>
+      <div class="sb-filter">
+        <div class="sflab">Filtrar status</div>
+        <select class="sfinp" id="filter-status" onchange="applyFilter()">
+          <option value="">Todos</option>
+          <option value="rascunho">Rascunho</option>
+          <option value="revisao">Revisão</option>
+          <option value="aprovacao">Aprovação</option>
+          <option value="assinatura">Assinatura</option>
+          <option value="vigente">Vigente</option>
+          <option value="encerrado">Encerrado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <input class="sfinp" id="filter-search" type="text" placeholder="Buscar…" oninput="debounceSearch()" style="margin-top:4px">
+      </div>
+      <div class="sblist" id="sblist"></div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main" id="main">
+      <div class="empty">
+        <div class="empty-ico">⚖️</div>
+        <div style="font-size:.9rem;font-weight:500">Selecione ou crie um contrato</div>
+        <div style="font-size:.78rem">Use o painel lateral para navegar</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST AREA -->
+<div class="ta" id="ta"></div>
+
+<!-- ── MODAL NOVO/EDITAR CONTRATO ─────────────────────────────────────── -->
+<div class="ov" id="ov-contract">
+  <div class="modal wide">
+    <div class="mhd">
+      <span class="mttl" id="modal-contract-title">Novo Contrato</span>
+      <button class="mcls" onclick="closeModal('ov-contract')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="frow">
+        <div class="fg" style="flex:2">
+          <label class="fl">TÍTULO *</label>
+          <input class="finp" id="c-titulo" placeholder="Nome do contrato">
+        </div>
+        <div class="fg">
+          <label class="fl">TIPO</label>
+          <select class="finp" id="c-tipo">
+            <option>Prestação de Serviços</option>
+            <option>Fornecimento</option>
+            <option>Locação</option>
+            <option>Parceria</option>
+            <option>Sigilo (NDA)</option>
+            <option>Trabalho</option>
+            <option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">Nº CONTRATO</label>
+          <input class="finp" id="c-numero" placeholder="Ex: 2025/001">
+        </div>
+        <div class="fg">
+          <label class="fl">STATUS</label>
+          <select class="finp" id="c-status">
+            <option value="rascunho">Rascunho</option>
+            <option value="revisao">Revisão</option>
+            <option value="aprovacao">Aprovação</option>
+            <option value="assinatura">Assinatura</option>
+            <option value="vigente">Vigente</option>
+            <option value="encerrado">Encerrado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">OBJETO / DESCRIÇÃO</label>
+        <textarea class="finp" id="c-objeto" placeholder="Descreva o objeto do contrato…"></textarea>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">CONTRAPARTE</label>
+          <input class="finp" id="c-contraparte" placeholder="Nome da empresa/pessoa">
+        </div>
+        <div class="fg">
+          <label class="fl">CNPJ/CPF</label>
+          <input class="finp" id="c-cnpj" placeholder="00.000.000/0001-00">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">VALOR (R$)</label>
+          <input class="finp" id="c-valor" type="number" step="0.01" placeholder="0,00">
+        </div>
+        <div class="fg">
+          <label class="fl">DATA INÍCIO</label>
+          <input class="finp" id="c-inicio" type="date">
+        </div>
+        <div class="fg">
+          <label class="fl">DATA FIM</label>
+          <input class="finp" id="c-fim" type="date">
+        </div>
+        <div class="fg" style="max-width:90px">
+          <label class="fl">ALERTA (dias)</label>
+          <input class="finp" id="c-alerta" type="number" value="60" min="1">
+        </div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="closeModal('ov-contract')">Cancelar</button>
+      <button class="btn bp" onclick="saveContract()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL UPLOAD ───────────────────────────────────────────────────── -->
+<div class="ov" id="ov-upload">
+  <div class="modal">
+    <div class="mhd">
+      <span class="mttl">Enviar Arquivo</span>
+      <button class="mcls" onclick="closeModal('ov-upload')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="drop-zone" id="drop-zone" ondragover="dzDrag(event)" ondragleave="dzLeave()" ondrop="dzDrop(event)">
+        <input type="file" id="file-input" accept=".pdf,.doc,.docx,.odt,.txt" onchange="dzSelect(event)">
+        <div class="dz-ico">📎</div>
+        <div class="dz-txt">Arraste o arquivo aqui ou clique para selecionar</div>
+        <div class="dz-hint">PDF, DOC, DOCX, ODT, TXT · Máx. 50 MB</div>
+        <div class="dz-name" id="dz-fname"></div>
+      </div>
+      <div class="fg">
+        <label class="fl">OBSERVAÇÕES (versão)</label>
+        <input class="finp" id="up-obs" placeholder="Ex: Versão final após revisão jurídica">
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="closeModal('ov-upload')">Cancelar</button>
+      <button class="btn bp" onclick="doUpload()">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL SIGNATÁRIO ───────────────────────────────────────────────── -->
+<div class="ov" id="ov-sign">
+  <div class="modal">
+    <div class="mhd">
+      <span class="mttl">Adicionar Signatário</span>
+      <button class="mcls" onclick="closeModal('ov-sign')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">NOME *</label>
+          <input class="finp" id="sg-nome" placeholder="Nome completo">
+        </div>
+        <div class="fg">
+          <label class="fl">E-MAIL *</label>
+          <input class="finp" id="sg-email" type="email" placeholder="signatario@email.com">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">PAPEL</label>
+          <select class="finp" id="sg-papel">
+            <option>signatário</option>
+            <option>testemunha</option>
+            <option>aprovador</option>
+            <option>representante legal</option>
+          </select>
+        </div>
+        <div class="fg" style="max-width:80px">
+          <label class="fl">ORDEM</label>
+          <input class="finp" id="sg-ordem" type="number" value="1" min="1">
+        </div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="closeModal('ov-sign')">Cancelar</button>
+      <button class="btn bp" onclick="saveSignatory()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL STATUS ───────────────────────────────────────────────────── -->
+<div class="ov" id="ov-status">
+  <div class="modal" style="width:400px">
+    <div class="mhd">
+      <span class="mttl">Avançar Status</span>
+      <button class="mcls" onclick="closeModal('ov-status')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="fg">
+        <label class="fl">NOVO STATUS</label>
+        <select class="finp" id="st-novo">
+          <option value="rascunho">Rascunho</option>
+          <option value="revisao">Revisão</option>
+          <option value="aprovacao">Aprovação</option>
+          <option value="assinatura">Assinatura</option>
+          <option value="vigente">Vigente</option>
+          <option value="encerrado">Encerrado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="closeModal('ov-status')">Cancelar</button>
+      <button class="btn bp" onclick="confirmStatus()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL TRIBUTO ──────────────────────────────────────────────────── -->
+<div class="ov" id="ov-tax">
+  <div class="modal wide">
+    <div class="mhd">
+      <span class="mttl" id="modal-tax-title">Adicionar Tributo</span>
+      <button class="mcls" onclick="closeModal('ov-tax')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">TRIBUTO *</label>
+          <select class="finp" id="tx-tributo">
+            <option>ISS</option>
+            <option>ICMS</option>
+            <option>PIS</option>
+            <option>COFINS</option>
+            <option>IRRF</option>
+            <option>CSLL</option>
+            <option>INSS</option>
+            <option>IOF</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">MODALIDADE</label>
+          <select class="finp" id="tx-modalidade">
+            <option value="retencao">Retenção na Fonte</option>
+            <option value="recolhimento">Recolhimento Direto</option>
+            <option value="declaracao">Declaração</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">ALÍQUOTA (%)</label>
+          <input class="finp" id="tx-aliquota" type="number" step="0.01" placeholder="0,00">
+        </div>
+        <div class="fg">
+          <label class="fl">BASE DE CÁLCULO</label>
+          <select class="finp" id="tx-base">
+            <option value="valor_contrato">Valor do Contrato</option>
+            <option value="parcela">Por Parcela</option>
+            <option value="nota_fiscal">Nota Fiscal</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">VALOR PREVISTO (R$)</label>
+          <input class="finp" id="tx-previsto" type="number" step="0.01" placeholder="0,00">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">RESPONSÁVEL</label>
+          <input class="finp" id="tx-responsavel" placeholder="Nome ou setor">
+        </div>
+        <div class="fg">
+          <label class="fl">CENTRO DE CUSTO</label>
+          <input class="finp" id="tx-custo" placeholder="Ex: Financeiro / 0001">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">OBSERVAÇÕES</label>
+        <textarea class="finp" id="tx-obs" placeholder="Notas adicionais…" style="min-height:56px"></textarea>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="closeModal('ov-tax')">Cancelar</button>
+      <button class="btn bp" onclick="saveTax()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL EVENTO FISCAL ────────────────────────────────────────────── -->
+<div class="ov" id="ov-fevent">
+  <div class="modal wide">
+    <div class="mhd">
+      <span class="mttl" id="modal-fevent-title">Adicionar Evento Fiscal</span>
+      <button class="mcls" onclick="closeModal('ov-fevent')">✕</button>
+    </div>
+    <div class="mbdy">
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">TIPO *</label>
+          <select class="finp" id="fe-tipo">
+            <option value="apuracao">Apuração</option>
+            <option value="pagamento">Pagamento</option>
+            <option value="declaracao">Declaração</option>
+            <option value="retencao">Retenção</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">STATUS</label>
+          <select class="finp" id="fe-status">
+            <option value="pendente">Pendente</option>
+            <option value="concluido">Concluído</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">DESCRIÇÃO</label>
+        <input class="finp" id="fe-descricao" placeholder="Ex: Pagamento IRRF sobre parcela de março">
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">DATA PREVISTA *</label>
+          <input class="finp" id="fe-data-prev" type="date">
+        </div>
+        <div class="fg">
+          <label class="fl">DATA REALIZADA</label>
+          <input class="finp" id="fe-data-real" type="date">
+        </div>
+        <div class="fg">
+          <label class="fl">COMPETÊNCIA</label>
+          <input class="finp" id="fe-competencia" placeholder="MM/AAAA">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">VALOR PREVISTO (R$)</label>
+          <input class="finp" id="fe-val-prev" type="number" step="0.01" placeholder="0,00">
+        </div>
+        <div class="fg">
+          <label class="fl">VALOR REALIZADO (R$)</label>
+          <input class="finp" id="fe-val-real" type="number" step="0.01" placeholder="0,00">
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">OBSERVAÇÕES</label>
+        <textarea class="finp" id="fe-obs" placeholder="Notas…" style="min-height:52px"></textarea>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="closeModal('ov-fevent')">Cancelar</button>
+      <button class="btn bp" onclick="saveFiscalEvent()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL CONFIGURAÇÕES ────────────────────────────────────────────── -->
+<div class="ov" id="ov-config">
+  <div class="modal xl">
+    <div class="mhd">
+      <span class="mttl">Configurações do Têmis</span>
+      <button class="mcls" onclick="closeModal('ov-config')">✕</button>
+    </div>
+    <div class="mbdy">
+      <!-- Config tabs -->
+      <div class="ctabs">
+        <button class="ctab active" onclick="switchCfgTab('email')">E-mail (Gmail)</button>
+        <button class="ctab" onclick="switchCfgTab('ia')">Análise IA</button>
+        <button class="ctab" onclick="switchCfgTab('alertas')">Alertas</button>
+      </div>
+
+      <!-- Email tab -->
+      <div id="cfg-email">
+        <div class="ssttl">Configuração Gmail SMTP</div>
+        <div class="frow">
+          <div class="fg">
+            <label class="fl">CONTA GMAIL *</label>
+            <input class="finp" id="cfg-gmail-user" type="email" placeholder="seuemail@gmail.com">
+          </div>
+          <div class="fg">
+            <label class="fl">SENHA DE APP *</label>
+            <input class="finp" id="cfg-gmail-pass" type="password" placeholder="xxxx xxxx xxxx xxxx">
+          </div>
+        </div>
+        <div class="fhint">Use uma Senha de App do Google (não a senha normal). Ative a verificação em 2 etapas e gere em Conta Google → Segurança → Senhas de app.</div>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:10px">
+          <div class="fg">
+            <label class="fl">E-MAIL DE TESTE</label>
+            <input class="finp" id="cfg-test-email" type="email" placeholder="destino@email.com">
+          </div>
+          <button class="btn bo" style="margin-top:18px;white-space:nowrap" onclick="sendTestEmail()">Enviar Teste</button>
+        </div>
+      </div>
+
+      <!-- IA tab -->
+      <div id="cfg-ia" style="display:none">
+        <div class="ssttl">Anthropic Claude API</div>
+        <div class="fg">
+          <label class="fl">CHAVE DE API *</label>
+          <input class="finp" id="cfg-api-key" type="password" placeholder="sk-ant-…">
+        </div>
+        <div class="fhint">Obtenha sua chave em console.anthropic.com. A análise utiliza o modelo claude-haiku para eficiência de custo.</div>
+      </div>
+
+      <!-- Alertas tab -->
+      <div id="cfg-alertas" style="display:none">
+        <div style="display:flex;flex-direction:column;gap:18px">
+
+          <!-- Vencimento -->
+          <div style="border:1px solid var(--border);border-radius:var(--r);padding:14px">
+            <div class="toggle-row" style="padding:0 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px">
+              <span style="font-size:.78rem;font-weight:600">Vencimento de Contratos</span>
+              <label class="toggle"><input type="checkbox" id="alrt-vcto-ativo"><span class="tslider"></span></label>
+            </div>
+            <div class="frow">
+              <div class="fg">
+                <label class="fl">JANELAS DE ALERTA (dias, separados por vírgula)</label>
+                <input class="finp" id="alrt-vcto-dias" placeholder="30, 60, 90">
+              </div>
+            </div>
+            <div class="fg" style="margin-top:10px">
+              <label class="fl">E-MAILS DESTINATÁRIOS (um por linha)</label>
+              <textarea class="finp" id="alrt-vcto-emails" placeholder="email1@empresa.com&#10;email2@empresa.com" style="min-height:60px"></textarea>
+            </div>
+          </div>
+
+          <!-- Fiscal -->
+          <div style="border:1px solid var(--border);border-radius:var(--r);padding:14px">
+            <div class="toggle-row" style="padding:0 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px">
+              <span style="font-size:.78rem;font-weight:600">Obrigações Fiscais</span>
+              <label class="toggle"><input type="checkbox" id="alrt-fiscal-ativo"><span class="tslider"></span></label>
+            </div>
+            <div class="frow">
+              <div class="fg">
+                <label class="fl">JANELAS DE ALERTA (dias)</label>
+                <input class="finp" id="alrt-fiscal-dias" placeholder="7, 15">
+              </div>
+            </div>
+            <div class="fg" style="margin-top:10px">
+              <label class="fl">E-MAILS DESTINATÁRIOS</label>
+              <textarea class="finp" id="alrt-fiscal-emails" placeholder="email1@empresa.com" style="min-height:60px"></textarea>
+            </div>
+          </div>
+
+          <!-- Assinatura -->
+          <div style="border:1px solid var(--border);border-radius:var(--r);padding:14px">
+            <div class="toggle-row" style="padding:0 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px">
+              <span style="font-size:.78rem;font-weight:600">Pendências de Assinatura</span>
+              <label class="toggle"><input type="checkbox" id="alrt-assin-ativo"><span class="tslider"></span></label>
+            </div>
+            <div class="fg">
+              <label class="fl">E-MAILS DESTINATÁRIOS</label>
+              <textarea class="finp" id="alrt-assin-emails" placeholder="email1@empresa.com" style="min-height:60px"></textarea>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="closeModal('ov-config')">Cancelar</button>
+      <button class="btn bp" onclick="saveConfig()">Salvar Configurações</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let contracts   = [];
+let currentId   = null;
+let editMode    = false;
+let uploadCid   = null;
+let signCid     = null;
+let searchTimer = null;
+let editTaxId   = null;
+let editFEventId= null;
+let activeTab   = 'contrato';
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function toast(msg, type='ok') {
+  const ta = $('ta');
+  const t  = document.createElement('div');
+  t.className = `toast t${type}`;
+  t.textContent = msg;
+  ta.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const [y,m,dd] = d.split('T')[0].split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+function fmtMoney(v) {
+  if (v == null || v === '' || isNaN(v)) return '—';
+  return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);
+}
+
+function fmtTs(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleString('pt-BR');
+}
+
+function statusLabel(s) {
+  const map = {
+    rascunho:'Rascunho', revisao:'Revisão', aprovacao:'Aprovação',
+    assinatura:'Assinatura', vigente:'Vigente', encerrado:'Encerrado', cancelado:'Cancelado',
+    pendente:'Pendente', concluido:'Concluído', atrasado:'Atrasado',
+  };
+  return map[s] || s;
+}
+
+function statusBadge(s) {
+  return `<span class="sb-badge s-${s}">${statusLabel(s)}</span>`;
+}
+
+function pipelineSteps() {
+  return ['rascunho','revisao','aprovacao','assinatura','vigente','encerrado'];
+}
+
+function tlDotClass(acao) {
+  if (!acao) return 'neutral';
+  if (acao.includes('criou')) return 'info';
+  if (acao.includes('status')) return 'ok';
+  if (acao.includes('excluiu') || acao.includes('cancelou')) return 'warn';
+  return 'neutral';
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────
+function tickClock() { $('tclock').textContent = new Date().toLocaleTimeString('pt-BR'); }
+setInterval(tickClock, 1000);
+tickClock();
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+async function checkAuth() {
+  try {
+    const r = await fetch('/api/auth/status', {credentials:'include'});
+    const j = await r.json();
+    if (j.data?.authenticated) showApp(j.data.user);
+    else showLogin();
+  } catch { showLogin(); }
+}
+
+function showLogin() {
+  $('ls').classList.remove('hidden');
+  $('app').style.display = 'none';
+  $('lemail').focus();
+}
+
+function showApp(user) {
+  $('ls').classList.add('hidden');
+  $('app').style.display = 'flex';
+  if (user) $('uname').textContent = user.nome || user.email || '';
+  loadAll();
+}
+
+$('lpass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+$('lemail').addEventListener('keydown', e => { if(e.key==='Enter') $('lpass').focus(); });
+
+async function doLogin() {
+  const email    = $('lemail').value.trim();
+  const password = $('lpass').value;
+  if (!email || !password) { showErr('Preencha e-mail e senha.'); return; }
+  $('lbtn').disabled = true;
+  $('lbtn').textContent = 'Entrando…';
+  try {
+    const r = await fetch('/api/auth/login', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password}),
+    });
+    const j = await r.json();
+    if (r.ok) showApp(j.data);
+    else showErr(j.error || 'Falha no login.');
+  } catch { showErr('Servidor indisponível.'); }
+  finally { $('lbtn').disabled=false; $('lbtn').textContent='Entrar'; }
+}
+
+function showErr(msg) {
+  const e = $('lerr');
+  e.textContent = msg;
+  e.classList.add('show');
+  setTimeout(() => e.classList.remove('show'), 5000);
+}
+
+async function doLogout() {
+  await fetch('/api/auth/logout', {method:'POST', credentials:'include'});
+  showLogin();
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadStats(), loadContracts()]);
+}
+
+async function loadStats() {
+  try {
+    const r = await fetch('/api/stats', {credentials:'include'});
+    const j = await r.json();
+    if (!j.ok) return;
+    const s = j.data;
+    $('k-total').textContent     = s.total;
+    $('k-vigentes').textContent  = s.vigentes;
+    $('k-pendentes').textContent = s.pendentes;
+    $('k-rascunhos').textContent = s.rascunhos;
+    $('k-avencer').textContent   = s.a_vencer_60d;
+    $('k-vencidos').textContent  = s.vencidos;
+    $('k-fiscal-venc').textContent = s.fiscal_vencidos ?? '—';
+    $('k-valor').textContent     = s.valor_vigentes > 0
+      ? new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',notation:'compact'}).format(s.valor_vigentes)
+      : '—';
+  } catch {}
+}
+
+async function loadContracts() {
+  const status = $('filter-status').value;
+  const search = $('filter-search').value.trim();
+  let url = '/api/contracts';
+  const params = new URLSearchParams();
+  if (status) params.set('status', status);
+  if (search) params.set('q', search);
+  if ([...params].length) url += '?' + params;
+  try {
+    const r = await fetch(url, {credentials:'include'});
+    const j = await r.json();
+    if (j.ok) { contracts = j.data; renderSidebar(); }
+  } catch {}
+}
+
+function applyFilter() { loadContracts(); }
+
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadContracts, 350);
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = $('sblist');
+  if (!contracts.length) {
+    list.innerHTML = '<div class="empty" style="padding:30px 14px;gap:6px"><div style="font-size:1.4rem;opacity:.2">📄</div><div style="font-size:.75rem">Nenhum contrato</div></div>';
+    return;
+  }
+  list.innerHTML = contracts.map(c => `
+    <div class="si ${currentId===c.id?'sel':''}" onclick="selectContract(${c.id})">
+      <div class="si-top">
+        <span class="si-name" title="${c.titulo}">${c.titulo}</span>
+        ${statusBadge(c.status)}
+      </div>
+      <div class="si-part">${c.contraparte || '—'}</div>
+      <div class="si-meta">${c.numero_contrato ? c.numero_contrato + ' · ' : ''}${fmtDate(c.data_fim)}</div>
+    </div>
+  `).join('');
+}
+
+// ── CONTRACT DETAIL ───────────────────────────────────────────────────────
+async function selectContract(id) {
+  currentId = id;
+  activeTab = 'contrato';
+  renderSidebar();
+  try {
+    const r = await fetch(`/api/contracts/${id}`, {credentials:'include'});
+    const j = await r.json();
+    if (j.ok) renderDetail(j.data);
+  } catch { toast('Erro ao carregar contrato.','err'); }
+}
+
+function renderDetail(c) {
+  const steps = pipelineSteps();
+  const ci    = steps.indexOf(c.status);
+
+  const pipeline = steps.map((s, i) => {
+    let cls = '';
+    if (i < ci) cls = 'done';
+    else if (i === ci) cls = 'active';
+    return `<div class="pipe-step ${cls}" onclick="openStatusModal(${c.id},'${s}')">${statusLabel(s)}</div>`;
+  }).join('');
+
+  const sigs = (c.signatarios || []).map(s => `
+    <tr>
+      <td>${s.nome}</td>
+      <td class="mcell">${s.email}</td>
+      <td>${s.papel}</td>
+      <td>${statusBadge(s.status === 'assinado' ? 'vigente' : 'revisao')}</td>
+      <td class="mcell">${s.assinado_em ? fmtTs(s.assinado_em) : '—'}</td>
+      <td><button class="btn bd" style="padding:3px 8px;font-size:.68rem" onclick="removeSignatory(${s.id})">✕</button></td>
+    </tr>
+  `).join('');
+
+  const vers = (c.versoes || []).map(v => `
+    <tr>
+      <td class="mcell">v${v.numero_versao}</td>
+      <td>${v.arquivo_nome || '—'}</td>
+      <td>${v.observacoes || '—'}</td>
+      <td class="mcell">${fmtTs(v.criado_em)}</td>
+      <td>${v.arquivo_path ? `<a class="link-btn" href="/contratos/${v.arquivo_path}" target="_blank">⬇ Baixar</a>` : '—'}</td>
+    </tr>
+  `).join('');
+
+  const audit = (c.audit_log || []).map(a => `
+    <div class="tl-item">
+      <div class="tl-dot ${tlDotClass(a.acao)}">◆</div>
+      <div class="tl-body">
+        <div class="tl-acao">${a.acao}</div>
+        <div class="tl-meta">${a.usuario} · ${fmtTs(a.criado_em)}</div>
+        ${a.detalhes ? `<div class="tl-det">${a.detalhes}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  let alertBanner = '';
+  if (c.data_fim) {
+    const days = Math.round((new Date(c.data_fim) - new Date()) / 86400000);
+    if (days < 0)
+      alertBanner = `<div class="sign-panel warn">⚠️ Contrato vencido há ${Math.abs(days)} dias (${fmtDate(c.data_fim)})</div>`;
+    else if (days <= (c.dias_alerta || 60))
+      alertBanner = `<div class="sign-panel warn">⏰ Vence em <strong>${days} dias</strong> — ${fmtDate(c.data_fim)}</div>`;
+  }
+
+  $('main').innerHTML = `
+    <div class="phd">
+      <div>
+        <div class="pey">${c.tipo} ${c.numero_contrato ? '· ' + c.numero_contrato : ''}</div>
+        <div class="ptit">${c.titulo}</div>
+        <div class="psub">${c.contraparte || ''}${c.contraparte_cnpj ? ' · ' + c.contraparte_cnpj : ''}</div>
+      </div>
+      <div class="arow">
+        <button class="btn bo" onclick="openEditContract(${c.id})">✏ Editar</button>
+        <button class="btn bo" onclick="openUploadModal(${c.id})">📎 Arquivo</button>
+        <button class="btn bo" onclick="openSignModal(${c.id})">✍ Signatário</button>
+        <button class="btn bo" onclick="openStatusModal(${c.id},'')">↗ Status</button>
+        <button class="btn bd" onclick="deleteContract(${c.id})">🗑</button>
+      </div>
+    </div>
+
+    ${alertBanner}
+
+    <!-- PIPELINE -->
+    <div>
+      <div style="font-size:.66rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px">Workflow</div>
+      <div class="pipeline">${pipeline}</div>
+    </div>
+
+    <!-- TABS -->
+    <div class="ntabs" id="detail-tabs">
+      <button class="ntab active" onclick="switchTab('contrato')">Contrato</button>
+      <button class="ntab" onclick="switchTab('fiscal')">Fiscal</button>
+      <button class="ntab" onclick="switchTab('ia')">Análise IA</button>
+      <button class="ntab" onclick="switchTab('historico')">Histórico</button>
+    </div>
+
+    <!-- TAB: CONTRATO -->
+    <div id="tab-contrato">
+      <div class="card">
+        <div class="chd"><span class="cttl">Informações</span></div>
+        <div class="cbdy">
+          <div class="dgrid3">
+            <div class="df"><div class="dlb">Valor</div><div class="dv val-brl mono">${fmtMoney(c.valor)}</div></div>
+            <div class="df"><div class="dlb">Início</div><div class="dv mono">${fmtDate(c.data_inicio)}</div></div>
+            <div class="df"><div class="dlb">Término</div><div class="dv mono">${fmtDate(c.data_fim)}</div></div>
+          </div>
+          ${c.objeto ? `<div class="sep"></div><div class="df" style="margin-top:6px"><div class="dlb">Objeto</div><div class="dv" style="white-space:pre-wrap;line-height:1.6">${c.objeto}</div></div>` : ''}
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="chd">
+          <span class="cttl">Signatários</span>
+          <button class="btn-new" onclick="openSignModal(${c.id})">+ Adicionar</button>
+        </div>
+        <div class="twrap">
+          ${sigs ? `<table><thead><tr><th>Nome</th><th>E-mail</th><th>Papel</th><th>Status</th><th>Assinado em</th><th></th></tr></thead><tbody>${sigs}</tbody></table>` : '<div class="empty" style="padding:20px"><div style="font-size:.8rem">Nenhum signatário adicionado</div></div>'}
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="chd">
+          <span class="cttl">Versões do Documento</span>
+          <button class="btn-new" onclick="openUploadModal(${c.id})">+ Upload</button>
+        </div>
+        <div class="twrap">
+          ${vers ? `<table><thead><tr><th>Versão</th><th>Arquivo</th><th>Observações</th><th>Enviado em</th><th></th></tr></thead><tbody>${vers}</tbody></table>` : '<div class="empty" style="padding:20px"><div style="font-size:.8rem">Nenhum arquivo enviado</div></div>'}
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: FISCAL -->
+    <div id="tab-fiscal" style="display:none">
+      <div id="fiscal-content">
+        <div class="empty" style="padding:40px"><div class="empty-ico">💰</div><div>Carregando módulo fiscal…</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: IA -->
+    <div id="tab-ia" style="display:none">
+      <div id="ia-content">
+        <div class="empty" style="padding:40px"><div class="empty-ico">🤖</div><div>Carregando análise…</div></div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTÓRICO -->
+    <div id="tab-historico" style="display:none">
+      <div class="card">
+        <div class="chd"><span class="cttl">Audit Trail</span><span class="chint">${(c.audit_log||[]).length} entradas</span></div>
+        <div class="cbdy" style="padding:10px 16px">
+          <div class="timeline">${audit || '<div style="font-size:.78rem;color:var(--text-dim)">Sem registros.</div>'}</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px" id="alert-log-card">
+        <div class="chd"><span class="cttl">Log de Alertas Enviados</span></div>
+        <div id="alert-log-body"><div class="empty" style="padding:20px"><div style="font-size:.8rem">Carregando…</div></div></div>
+      </div>
+    </div>
+  `;
+
+  // re-attach active tab state
+  const tabs = ['contrato','fiscal','ia','historico'];
+  tabs.forEach((t,i) => {
+    document.querySelectorAll('.ntab')[i].classList.toggle('active', t===activeTab);
+    $('tab-'+t).style.display = t===activeTab ? '' : 'none';
+  });
+  if (activeTab==='fiscal')    loadFiscal(c.id);
+  if (activeTab==='ia')        loadAnalysis(c.id);
+  if (activeTab==='historico') loadAlertLog(c.id);
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  activeTab = tab;
+  const tabs = ['contrato','fiscal','ia','historico'];
+  tabs.forEach((t,i) => {
+    $('tab-'+t).style.display = t===tab ? '' : 'none';
+    document.querySelectorAll('.ntab')[i].classList.toggle('active', t===tab);
+  });
+  if (tab==='fiscal')    loadFiscal(currentId);
+  if (tab==='ia')        loadAnalysis(currentId);
+  if (tab==='historico') loadAlertLog(currentId);
+}
+
+// ── FISCAL MODULE ─────────────────────────────────────────────────────────
+async function loadFiscal(cid) {
+  try {
+    const [rFiscal, rTaxes, rEvents] = await Promise.all([
+      fetch(`/api/contracts/${cid}/fiscal`, {credentials:'include'}),
+      fetch(`/api/contracts/${cid}/taxes`, {credentials:'include'}),
+      fetch(`/api/contracts/${cid}/fiscal/events`, {credentials:'include'}),
+    ]);
+    const [jFiscal, jTaxes, jEvents] = await Promise.all([rFiscal.json(), rTaxes.json(), rEvents.json()]);
+    renderFiscal(cid, jFiscal.data || {}, jTaxes.data || [], jEvents.data || []);
+  } catch { $('fiscal-content').innerHTML = '<div class="empty" style="padding:30px">Erro ao carregar dados fiscais.</div>'; }
+}
+
+function renderFiscal(cid, summary, taxes, events) {
+  const totalPrev = taxes.reduce((s,t) => s+(t.valor_previsto||0), 0);
+  const totalReal = taxes.reduce((s,t) => s+(t.valor_realizado||0), 0);
+  const divergencia = totalReal - totalPrev;
+  const pendEvents = events.filter(e => e.status==='pendente').length;
+  const atrasados  = events.filter(e => {
+    if (e.status !== 'pendente') return false;
+    return e.data_prevista && e.data_prevista < new Date().toISOString().split('T')[0];
+  }).length;
+
+  const taxRows = taxes.map(t => `
+    <tr>
+      <td><strong>${t.tributo}</strong></td>
+      <td class="mcell">${t.modalidade || '—'}</td>
+      <td class="mcell">${t.aliquota != null ? t.aliquota + '%' : '—'}</td>
+      <td class="mcell val-brl">${fmtMoney(t.valor_previsto)}</td>
+      <td class="mcell ${t.valor_realizado ? (t.valor_realizado > t.valor_previsto*1.05 ? 'val-neg' : 'val-brl') : ''}">${fmtMoney(t.valor_realizado)}</td>
+      <td>${t.responsavel || '—'}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          <button class="btn bo" style="padding:3px 8px;font-size:.66rem" onclick="openEditTax(${JSON.stringify(t).replace(/"/g,'&quot;')})">✏</button>
+          <button class="btn bd" style="padding:3px 8px;font-size:.66rem" onclick="deleteTax(${t.id})">✕</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  const evtRows = events.map(e => {
+    const isAtrasado = e.status==='pendente' && e.data_prevista && e.data_prevista < new Date().toISOString().split('T')[0];
+    const evtStatus = isAtrasado ? 'atrasado' : e.status;
+    return `
+    <tr>
+      <td>${statusBadge(evtStatus)}</td>
+      <td><strong>${e.tipo}</strong></td>
+      <td>${e.descricao || '—'}</td>
+      <td class="mcell">${fmtDate(e.data_prevista)}</td>
+      <td class="mcell">${fmtDate(e.data_realizada)}</td>
+      <td class="mcell">${e.competencia || '—'}</td>
+      <td class="mcell val-brl">${fmtMoney(e.valor_previsto)}</td>
+      <td class="mcell ${e.valor_realizado && e.valor_previsto && e.valor_realizado > e.valor_previsto*1.05 ? 'val-neg' : 'val-brl'}">${fmtMoney(e.valor_realizado)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          ${e.status==='pendente' ? `<button class="btn bsuc" style="padding:3px 8px;font-size:.66rem" onclick="concluirEvento(${e.id})" title="Marcar como concluído">✔</button>` : ''}
+          <button class="btn bo" style="padding:3px 8px;font-size:.66rem" onclick="openEditFEvent(${JSON.stringify(e).replace(/"/g,'&quot;')})">✏</button>
+          <button class="btn bd" style="padding:3px 8px;font-size:.66rem" onclick="deleteFEvent(${e.id})">✕</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  $('fiscal-content').innerHTML = `
+    <!-- KPIs Fiscais -->
+    <div class="kpi-row">
+      <div class="kpi-mini"><div class="klb">Tributos Vinculados</div><div class="kv purple">${taxes.length}</div></div>
+      <div class="kpi-mini"><div class="klb">Previsto Total</div><div class="kv green">${totalPrev > 0 ? fmtMoney(totalPrev) : '—'}</div></div>
+      <div class="kpi-mini"><div class="klb">Realizado Total</div><div class="kv ${divergencia > 0 ? 'red' : 'green'}">${totalReal > 0 ? fmtMoney(totalReal) : '—'}</div></div>
+      <div class="kpi-mini"><div class="klb">Eventos Atrasados</div><div class="kv ${atrasados > 0 ? 'red' : ''}">${atrasados}</div></div>
+    </div>
+
+    <!-- Tributos -->
+    <div class="card">
+      <div class="chd">
+        <span class="cttl">Tributos Vinculados</span>
+        <button class="btn-new" onclick="openAddTax(${cid})">+ Tributo</button>
+      </div>
+      <div class="twrap">
+        ${taxRows ? `<table><thead><tr><th>Tributo</th><th>Modalidade</th><th>Alíquota</th><th>Previsto</th><th>Realizado</th><th>Responsável</th><th></th></tr></thead><tbody>${taxRows}</tbody></table>` : '<div class="empty" style="padding:20px"><div style="font-size:.8rem">Nenhum tributo vinculado. Clique em "+ Tributo" para adicionar.</div></div>'}
+      </div>
+    </div>
+
+    <!-- Eventos Fiscais -->
+    <div class="card" style="margin-top:14px">
+      <div class="chd">
+        <span class="cttl">Obrigações e Eventos Fiscais</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="chint">${pendEvents} pendente(s) · ${atrasados} atrasado(s)</span>
+          <button class="btn-new" onclick="openAddFEvent(${cid})">+ Evento</button>
+        </div>
+      </div>
+      <div class="twrap">
+        ${evtRows ? `<table><thead><tr><th>Status</th><th>Tipo</th><th>Descrição</th><th>Data Prev.</th><th>Realizado</th><th>Competência</th><th>Previsto</th><th>Realizado R$</th><th></th></tr></thead><tbody>${evtRows}</tbody></table>` : '<div class="empty" style="padding:20px"><div style="font-size:.8rem">Nenhum evento fiscal registrado.</div></div>'}
+      </div>
+    </div>
+  `;
+}
+
+// ── TAX CRUD ──────────────────────────────────────────────────────────────
+function openAddTax(cid) {
+  editTaxId = null;
+  $('modal-tax-title').textContent = 'Adicionar Tributo';
+  ['tributo','modalidade','aliquota','base','previsto','responsavel','custo','obs'].forEach(k => {
+    const el = $('tx-'+k);
+    if (el) el.value = k==='tributo' ? 'ISS' : k==='modalidade' ? 'retencao' : k==='base' ? 'valor_contrato' : '';
+  });
+  openModal('ov-tax');
+}
+
+function openEditTax(t) {
+  if (typeof t === 'string') t = JSON.parse(t.replace(/&quot;/g, '"'));
+  editTaxId = t.id;
+  $('modal-tax-title').textContent = 'Editar Tributo';
+  $('tx-tributo').value    = t.tributo || 'ISS';
+  $('tx-modalidade').value = t.modalidade || 'retencao';
+  $('tx-aliquota').value   = t.aliquota || '';
+  $('tx-base').value       = t.base_calculo || 'valor_contrato';
+  $('tx-previsto').value   = t.valor_previsto || '';
+  $('tx-responsavel').value= t.responsavel || '';
+  $('tx-custo').value      = t.centro_custo || '';
+  $('tx-obs').value        = t.observacoes || '';
+  openModal('ov-tax');
+}
+
+async function saveTax() {
+  const body = {
+    tributo:       $('tx-tributo').value,
+    modalidade:    $('tx-modalidade').value,
+    aliquota:      $('tx-aliquota').value ? parseFloat($('tx-aliquota').value) : null,
+    base_calculo:  $('tx-base').value,
+    valor_previsto:$('tx-previsto').value ? parseFloat($('tx-previsto').value) : null,
+    responsavel:   $('tx-responsavel').value.trim(),
+    centro_custo:  $('tx-custo').value.trim(),
+    observacoes:   $('tx-obs').value.trim(),
+  };
+  const url    = editTaxId ? `/api/taxes/${editTaxId}` : `/api/contracts/${currentId}/taxes`;
+  const method = editTaxId ? 'PUT' : 'POST';
+  try {
+    const r = await fetch(url, {method, credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const j = await r.json();
+    if (r.ok) {
+      toast(editTaxId ? 'Tributo atualizado.' : 'Tributo adicionado.', 'ok');
+      closeModal('ov-tax');
+      loadFiscal(currentId);
+    } else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+async function deleteTax(tid) {
+  if (!confirm('Excluir este tributo?')) return;
+  try {
+    const r = await fetch(`/api/taxes/${tid}`, {method:'DELETE', credentials:'include'});
+    const j = await r.json();
+    if (r.ok) { toast('Tributo excluído.','ok'); loadFiscal(currentId); }
+    else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── FISCAL EVENT CRUD ─────────────────────────────────────────────────────
+function openAddFEvent(cid) {
+  editFEventId = null;
+  $('modal-fevent-title').textContent = 'Adicionar Evento Fiscal';
+  ['tipo','status','descricao','data-prev','data-real','competencia','val-prev','val-real','obs'].forEach(k => {
+    const el = $('fe-'+k);
+    if (el) el.value = k==='tipo' ? 'apuracao' : k==='status' ? 'pendente' : '';
+  });
+  openModal('ov-fevent');
+}
+
+function openEditFEvent(e) {
+  if (typeof e === 'string') e = JSON.parse(e.replace(/&quot;/g, '"'));
+  editFEventId = e.id;
+  $('modal-fevent-title').textContent = 'Editar Evento Fiscal';
+  $('fe-tipo').value        = e.tipo || 'apuracao';
+  $('fe-status').value      = e.status || 'pendente';
+  $('fe-descricao').value   = e.descricao || '';
+  $('fe-data-prev').value   = (e.data_prevista||'').split('T')[0];
+  $('fe-data-real').value   = (e.data_realizada||'').split('T')[0];
+  $('fe-competencia').value = e.competencia || '';
+  $('fe-val-prev').value    = e.valor_previsto || '';
+  $('fe-val-real').value    = e.valor_realizado || '';
+  $('fe-obs').value         = e.observacoes || '';
+  openModal('ov-fevent');
+}
+
+async function saveFiscalEvent() {
+  const dataPrev = $('fe-data-prev').value;
+  if (!dataPrev) { toast('Informe a data prevista.','err'); return; }
+  const body = {
+    tipo:           $('fe-tipo').value,
+    status:         $('fe-status').value,
+    descricao:      $('fe-descricao').value.trim(),
+    data_prevista:  dataPrev || null,
+    data_realizada: $('fe-data-real').value || null,
+    competencia:    $('fe-competencia').value.trim(),
+    valor_previsto: $('fe-val-prev').value ? parseFloat($('fe-val-prev').value) : null,
+    valor_realizado:$('fe-val-real').value ? parseFloat($('fe-val-real').value) : null,
+    observacoes:    $('fe-obs').value.trim(),
+  };
+  const url    = editFEventId ? `/api/fiscal/events/${editFEventId}` : `/api/contracts/${currentId}/fiscal/events`;
+  const method = editFEventId ? 'PUT' : 'POST';
+  try {
+    const r = await fetch(url, {method, credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const j = await r.json();
+    if (r.ok) {
+      toast(editFEventId ? 'Evento atualizado.' : 'Evento criado.', 'ok');
+      closeModal('ov-fevent');
+      loadFiscal(currentId);
+      loadStats();
+    } else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+async function deleteFEvent(eid) {
+  if (!confirm('Excluir este evento fiscal?')) return;
+  try {
+    const r = await fetch(`/api/fiscal/events/${eid}`, {method:'DELETE', credentials:'include'});
+    const j = await r.json();
+    if (r.ok) { toast('Evento excluído.','ok'); loadFiscal(currentId); loadStats(); }
+    else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+async function concluirEvento(eid) {
+  try {
+    const r = await fetch(`/api/fiscal/events/${eid}/concluir`, {method:'POST', credentials:'include'});
+    const j = await r.json();
+    if (r.ok) { toast('Evento marcado como concluído.','ok'); loadFiscal(currentId); loadStats(); }
+    else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── IA ANALYSIS ───────────────────────────────────────────────────────────
+async function loadAnalysis(cid) {
+  const cont = $('ia-content');
+  if (!cont) return;
+  try {
+    const r = await fetch(`/api/contracts/${cid}/analysis`, {credentials:'include'});
+    const j = await r.json();
+    if (j.ok && j.data) renderAnalysis(j.data, cid);
+    else renderAnalysisEmpty(cid);
+  } catch { renderAnalysisEmpty(cid); }
+}
+
+function renderAnalysisEmpty(cid) {
+  $('ia-content').innerHTML = `
+    <div class="card">
+      <div class="cbdy" style="text-align:center;padding:40px 24px">
+        <div style="font-size:2.5rem;margin-bottom:12px;opacity:.3">🤖</div>
+        <div style="font-size:.9rem;font-weight:500;margin-bottom:6px">Nenhuma análise disponível</div>
+        <div style="font-size:.78rem;color:var(--text-dim);margin-bottom:20px">Clique em "Analisar com IA" para que o Claude examine as cláusulas deste contrato e identifique riscos, lacunas e oportunidades de melhoria.</div>
+        <button class="btn bp" onclick="triggerAnalysis(${cid})">🤖 Analisar com IA</button>
+      </div>
+    </div>`;
+}
+
+function scoreClass(score) {
+  if (score <= 4) return 'score-low';
+  if (score <= 7) return 'score-mid';
+  return 'score-high';
+}
+
+function renderAnalysis(a, cid) {
+  let riscos = [];
+  let clausulas = [];
+  let recomendacoes = [];
+  try { riscos = JSON.parse(a.riscos || '[]'); } catch {}
+  try { clausulas = JSON.parse(a.clausulas_faltantes || '[]'); } catch {}
+  try { recomendacoes = JSON.parse(a.recomendacoes || '[]'); } catch {}
+
+  const riscosHtml = riscos.length ? riscos.map(r => `
+    <div class="risk-item">
+      <span class="risk-sev sev-${(r.severidade||'medio').toLowerCase()}">${(r.severidade||'Médio').toUpperCase()}</span>
+      <span class="risk-txt">${r.descricao || r}</span>
+    </div>
+  `).join('') : '<div style="font-size:.78rem;color:var(--text-dim)">Nenhum risco identificado.</div>';
+
+  const clausulasHtml = clausulas.length
+    ? clausulas.map(c => `<span class="clause-tag">${c}</span>`).join('')
+    : '<span style="font-size:.78rem;color:var(--text-dim)">Nenhuma cláusula faltante identificada.</span>';
+
+  const recsHtml = recomendacoes.length ? recomendacoes.map((r,i) => `
+    <div class="rec-item"><span class="rec-num">${i+1}.</span><span>${r.texto || r}</span></div>
+  `).join('') : '<div style="font-size:.78rem;color:var(--text-dim)">Sem recomendações adicionais.</div>';
+
+  const score = a.score_risco || 0;
+
+  $('ia-content').innerHTML = `
+    <div class="card">
+      <div class="chd">
+        <span class="cttl">Análise de Risco — Claude AI</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="chint">Analisado em ${fmtTs(a.analisado_em)}</span>
+          <button class="btn bo" style="font-size:.7rem;padding:4px 10px" onclick="triggerAnalysis(${cid})">↻ Re-analisar</button>
+        </div>
+      </div>
+      <div class="ia-score-wrap">
+        <div class="score-ring ${scoreClass(score)}">${score}</div>
+        <div>
+          <div style="font-size:.65rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Pontuação de Risco (1–10)</div>
+          <div class="ia-summary">${a.resumo || 'Sem resumo disponível.'}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="chd"><span class="cttl">Riscos Identificados</span><span class="chint">${riscos.length} item(ns)</span></div>
+      <div class="cbdy"><div class="risk-list">${riscosHtml}</div></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="chd"><span class="cttl">Cláusulas Faltantes ou Incompletas</span></div>
+      <div class="cbdy"><div class="clause-list">${clausulasHtml}</div></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="chd"><span class="cttl">Recomendações</span></div>
+      <div class="cbdy"><div class="rec-list">${recsHtml}</div></div>
+    </div>
+  `;
+}
+
+async function triggerAnalysis(cid) {
+  const cont = $('ia-content');
+  if (!cont) return;
+  cont.innerHTML = `
+    <div class="card">
+      <div class="cbdy" style="text-align:center;padding:40px 24px">
+        <div style="font-size:2rem;margin-bottom:12px;animation:spin 1.5s linear infinite;display:inline-block">⏳</div>
+        <div style="font-size:.88rem;font-weight:500">Analisando contrato com Claude…</div>
+        <div style="font-size:.76rem;color:var(--text-dim);margin-top:6px">Isso pode levar alguns segundos.</div>
+      </div>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+  try {
+    const r = await fetch(`/api/contracts/${cid}/analyze`, {method:'POST', credentials:'include'});
+    const j = await r.json();
+    if (r.ok && j.data) {
+      toast('Análise concluída!','ok');
+      renderAnalysis(j.data, cid);
+    } else {
+      toast(j.error || 'Erro na análise.','err');
+      renderAnalysisEmpty(cid);
+    }
+  } catch {
+    toast('Erro de rede.','err');
+    renderAnalysisEmpty(cid);
+  }
+}
+
+// ── ALERT LOG ─────────────────────────────────────────────────────────────
+async function loadAlertLog(cid) {
+  const body = $('alert-log-body');
+  if (!body) return;
+  try {
+    const r = await fetch(`/api/alerts/log?contract_id=${cid}`, {credentials:'include'});
+    const j = await r.json();
+    const logs = j.data || [];
+    if (!logs.length) {
+      body.innerHTML = '<div class="empty" style="padding:20px"><div style="font-size:.8rem">Nenhum alerta enviado para este contrato.</div></div>';
+      return;
+    }
+    const rows = logs.map(l => `
+      <tr>
+        <td class="mcell">${fmtTs(l.enviado_em)}</td>
+        <td>${l.tipo_alerta || '—'}</td>
+        <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l.assunto || '—'}</td>
+        <td>${l.destinatarios || '—'}</td>
+        <td>${statusBadge(l.status === 'enviado' ? 'vigente' : 'cancelado')}</td>
+      </tr>`).join('');
+    body.innerHTML = `<div class="twrap"><table>
+      <thead><tr><th>Enviado em</th><th>Tipo</th><th>Assunto</th><th>Destinatários</th><th>Status</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  } catch { body.innerHTML = '<div class="empty" style="padding:20px"><div style="font-size:.8rem">Erro ao carregar log.</div></div>'; }
+}
+
+// ── CONFIGURAÇÕES ─────────────────────────────────────────────────────────
+let cfgData = {};
+
+async function openConfig() {
+  try {
+    const r = await fetch('/api/config', {credentials:'include'});
+    const j = await r.json();
+    cfgData = j.data || {};
+    fillConfigForm(cfgData);
+  } catch { toast('Erro ao carregar configurações.','err'); return; }
+  switchCfgTab('email');
+  openModal('ov-config');
+}
+
+function fillConfigForm(cfg) {
+  $('cfg-gmail-user').value = cfg.gmail_user || '';
+  $('cfg-gmail-pass').value = cfg.gmail_app_password ? '••••••••' : '';
+  $('cfg-api-key').value    = cfg.anthropic_api_key ? '••••••••' : '';
+  const a = cfg.alertas || {};
+
+  const vc = a.vencimento_contrato || {};
+  $('alrt-vcto-ativo').checked  = !!vc.ativo;
+  $('alrt-vcto-dias').value     = (vc.dias || [30,60,90]).join(', ');
+  $('alrt-vcto-emails').value   = (vc.emails || []).join('\n');
+
+  const fc = a.obrigacao_fiscal || {};
+  $('alrt-fiscal-ativo').checked = !!fc.ativo;
+  $('alrt-fiscal-dias').value    = (fc.dias || [7,15]).join(', ');
+  $('alrt-fiscal-emails').value  = (fc.emails || []).join('\n');
+
+  const sc = a.pendencia_assinatura || {};
+  $('alrt-assin-ativo').checked  = !!sc.ativo;
+  $('alrt-assin-emails').value   = (sc.emails || []).join('\n');
+}
+
+function switchCfgTab(tab) {
+  ['email','ia','alertas'].forEach(t => {
+    $('cfg-'+t).style.display = t===tab ? '' : 'none';
+    document.querySelectorAll('.ctab').forEach((btn,i) => {
+      btn.classList.toggle('active', ['email','ia','alertas'][i]===tab);
+    });
+  });
+}
+
+function parseDias(str) {
+  return str.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+}
+
+function parseEmails(str) {
+  return str.split('\n').map(s => s.trim()).filter(Boolean);
+}
+
+async function saveConfig() {
+  const gmailUser = $('cfg-gmail-user').value.trim();
+  const gmailPass = $('cfg-gmail-pass').value;
+  const apiKey    = $('cfg-api-key').value;
+
+  const newCfg = {
+    gmail_user:          gmailUser,
+    gmail_app_password:  gmailPass === '••••••••' ? (cfgData.gmail_app_password || '') : gmailPass,
+    anthropic_api_key:   apiKey === '••••••••'    ? (cfgData.anthropic_api_key  || '') : apiKey,
+    alertas: {
+      vencimento_contrato: {
+        ativo:  $('alrt-vcto-ativo').checked,
+        dias:   parseDias($('alrt-vcto-dias').value),
+        emails: parseEmails($('alrt-vcto-emails').value),
+      },
+      obrigacao_fiscal: {
+        ativo:  $('alrt-fiscal-ativo').checked,
+        dias:   parseDias($('alrt-fiscal-dias').value),
+        emails: parseEmails($('alrt-fiscal-emails').value),
+      },
+      pendencia_assinatura: {
+        ativo:  $('alrt-assin-ativo').checked,
+        dias:   [3,7],
+        emails: parseEmails($('alrt-assin-emails').value),
+      },
+    },
+  };
+  try {
+    const r = await fetch('/api/config', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(newCfg),
+    });
+    const j = await r.json();
+    if (r.ok) { toast('Configurações salvas!','ok'); closeModal('ov-config'); cfgData = newCfg; }
+    else toast(j.error||'Erro ao salvar.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+async function sendTestEmail() {
+  const to = $('cfg-test-email').value.trim();
+  if (!to) { toast('Informe o e-mail de destino.','err'); return; }
+  try {
+    const r = await fetch('/api/config/email/test', {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({to_email: to}),
+    });
+    const j = await r.json();
+    if (r.ok) toast('E-mail de teste enviado!','ok');
+    else toast(j.error||'Falha ao enviar.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── CREATE / EDIT CONTRACT ────────────────────────────────────────────────
+function openNewContract() {
+  editMode = false;
+  currentId = null;
+  $('modal-contract-title').textContent = 'Novo Contrato';
+  ['titulo','numero','objeto','contraparte','cnpj','valor','inicio','fim'].forEach(k => $('c-'+k).value = '');
+  $('c-tipo').value   = 'Prestação de Serviços';
+  $('c-status').value = 'rascunho';
+  $('c-alerta').value = 60;
+  openModal('ov-contract');
+}
+
+async function openEditContract(id) {
+  const c = contracts.find(x => x.id === id) || (await (await fetch(`/api/contracts/${id}`,{credentials:'include'})).json()).data;
+  if (!c) return;
+  editMode = true;
+  currentId = id;
+  $('modal-contract-title').textContent = 'Editar Contrato';
+  $('c-titulo').value      = c.titulo || '';
+  $('c-tipo').value        = c.tipo || 'Prestação de Serviços';
+  $('c-numero').value      = c.numero_contrato || '';
+  $('c-status').value      = c.status || 'rascunho';
+  $('c-objeto').value      = c.objeto || '';
+  $('c-contraparte').value = c.contraparte || '';
+  $('c-cnpj').value        = c.contraparte_cnpj || '';
+  $('c-valor').value       = c.valor || '';
+  $('c-inicio').value      = (c.data_inicio || '').split('T')[0];
+  $('c-fim').value         = (c.data_fim || '').split('T')[0];
+  $('c-alerta').value      = c.dias_alerta || 60;
+  openModal('ov-contract');
+}
+
+async function saveContract() {
+  const titulo = $('c-titulo').value.trim();
+  if (!titulo) { toast('Informe o título.','err'); return; }
+  const body = {
+    titulo, tipo: $('c-tipo').value, numero_contrato: $('c-numero').value.trim(),
+    status: $('c-status').value, objeto: $('c-objeto').value.trim(),
+    contraparte: $('c-contraparte').value.trim(), contraparte_cnpj: $('c-cnpj').value.trim(),
+    valor: $('c-valor').value ? parseFloat($('c-valor').value) : null,
+    data_inicio: $('c-inicio').value || null, data_fim: $('c-fim').value || null,
+    dias_alerta: parseInt($('c-alerta').value) || 60,
+  };
+  const url    = editMode ? `/api/contracts/${currentId}` : '/api/contracts';
+  const method = editMode ? 'PUT' : 'POST';
+  try {
+    const r = await fetch(url, {method, credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const j = await r.json();
+    if (r.ok) {
+      toast(j.message || 'Salvo!', 'ok');
+      closeModal('ov-contract');
+      await loadAll();
+      if (!editMode && j.data?.id) selectContract(j.data.id);
+      else if (editMode) selectContract(currentId);
+    } else toast(j.error || 'Erro ao salvar.', 'err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── DELETE CONTRACT ───────────────────────────────────────────────────────
+async function deleteContract(id) {
+  if (!confirm('Excluir este contrato permanentemente?')) return;
+  try {
+    const r = await fetch(`/api/contracts/${id}`, {method:'DELETE', credentials:'include'});
+    const j = await r.json();
+    if (r.ok) {
+      toast('Contrato excluído.', 'ok');
+      currentId = null;
+      $('main').innerHTML = '<div class="empty"><div class="empty-ico">⚖️</div><div style="font-size:.9rem;font-weight:500">Selecione ou crie um contrato</div></div>';
+      loadAll();
+    } else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── STATUS MODAL ──────────────────────────────────────────────────────────
+function openStatusModal(id, current) {
+  currentId = id;
+  $('st-novo').value = current || 'rascunho';
+  openModal('ov-status');
+}
+
+async function confirmStatus() {
+  const novo = $('st-novo').value;
+  try {
+    const r = await fetch(`/api/contracts/${currentId}/status`, {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({status: novo}),
+    });
+    const j = await r.json();
+    if (r.ok) {
+      toast(j.message||'Status atualizado.','ok');
+      closeModal('ov-status');
+      await loadAll();
+      selectContract(currentId);
+    } else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── UPLOAD ────────────────────────────────────────────────────────────────
+function openUploadModal(cid) {
+  uploadCid = cid;
+  $('dz-fname').textContent = '';
+  $('file-input').value = '';
+  $('up-obs').value = '';
+  openModal('ov-upload');
+}
+
+function dzDrag(e) { e.preventDefault(); $('drop-zone').classList.add('drag'); }
+function dzLeave()  { $('drop-zone').classList.remove('drag'); }
+function dzDrop(e)  { e.preventDefault(); dzLeave(); const f = e.dataTransfer.files[0]; if(f) { $('file-input').files = e.dataTransfer.files; $('dz-fname').textContent = f.name; } }
+function dzSelect(e){ const f = e.target.files[0]; if(f) $('dz-fname').textContent = f.name; }
+
+async function doUpload() {
+  const fi = $('file-input');
+  if (!fi.files.length) { toast('Selecione um arquivo.','err'); return; }
+  const fd = new FormData();
+  fd.append('file', fi.files[0]);
+  fd.append('observacoes', $('up-obs').value.trim());
+  try {
+    const r = await fetch(`/api/contracts/${uploadCid}/upload`, {method:'POST', credentials:'include', body:fd});
+    const j = await r.json();
+    if (r.ok) { toast('Arquivo enviado!','ok'); closeModal('ov-upload'); selectContract(uploadCid); }
+    else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── SIGNATÁRIOS ───────────────────────────────────────────────────────────
+function openSignModal(cid) {
+  signCid = cid;
+  $('sg-nome').value  = '';
+  $('sg-email').value = '';
+  $('sg-papel').value = 'signatário';
+  $('sg-ordem').value = 1;
+  openModal('ov-sign');
+}
+
+async function saveSignatory() {
+  const nome  = $('sg-nome').value.trim();
+  const email = $('sg-email').value.trim();
+  if (!nome || !email) { toast('Nome e e-mail são obrigatórios.','err'); return; }
+  try {
+    const r = await fetch(`/api/contracts/${signCid}/signatories`, {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({nome, email, papel:$('sg-papel').value, ordem:parseInt($('sg-ordem').value)||1}),
+    });
+    const j = await r.json();
+    if (r.ok) { toast('Signatário adicionado!','ok'); closeModal('ov-sign'); selectContract(signCid); }
+    else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+async function removeSignatory(sid) {
+  if (!confirm('Remover signatário?')) return;
+  try {
+    const r = await fetch(`/api/signatories/${sid}`, {method:'DELETE', credentials:'include'});
+    const j = await r.json();
+    if (r.ok) { toast('Removido.','ok'); selectContract(currentId); }
+    else toast(j.error||'Erro.','err');
+  } catch { toast('Erro de rede.','err'); }
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────
+function openModal(id)  { $(id).classList.add('open'); }
+function closeModal(id) { $(id).classList.remove('open'); }
+
+document.querySelectorAll('.ov').forEach(el => {
+  el.addEventListener('click', e => { if(e.target === el) el.classList.remove('open'); });
+});
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+checkAuth();
+
+// Dark mode
+function toggleDark(){
+  document.body.classList.toggle('dark-mode');
+  try{localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light');}catch(e){}
+}
+(function(){
+  try{if(localStorage.getItem('theme')==='dark')document.body.classList.add('dark-mode');}catch(e){}
+})();
+</script>
+</body>
+</html>

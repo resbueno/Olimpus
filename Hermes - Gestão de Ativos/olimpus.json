@@ -1,0 +1,9 @@
+{
+  "name": "Hermes",
+  "myth": "rastreia cada ativo da empresa com a velocidade de um mensageiro divino",
+  "cat": "Gestão de Ativos",
+  "desc": "Controle total do patrimônio corporativo: cadastro, localização, depreciação, manutenção preventiva e movimentação de ativos físicos e digitais da empresa.",
+  "color": "#b45309",
+  "icon": "folder",
+  "port": 5050
+}

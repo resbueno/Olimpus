@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ATLAS — Gestão de Acessos</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563eb'/><path d='M16 27s9-4 9-10V9l-9-3-9 3v8c0 6 9 10 9 10z' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#ffffff;--bg3:#f8f9fa;--bg-alt:#f8f9fa;
+  --glass:rgba(255,255,255,0.7);
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+  --accent:#2563eb;--accent2:#1d4ed8;--accent-bg:rgba(37,99,235,0.08);
+  --success:#16a34a;--success-bg:rgba(22,163,74,0.07);
+  --danger:#dc2626;--danger-bg:rgba(220,38,38,0.07);
+  --warn:#d97706;--warn-bg:rgba(217,119,6,0.07);
+  --text:#1f1f1f;--text-mid:#5f6368;--text-dim:#9ca3af;
+  --sans:'Outfit',sans-serif;--display:'Space Grotesk',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --r:12px;--r2:20px;--radius:20px;
+  --sh:0 4px 20px rgba(0,0,0,0.06);
+}
+
+body.dark-mode{
+  --bg:#0b0f1a;--bg2:#1f2937;--bg3:#111827;--bg-alt:#111827;
+  --glass:rgba(17,24,39,0.7);
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+  --text:#f3f4f6;--text-mid:#9ca3af;--text-dim:#6b7280;
+  --sh:0 4px 20px rgba(0,0,0,0.3);
+}
+body.dark-mode .card,body.dark-mode .modal,body.dark-mode .topbar,
+body.dark-mode .sidebar,body.dark-mode .stat-card,
+body.dark-mode .login-card,body.dark-mode .login-box{background:#1f2937}
+body.dark-mode tr:hover td{background:#111827}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background-color .4s,color .4s}
+
+/* ── SCROLLBAR GLOBAL ─────────────────────────────────────── */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.13);border-radius:20px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.22)}
+body.dark-mode ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.13)}
+body.dark-mode ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.22)}
+*{scrollbar-width:thin;scrollbar-color:rgba(0,0,0,0.13) transparent}
+body.dark-mode *{scrollbar-color:rgba(255,255,255,0.13) transparent}
+
+/* ── LOGIN ─────────────────────────────────────────────────── */
+#ls{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+#ls.hidden{display:none}
+.lbg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 40%,#2563eb0c 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 60%,#16a34a08 0%,transparent 70%)}
+.lp{position:relative;width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--sh);overflow:hidden}
+.lt{background:linear-gradient(135deg,#2563eb0c,#16a34a0a);border-bottom:1px solid var(--border);padding:32px 36px 28px;text-align:center}
+.llo{display:inline-flex;align-items:center;gap:14px;margin-bottom:8px}
+.lico{width:44px;height:44px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:50%;display:grid;place-items:center}
+.lico svg{width:22px;height:22px}
+.lbrand{font-size:1.8rem;font-weight:700;letter-spacing:.06em;color:var(--text)}
+.lsub{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.14em;margin-top:4px;text-transform:uppercase}
+.lf{padding:28px 36px 32px;display:flex;flex-direction:column;gap:16px}
+.lerr{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:8px 12px;font-size:.8rem;color:var(--danger);display:none}
+.lerr.show{display:block}
+.lfg{display:flex;flex-direction:column;gap:5px}
+.flab{font-size:.72rem;font-weight:500;color:var(--text-mid);letter-spacing:.05em}
+.fi{background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:.92rem;padding:13px 16px;border-radius:var(--r);outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--display);font-size:.95rem;font-weight:600;padding:13px;border-radius:var(--r);cursor:pointer;transition:background .15s,transform .1s;width:100%;margin-top:4px}
+.btn-login:hover{background:var(--accent2);transform:translateY(-1px)}
+.lhint{font-size:.7rem;color:var(--text-dim);text-align:center;font-family:var(--mono)}
+
+/* ── APP ───────────────────────────────────────────────────── */
+#app{display:flex;flex-direction:column;flex:1;opacity:0;transition:opacity .3s}
+#app.visible{opacity:1}
+
+/* ── TOPBAR ────────────────────────────────────────────────── */
+.topbar{height:56px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tbl{display:flex;align-items:center;gap:16px}
+.bicon{width:32px;height:32px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:6px;display:grid;place-items:center}
+.bicon svg{width:17px;height:17px}
+.bname{font-size:1.05rem;font-weight:700;letter-spacing:.08em}
+.bsep{width:1px;height:20px;background:var(--border)}
+.bmod{font-family:var(--mono);font-size:.7rem;color:var(--text-dim);letter-spacing:.1em}
+.tbr{display:flex;align-items:center;gap:12px}
+.tclock{font-family:var(--mono);font-size:.78rem;color:var(--text-mid)}
+
+/* ── USER CHIP ─────────────────────────────────────────────── */
+.user-chip{display:flex;align-items:center;gap:8px;padding:4px 10px;border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:all .15s;position:relative}
+.user-chip:hover{border-color:var(--border2);background:var(--bg3)}
+.avatar{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.62rem;font-weight:700;color:#fff;flex-shrink:0;background:var(--accent)}
+.user-name{font-size:.78rem;font-weight:500}
+.user-role{font-family:var(--mono);font-size:.62rem;color:var(--text-dim)}
+.user-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:180px;display:none;z-index:200}
+.user-chip.open .user-menu{display:block}
+.um-item{padding:9px 14px;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-mid);transition:background .1s}
+.um-item:hover{background:var(--bg3);color:var(--text)}
+.um-item.danger:hover{background:var(--danger-bg);color:var(--danger)}
+.um-sep{height:1px;background:var(--border);margin:4px 0}
+
+/* ── BODY WRAP ─────────────────────────────────────────────── */
+.bwrap{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ───────────────────────────────────────────────── */
+.sidebar{width:256px;min-width:256px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sbhd{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sbttl{font-size:.7rem;font-weight:600;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase}
+.sblist{flex:1;overflow-y:auto;padding:8px 0;min-height:0}
+.sb-item{padding:9px 16px;cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:10px;font-size:.82rem;font-weight:500;border:none;background:none;width:100%;text-align:left;color:var(--text-mid)}
+.sb-item svg{width:15px;height:15px;flex-shrink:0;color:var(--text-dim)}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item:hover svg{color:var(--text-mid)}
+.sb-item.active{background:var(--bg3);border-left:3px solid var(--accent);padding-left:13px;color:var(--accent)}
+.sb-item.active svg{color:var(--accent)}
+.sb-divider{height:1px;background:var(--border);margin:6px 0}
+.sb-section{padding:10px 16px 5px;font-size:.65rem;font-weight:600;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase}
+
+/* ── MAIN ──────────────────────────────────────────────────── */
+.main{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px;min-height:0}
+
+/* ── PAGE HEAD ─────────────────────────────────────────────── */
+.phd{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.pey{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.ptit{font-size:1.4rem;font-weight:700;letter-spacing:.02em}
+
+/* ── STATS GRID ────────────────────────────────────────────── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px}
+.stat-val{font-family:var(--mono);font-size:1.6rem;font-weight:600;line-height:1}
+.stat-lbl{font-size:.68rem;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+
+/* ── CARD ──────────────────────────────────────────────────── */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-header-title{font-size:.85rem;font-weight:700}
+.table-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 280px)}
+table{width:100%;border-collapse:collapse}
+th{font-size:.68rem;font-weight:600;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;padding:10px 16px;text-align:left;background:var(--bg-alt);border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:1}
+td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:.82rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
+
+/* ── BTN ───────────────────────────────────────────────────── */
+.btn{font-family:var(--sans);font-size:.78rem;font-weight:500;padding:7px 14px;border-radius:var(--r);border:1px solid;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;letter-spacing:.02em}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}.btn-danger:hover{opacity:.9}
+.btn-ghost{background:transparent;border-color:var(--border2);color:var(--text-mid)}.btn-ghost:hover{border-color:var(--text-mid);color:var(--text);background:var(--bg3)}
+.btn-sm{padding:5px 12px;font-size:.76rem}
+.btn-xs{padding:3px 9px;font-size:.7rem}
+.btn-full{width:100%;justify-content:center}
+
+/* ── BADGES ────────────────────────────────────────────────── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:.6rem;font-weight:600;padding:3px 7px;border-radius:8px;letter-spacing:.05em;white-space:nowrap}
+.badge-ok  {background:var(--success-bg);color:var(--success);border:1px solid #16a34a33}
+.badge-err {background:var(--danger-bg) ;color:var(--danger) ;border:1px solid #dc262633}
+.badge-warn{background:var(--warn-bg)   ;color:var(--warn)   ;border:1px solid #d9770633}
+.badge-info{background:var(--accent-bg) ;color:var(--accent) ;border:1px solid #2563eb33}
+.badge-gray{background:var(--bg3);color:var(--text-mid);border:1px solid var(--border2)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+
+/* ── MODAL ─────────────────────────────────────────────────── */
+.modal-bg{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s}
+.modal-bg.show{opacity:1;visibility:visible}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+.modal.modal-lg{max-width:780px}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:.95rem;font-weight:700}
+.modal-close{background:none;border:none;cursor:pointer;color:var(--text-dim);padding:4px;border-radius:4px;transition:color .15s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── FORM ──────────────────────────────────────────────────── */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:.72rem;font-weight:500;color:var(--text-mid);margin-bottom:6px;letter-spacing:.04em}
+.form-input,.form-select{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:.85rem;font-family:var(--sans);background:var(--bg3);color:var(--text);transition:border-color .15s,box-shadow .15s;outline:none}
+.form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.form-section{font-size:.7rem;font-weight:600;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* ── TOGGLE ────────────────────────────────────────────────── */
+.toggle{position:relative;display:inline-block;width:38px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border2);border-radius:20px;transition:background .2s;cursor:pointer}
+.toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.toggle-slider{background:var(--success)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px)}
+.toggle input:disabled+.toggle-slider{cursor:not-allowed;opacity:.6}
+
+/* ── ACCESS MATRIX ─────────────────────────────────────────── */
+.acesso-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);gap:10px}
+.acesso-row:last-child{border-bottom:none}
+.acesso-sistema{font-size:.82rem;font-weight:500}
+.acesso-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.acesso-origem{font-size:.65rem;font-family:var(--mono);color:var(--text-dim)}
+.role-sel{font-size:.72rem;padding:4px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg3);color:var(--text);font-family:var(--mono);cursor:pointer;transition:opacity .15s}
+.role-sel:disabled{opacity:.35;cursor:not-allowed}
+
+/* ── TABS ──────────────────────────────────────────────────── */
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 18px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── SEARCH ────────────────────────────────────────────────── */
+.search-bar{padding:7px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:.82rem;font-family:var(--sans);background:var(--bg3);color:var(--text);outline:none;width:200px;transition:border-color .15s,box-shadow .15s}
+.search-bar:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg);background:var(--bg2)}
+
+/* ── MULTI CHECKBOX ────────────────────────────────────────── */
+.multi-check{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.multi-check label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.82rem}
+.multi-check input[type=checkbox]{accent-color:var(--accent)}
+
+/* ── AUDIT ─────────────────────────────────────────────────── */
+.audit-item{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.audit-item:last-child{border-bottom:none}
+.audit-icon{width:28px;height:28px;border-radius:6px;display:grid;place-items:center;flex-shrink:0;margin-top:1px}
+.audit-meta{font-size:.68rem;color:var(--text-dim);font-family:var(--mono);margin-top:2px}
+.audit-desc{font-size:.82rem}
+
+/* ── UPLOAD DROP ZONE ──────────────────────────────────────── */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--r2);padding:32px 20px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;background:var(--bg3)}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:var(--accent-bg)}
+.drop-zone svg{margin:0 auto 10px;display:block;opacity:.4}
+.drop-zone p{font-size:.82rem;color:var(--text-mid)}
+.drop-zone small{font-size:.72rem;color:var(--text-dim);font-family:var(--mono)}
+.import-result{margin-top:14px;padding:12px 16px;border-radius:var(--r);font-size:.82rem;display:none}
+.import-result.ok {background:var(--success-bg);color:var(--success);border:1px solid #16a34a33;display:block}
+.import-result.err{background:var(--danger-bg) ;color:var(--danger) ;border:1px solid #dc262633;display:block}
+
+/* ── MODAL SENHA ───────────────────────────────────────────── */
+#modal-senha-bg{position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:20px}
+#modal-senha-bg.hidden{display:none}
+
+/* ── PERMISSAO GRID ────────────────────────────────────────── */
+.perm-grid{display:grid;gap:12px;margin-top:12px}
+.perm-app{border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;background:var(--bg3)}
+.perm-app-title{font-size:.82rem;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.perm-app-title .badge{font-size:.58rem}
+.perm-checks{display:flex;flex-wrap:wrap;gap:6px 14px}
+.perm-checks label{display:flex;align-items:center;gap:5px;font-size:.78rem;cursor:pointer}
+.perm-checks input[type=checkbox]{accent-color:var(--accent)}
+
+/* ── TIPOS ACESSO BADGES ──────────────────────────────────── */
+.tipo-badge{display:inline-flex;align-items:center;gap:3px;font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:6px;background:var(--accent-bg);color:var(--accent);border:1px solid #2563eb33;margin:1px}
+
+/* ── MISC ──────────────────────────────────────────────────── */
+.sec-label{font-size:.68rem;font-weight:600;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.empty{padding:48px 24px;text-align:center;color:var(--text-dim);font-size:.85rem}
+.empty svg{width:36px;height:36px;margin:0 auto 12px;opacity:.35;display:block}
+.loading{color:var(--text-dim);font-size:.82rem;padding:20px;text-align:center}
+a{color:var(--accent);text-decoration:none}
+
+/* ── TOAST ──────────────────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--text);color:#fff;border-radius:var(--r);padding:10px 20px;font-size:.82rem;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:340px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{background:var(--success)}
+#toast.err{background:var(--danger)}
+
+/* ── THEME TOGGLE ───────────────────────────────────────────── */
+.theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.theme-toggle:hover{border-color:var(--accent);transform:scale(1.05)}
+body.dark-mode .theme-toggle{background:var(--bg2)}
+
+/* ── OLIMPUS LAYOUT ─────────────────────────────────────── */
+body{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.dashboard-layout{padding:20px;height:100vh;overflow:hidden;display:flex;justify-content:center;align-items:stretch}
+.main-area{width:100%;max-width:1500px;display:flex;flex-direction:column;background:var(--bg-alt);border-radius:var(--radius);overflow:hidden;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.main-area::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 120px 60px var(--bg);pointer-events:none;z-index:0}
+.topbar{position:relative;z-index:10;background:transparent;border-bottom:1px solid var(--border)}
+.bwrap,.content-area{position:relative;z-index:1}
+.sidebar{background:transparent;border-right:1px solid var(--border)}
+
+/* main-area height fix */
+.dashboard-layout{display:flex;align-items:stretch}
+.main-area{display:flex;flex-direction:column;flex:1;height:100%}
+.main-area #app{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-area #app .bwrap{flex:1;min-height:0}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ──────────────────────────────────────────────────────── -->
+<div id="ls">
+  <div class="lbg"></div>
+  <div class="lp">
+    <div class="lt">
+      <div class="llo">
+        <div class="lico">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <div class="lbrand">ATLAS</div>
+      </div>
+      <div class="lsub">Gestão de Acessos</div>
+    </div>
+    <div class="lf">
+      <div class="lerr" id="login-err"></div>
+      <div class="lfg">
+        <label class="flab">E-MAIL</label>
+        <input class="fi" type="email" id="login-email" placeholder="seu@email.com" autocomplete="username">
+      </div>
+      <div class="lfg">
+        <label class="flab">SENHA</label>
+        <input class="fi" type="password" id="login-senha" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-login btn-full" onclick="doLogin()">Entrar</button>
+      <div class="lhint">admin@olimpus.local</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ────────────────────────────────────────────────────────── -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="tbl">
+      <div class="bicon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <span class="bname">ATLAS</span>
+      <div class="bsep"></div>
+      <span class="bmod" id="page-title">Dashboard</span>
+    </div>
+    <div class="tbr">
+      <span class="tclock" id="clock">--:--:--</span>
+      <div class="user-chip" id="user-chip" onclick="toggleUserMenu(event)">
+        <div class="avatar" id="sb-avatar">?</div>
+        <div>
+          <div class="user-name" id="sb-name">—</div>
+          <div class="user-role" id="sb-email">—</div>
+        </div>
+        <div class="user-menu" id="user-menu">
+          <div class="um-item danger" onclick="doLogout()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sair
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div class="bwrap">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sbhd">
+        <span class="sbttl">Navegação</span>
+      </div>
+      <div class="sblist" id="sidebar-nav">
+        <!-- Preenchido dinamicamente -->
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main" id="page-body">
+      <div class="loading">Carregando...</div>
+    </main>
+
+  </div><!-- /.bwrap -->
+</div><!-- /#app -->
+
+<!-- ── MODAL ──────────────────────────────────────────────────────── -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">—</span>
+      <button class="modal-close" onclick="closeModalForce()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ── MODAL TROCA DE SENHA OBRIGATÓRIA ───────────────────────────── -->
+<div id="modal-senha-bg" class="hidden">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header" style="background:var(--warn-bg);border-bottom-color:#d9770633">
+      <span class="modal-title" style="color:var(--warn)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle;margin-right:6px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Troca de Senha Obrigatória
+      </span>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.83rem;color:var(--text-mid);margin-bottom:18px">
+        É o seu primeiro acesso. Por segurança, defina uma nova senha antes de continuar.
+      </p>
+      <div class="lerr" id="senha-err" style="margin-bottom:12px"></div>
+      <div class="form-group">
+        <label class="form-label">NOVA SENHA *</label>
+        <input class="form-input" type="password" id="nova-senha" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label">CONFIRMAR SENHA *</label>
+        <input class="form-input" type="password" id="conf-senha" placeholder="Repita a nova senha" autocomplete="new-password">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary btn-full" onclick="salvarNovaSenha()">Definir Senha e Entrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let currentUser = null;
+let currentSection = 'dashboard';
+const API = '';
+
+function isAdmin() {
+  const tipos = currentUser.tipos_acesso || [];
+  return currentUser && (currentUser.funcoes || []).includes('admin') ||
+    tipos.some(t => Object.values(t.permissoes || {}).some(p => (p || []).includes('admin')));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UTILS
+// ─────────────────────────────────────────────────────────────────────────────
+function $id(id) { return document.getElementById(id); }
+
+let _toastTimer;
+function toast(msg, kind='') {
+  const el = $id('toast');
+  el.textContent = msg;
+  el.className = 'show ' + kind;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.className = '', 4000);
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  const j = await r.json();
+  return { ok: r.ok, status: r.status, data: j.data, error: j.error, raw: j };
+}
+
+function fmtDate(s) {
+  if (!s) return '—';
+  return s.replace('T', ' ').substring(0, 16);
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function initials(nome) {
+  if (!nome) return '?';
+  return nome.split(' ').slice(0,2).map(n => n[0]).join('').toUpperCase();
+}
+
+// Clock
+function tick() {
+  const el = $id('clock');
+  if (el) el.textContent = new Date().toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+tick(); setInterval(tick, 1000);
+
+// User chip dropdown
+function toggleUserMenu(e) {
+  e.stopPropagation();
+  $id('user-chip').classList.toggle('open');
+}
+document.addEventListener('click', () => {
+  const chip = $id('user-chip');
+  if (chip) chip.classList.remove('open');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SIDEBAR (dinâmico conforme perfil)
+// ─────────────────────────────────────────────────────────────────────────────
+function buildSidebar() {
+  const admin = isAdmin();
+  let html = `
+    <div class="sb-section">Principal</div>
+    <button class="sb-item active" onclick="nav('dashboard')" id="nav-dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </button>`;
+
+  if (admin) {
+    html += `
+    <div class="sb-divider"></div>
+    <div class="sb-section">Cadastros</div>
+    <button class="sb-item" onclick="nav('empresas')" id="nav-empresas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Empresas
+    </button>
+    <button class="sb-item" onclick="nav('departamentos')" id="nav-departamentos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+      Departamentos
+    </button>
+<button class="sb-item" onclick="nav('pessoas')" id="nav-pessoas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+      Pessoas
+    </button>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section">Acessos</div>
+    <button class="sb-item" onclick="nav('sistemas')" id="nav-sistemas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Sistemas
+    </button>
+    <button class="sb-item" onclick="nav('tipos_acesso')" id="nav-tipos_acesso">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Tipos de Acesso
+    </button>
+    <button class="sb-item" onclick="nav('acessos')" id="nav-acessos">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      Controle de Acesso
+    </button>
+
+    <div class="sb-divider"></div>
+    <div class="sb-section">Sistema</div>
+    <button class="sb-item" onclick="nav('auditoria')" id="nav-auditoria">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      Auditoria
+    </button>`;
+  } else {
+    // Não-admin: apenas Dashboard (e Pessoas da própria empresa)
+    html += `
+    <div class="sb-divider"></div>
+    <div class="sb-section">Minha Empresa</div>
+    <button class="sb-item" onclick="nav('pessoas')" id="nav-pessoas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Pessoas
+    </button>`;
+  }
+
+  $id('sidebar-nav').innerHTML = html;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH
+// ─────────────────────────────────────────────────────────────────────────────
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  const ssoToken = params.get('atlas_token');
+  if (ssoToken) {
+    window.history.replaceState({}, '', window.location.pathname);
+    const sr = await api('POST', '/api/auth/sso', { token: ssoToken });
+    if (sr.ok) {
+      currentUser = sr.data;
+      buildSidebar();
+      showApp();
+      nav('dashboard');
+      return;
+    }
+  }
+  const r = await api('GET', '/api/auth/me');
+  if (r.ok) {
+    currentUser = r.data;
+    buildSidebar();
+    showApp();
+    nav('dashboard');
+  } else {
+    showLogin();
+  }
+}
+
+function showLogin() {
+  $id('ls').classList.remove('hidden');
+  $id('app').classList.remove('visible');
+  setTimeout(() => $id('login-email').focus(), 50);
+}
+
+function showApp() {
+  $id('ls').classList.add('hidden');
+  $id('app').classList.add('visible');
+  $id('sb-name').textContent   = currentUser.nome;
+  $id('sb-email').textContent  = currentUser.email;
+  $id('sb-avatar').textContent = initials(currentUser.nome);
+}
+
+async function doLogin() {
+  const email = $id('login-email').value.trim();
+  const senha = $id('login-senha').value;
+  const errEl = $id('login-err');
+  errEl.classList.remove('show');
+  if (!email || !senha) { errEl.textContent = 'Preencha e-mail e senha.'; errEl.classList.add('show'); return; }
+  const r = await api('POST', '/api/auth/login', { email, senha });
+  if (r.ok) {
+    currentUser = r.data;
+    if (r.raw.token) localStorage.setItem('atlas_token', r.raw.token);
+    if (r.data.trocar_senha) {
+      $id('ls').classList.add('hidden');
+      $id('modal-senha-bg').classList.remove('hidden');
+      setTimeout(() => $id('nova-senha').focus(), 50);
+    } else {
+      buildSidebar();
+      showApp();
+      nav('dashboard');
+    }
+  } else {
+    errEl.textContent = r.error || 'Credenciais inválidas.';
+    errEl.classList.add('show');
+  }
+}
+
+async function salvarNovaSenha() {
+  const nova = $id('nova-senha').value;
+  const conf = $id('conf-senha').value;
+  const errEl = $id('senha-err');
+  errEl.classList.remove('show');
+  if (!nova || nova.length < 6) { errEl.textContent = 'A senha deve ter pelo menos 6 caracteres.'; errEl.classList.add('show'); return; }
+  if (nova !== conf)             { errEl.textContent = 'As senhas não coincidem.'; errEl.classList.add('show'); return; }
+  const senhaAtual = $id('login-senha').value;
+  const r = await api('POST', '/api/auth/change-password', { atual: senhaAtual, nova });
+  if (r.ok) {
+    $id('modal-senha-bg').classList.add('hidden');
+    buildSidebar();
+    showApp();
+    nav('dashboard');
+    toast('Senha definida com sucesso. Bem-vindo!', 'ok');
+  } else {
+    errEl.textContent = r.error || 'Erro ao trocar senha.';
+    errEl.classList.add('show');
+  }
+}
+
+$id('conf-senha').addEventListener('keydown', e => { if (e.key === 'Enter') salvarNovaSenha(); });
+
+async function doLogout() {
+  await api('POST', '/api/auth/logout');
+  localStorage.removeItem('atlas_token');
+  currentUser = null;
+  showLogin();
+}
+
+$id('login-senha').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────────────────────────────────
+const TITLES = {
+  dashboard:       'Dashboard',
+  empresas:        'Empresas',
+  departamentos:   'Departamentos',
+  pessoas:         'Pessoas',
+  sistemas:        'Sistemas',
+  tipos_acesso:    'Tipos de Acesso',
+  acessos:         'Controle de Acesso',
+  auditoria:       'Auditoria',
+};
+
+function nav(section) {
+  currentSection = section;
+  document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+  const navEl = $id('nav-' + section);
+  if (navEl) navEl.classList.add('active');
+  $id('page-title').textContent = TITLES[section] || section;
+  const body = $id('page-body');
+  body.innerHTML = '<div class="loading">Carregando...</div>';
+  const renders = {
+    dashboard:       renderDashboard,
+    empresas:        renderEmpresas,
+    departamentos:   renderDepartamentos,
+    pessoas:         renderPessoas,
+    sistemas:        renderSistemas,
+    tipos_acesso:    renderTiposAcesso,
+    acessos:         renderAcessos,
+    auditoria:       renderAuditoria,
+  };
+  if (renders[section]) renders[section]();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function openModal(title, bodyHtml, large) {
+  $id('modal-title').textContent = title;
+  $id('modal-body').innerHTML = bodyHtml;
+  const m = $id('modal');
+  if (large) m.classList.add('modal-lg'); else m.classList.remove('modal-lg');
+  $id('modal-bg').classList.add('show');
+}
+
+function closeModal(e) {
+  if (e && e.target !== $id('modal-bg')) return;
+  closeModalForce();
+}
+
+function closeModalForce() {
+  $id('modal-bg').classList.remove('show');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DASHBOARD
+// ─────────────────────────────────────────────────────────────────────────────
+async function renderDashboard() {
+  const r = await api('GET', '/api/dashboard');
+  if (!r.ok) { $id('page-body').innerHTML = '<div class="empty">Erro ao carregar.</div>'; return; }
+  const d = r.data;
+
+  const auditHtml = (d.ultimos_eventos || []).map(ev => {
+    const icons = {
+      login:'🔑', logout:'🚪', criar:'✨', editar:'✏️', desativar:'🚫',
+      excluir:'🗑️', liberar:'✅', bloquear:'🔒', sync:'🔄', remover_regra:'❌',
+      change_password:'🔐', importar:'📥',
+    };
+    return `<div class="audit-item">
+      <div class="audit-icon" style="background:var(--accent-bg);font-size:1rem">${icons[ev.acao]||'📋'}</div>
+      <div>
+        <div class="audit-desc"><strong>${escHtml(ev.pessoa_nome||'Sistema')}</strong> — ${escHtml(ev.acao)} ${escHtml(ev.entidade||'')} ${ev.detalhe?'· '+escHtml(ev.detalhe):''}</div>
+        <div class="audit-meta">${fmtDate(ev.criado_em)}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty" style="padding:20px">Nenhum evento registrado.</div>';
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">VISÃO GERAL</div><div class="ptit">Dashboard</div></div>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val" style="color:var(--accent2)">${d.total_empresas}</div><div class="stat-lbl">Empresas</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--accent2)">${d.total_pessoas}</div><div class="stat-lbl">Pessoas</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--accent2)">${d.total_tipos_acesso}</div><div class="stat-lbl">Tipos de Acesso</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--accent2)">${d.total_sistemas}</div><div class="stat-lbl">Sistemas</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--success)">${d.total_acessos - d.total_bloqueios}</div><div class="stat-lbl">Liberações</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--danger)">${d.total_bloqueios}</div><div class="stat-lbl">Bloqueios</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Últimos Eventos</span></div>
+      <div style="padding:8px 20px">${auditHtml}</div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EMPRESAS (formulário completo)
+// ─────────────────────────────────────────────────────────────────────────────
+async function renderEmpresas() {
+  const r = await api('GET', '/api/empresas');
+  if (!r.ok) return;
+  const list = r.data || [];
+  const rows = list.map(e => `
+    <tr>
+      <td><strong>${escHtml(e.nome)}</strong><br><span style="font-size:.72rem;color:var(--text-dim)">${escHtml(e.razao_social||'')}</span></td>
+      <td><span class="badge badge-gray">${escHtml(e.cnpj||'—')}</span></td>
+      <td>${escHtml(e.responsavel||'—')}</td>
+      <td>${escHtml(e.telefone||'—')}</td>
+      <td>${e.total_pessoas || 0}</td>
+      <td>${e.ativo ? '<span class="badge badge-ok"><span class="dot"></span>Ativa</span>' : '<span class="badge badge-err">Inativa</span>'}</td>
+      <td><span class="badge badge-gray">${fmtDate(e.criado_em)}</span></td>
+      <td style="text-align:right">
+        <button class="btn btn-ghost btn-xs" onclick="editEmpresa(${e.id})">Editar</button>
+        ${e.ativo ? `<button class="btn btn-ghost btn-xs" style="color:var(--danger)" onclick="deleteEmpresa(${e.id},'${escHtml(e.nome)}')">Desativar</button>` : ''}
+      </td>
+    </tr>`).join('') || `<tr><td colspan="8"><div class="empty">Nenhuma empresa cadastrada.</div></td></tr>`;
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">CADASTROS</div><div class="ptit">Empresas</div></div>
+      ${isAdmin() ? '<button class="btn btn-primary btn-sm" onclick="openEmpresaModal()">+ Nova Empresa</button>' : ''}
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Empresas (${list.length})</span></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nome / Razão Social</th><th>CNPJ</th><th>Responsável</th><th>Telefone</th><th>Pessoas</th><th>Status</th><th>Criado em</th><th></th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+const UFS = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'];
+
+function openEmpresaModal(data={}) {
+  const isEdit = !!data.id;
+  const ufOptions = UFS.map(u => `<option value="${u}" ${(data.endereco_estado||'')=== u?'selected':''}>${u}</option>`).join('');
+
+  openModal(isEdit ? 'Editar Empresa' : 'Nova Empresa', `
+    <div class="modal-body">
+      <div class="form-section">Dados da Empresa</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">NOME DA EMPRESA *</label>
+          <input class="form-input" id="emp-nome" value="${escHtml(data.nome||'')}" placeholder="Nome fantasia"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">RAZÃO SOCIAL</label>
+          <input class="form-input" id="emp-razao" value="${escHtml(data.razao_social||'')}" placeholder="Razão social completa"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">CNPJ</label>
+          <input class="form-input" id="emp-cnpj" value="${escHtml(data.cnpj||'')}" placeholder="00.000.000/0001-00"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">RESPONSÁVEL</label>
+          <input class="form-input" id="emp-responsavel" value="${escHtml(data.responsavel||'')}" placeholder="Nome do responsável"></div>
+      </div>
+
+      <div class="form-section">Contato</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">TELEFONE</label>
+          <input class="form-input" id="emp-telefone" value="${escHtml(data.telefone||'')}" placeholder="(00) 00000-0000"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">E-MAIL</label>
+          <input class="form-input" id="emp-email" type="email" value="${escHtml(data.email||'')}" placeholder="contato@empresa.com"></div>
+      </div>
+
+      <div class="form-section">Endereço</div>
+      <div style="display:grid;grid-template-columns:3fr 1fr;gap:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">LOGRADOURO</label>
+          <input class="form-input" id="emp-logradouro" value="${escHtml(data.endereco_logradouro||'')}" placeholder="Rua, Av., etc."></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">NÚMERO</label>
+          <input class="form-input" id="emp-numero" value="${escHtml(data.endereco_numero||'')}" placeholder="Nº"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">COMPLEMENTO</label>
+          <input class="form-input" id="emp-complemento" value="${escHtml(data.endereco_complemento||'')}" placeholder="Sala, Andar..."></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">BAIRRO</label>
+          <input class="form-input" id="emp-bairro" value="${escHtml(data.endereco_bairro||'')}" placeholder="Bairro"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;margin-top:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">CIDADE</label>
+          <input class="form-input" id="emp-cidade" value="${escHtml(data.endereco_cidade||'')}" placeholder="Cidade"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">ESTADO</label>
+          <select class="form-input" id="emp-estado"><option value="">UF</option>${ufOptions}</select></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">CEP</label>
+          <input class="form-input" id="emp-cep" value="${escHtml(data.endereco_cep||'')}" placeholder="00000-000"></div>
+      </div>
+
+      <div class="form-section">Contrato</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">Nº DO CONTRATO</label>
+          <input class="form-input" id="emp-contrato" value="${escHtml(data.numero_contrato||'')}" placeholder="CT-001"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">INÍCIO DO CONTRATO</label>
+          <input class="form-input" id="emp-inicio" type="date" value="${escHtml(data.inicio_contrato||'')}"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">VIGÊNCIA DO CONTRATO</label>
+          <input class="form-input" id="emp-vigencia" type="date" value="${escHtml(data.vigencia_contrato||'')}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModalForce()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEmpresa(${data.id||0})">${isEdit?'Salvar':'Criar'}</button>
+    </div>`, true);
+}
+
+async function editEmpresa(id) {
+  const r = await api('GET', `/api/empresas/${id}`);
+  if (r.ok) openEmpresaModal(r.data);
+}
+
+async function saveEmpresa(id) {
+  const body = {
+    nome:                  $id('emp-nome').value.trim(),
+    razao_social:          $id('emp-razao').value.trim(),
+    cnpj:                  $id('emp-cnpj').value.trim(),
+    responsavel:           $id('emp-responsavel').value.trim(),
+    telefone:              $id('emp-telefone').value.trim(),
+    email:                 $id('emp-email').value.trim(),
+    endereco_logradouro:   $id('emp-logradouro').value.trim(),
+    endereco_numero:       $id('emp-numero').value.trim(),
+    endereco_complemento:  $id('emp-complemento').value.trim(),
+    endereco_bairro:       $id('emp-bairro').value.trim(),
+    endereco_cidade:       $id('emp-cidade').value.trim(),
+    endereco_estado:       $id('emp-estado').value,
+    endereco_cep:          $id('emp-cep').value.trim(),
+    numero_contrato:       $id('emp-contrato').value.trim(),
+    inicio_contrato:       $id('emp-inicio').value,
+    vigencia_contrato:     $id('emp-vigencia').value,
+  };
+  if (!body.nome) { toast('Nome é obrigatório.', 'err'); return; }
+  const r = id
+    ? await api('PUT',  `/api/empresas/${id}`, body)
+    : await api('POST', '/api/empresas', body);
+  if (r.ok) { closeModalForce(); toast(id?'Empresa atualizada.':'Empresa criada.','ok'); renderEmpresas(); }
+  else toast(r.error||'Erro.','err');
+}
+
+async function deleteEmpresa(id, nome) {
+  if (!confirm(`Desativar empresa "${nome}"?`)) return;
+  const r = await api('DELETE', `/api/empresas/${id}`);
+  if (r.ok) { toast('Empresa desativada.','ok'); renderEmpresas(); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEPARTAMENTOS
+// ─────────────────────────────────────────────────────────────────────────────
+let _deptEmpresaFiltro = '';
+
+async function renderDepartamentos() {
+  const [rDep, rEmp] = await Promise.all([
+    api('GET', '/api/departamentos'),
+    api('GET', '/api/empresas?ativo=1'),
+  ]);
+  if (!rDep.ok) return;
+  const allDeps = rDep.data || [];
+  const empresas = rEmp.data || [];
+
+  const empOptions = empresas.map(e =>
+    `<option value="${e.id}" ${_deptEmpresaFiltro==e.id?'selected':''}>${escHtml(e.nome)}</option>`
+  ).join('');
+
+  const list = _deptEmpresaFiltro
+    ? allDeps.filter(d => String(d.empresa_id) === String(_deptEmpresaFiltro))
+    : allDeps;
+
+  const rows = list.map(d => `
+    <tr>
+      <td><strong>${escHtml(d.nome)}</strong></td>
+      <td>${escHtml(d.empresa_nome||'—')}</td>
+      <td>${d.total_pessoas || 0}</td>
+      <td><span class="badge badge-gray">${fmtDate(d.criado_em)}</span></td>
+      <td style="text-align:right">
+        <button class="btn btn-ghost btn-xs" onclick="editDepartamento(${d.id})">Editar</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--danger)" onclick="deleteDepartamento(${d.id},'${escHtml(d.nome)}')">Excluir</button>
+      </td>
+    </tr>`).join('') || `<tr><td colspan="5"><div class="empty">Nenhum departamento encontrado.</div></td></tr>`;
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">CADASTROS</div><div class="ptit">Departamentos</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="form-input" style="width:200px;padding:6px 10px;font-size:.8rem" onchange="_deptEmpresaFiltro=this.value;renderDepartamentos()">
+          <option value="">Todas as empresas</option>${empOptions}
+        </select>
+        ${isAdmin() ? '<button class="btn btn-primary btn-sm" onclick="openDepartamentoModal()">+ Novo Departamento</button>' : ''}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Departamentos (${list.length})</span></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nome</th><th>Empresa</th><th>Pessoas</th><th>Criado em</th><th></th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+async function openDepartamentoModal(data={}) {
+  const rEmp = await api('GET', '/api/empresas?ativo=1');
+  const empresas = (rEmp.data || []);
+  const isEdit = !!data.id;
+
+  // Se há filtro ativo pré-seleciona a empresa
+  const preEmp = data.empresa_id || _deptEmpresaFiltro || '';
+  const empOptions = empresas.map(e =>
+    `<option value="${e.id}" ${preEmp==e.id?'selected':''}>${escHtml(e.nome)}</option>`
+  ).join('');
+
+  openModal(isEdit ? 'Editar Departamento' : 'Novo Departamento', `
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">NOME DO DEPARTAMENTO *</label>
+        <input class="form-input" id="dep-nome" value="${escHtml(data.nome||'')}" placeholder="ex: Tecnologia, RH, Financeiro"></div>
+      <div class="form-group"><label class="form-label">EMPRESA *</label>
+        <select class="form-input" id="dep-empresa">
+          <option value="">— Selecione a empresa —</option>${empOptions}
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModalForce()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveDepartamento(${data.id||0})">${isEdit?'Salvar':'Criar'}</button>
+    </div>`);
+}
+
+async function editDepartamento(id) {
+  const r = await api('GET', `/api/departamentos/${id}`);
+  if (r.ok) openDepartamentoModal(r.data);
+}
+
+async function saveDepartamento(id) {
+  const nome       = $id('dep-nome').value.trim();
+  const empresa_id = $id('dep-empresa').value;
+  if (!nome)       { toast('Nome é obrigatório.','err'); return; }
+  if (!empresa_id) { toast('Selecione a empresa.','err'); return; }
+  const body = { nome, empresa_id: parseInt(empresa_id) };
+  const r = id
+    ? await api('PUT',  `/api/departamentos/${id}`, body)
+    : await api('POST', '/api/departamentos', body);
+  if (r.ok) {
+    closeModalForce();
+    toast(id ? 'Departamento atualizado.' : 'Departamento criado.', 'ok');
+    renderDepartamentos();
+  } else toast(r.error||'Erro.','err');
+}
+
+async function deleteDepartamento(id, nome) {
+  if (!confirm(`Excluir departamento "${nome}"?\nAs pessoas vinculadas ficarão sem departamento.`)) return;
+  const r = await api('DELETE', `/api/departamentos/${id}`);
+  if (r.ok) { toast('Departamento excluído.','ok'); renderDepartamentos(); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FUNÇÕES
+// ─────────────────────────────────────────────────────────────────────────────
+async function renderFuncoes() {
+  const r = await api('GET', '/api/funcoes');
+  if (!r.ok) return;
+  const list = r.data || [];
+  const rows = list.map(f => `
+    <tr>
+      <td><strong>${escHtml(f.nome)}</strong></td>
+      <td style="color:var(--text-mid)">${escHtml(f.descricao||'—')}</td>
+      <td>${f.total_pessoas}</td>
+      <td style="text-align:right">
+        <button class="btn btn-ghost btn-xs" onclick="editFuncao(${f.id})">Editar</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--danger)" onclick="deleteFuncao(${f.id},'${escHtml(f.nome)}')">Excluir</button>
+      </td>
+    </tr>`).join('') || `<tr><td colspan="4"><div class="empty">Nenhuma função cadastrada.</div></td></tr>`;
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">CADASTROS</div><div class="ptit">Funções</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openFuncaoModal()">+ Nova Função</button>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Funções (${list.length})</span></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nome</th><th>Descrição</th><th>Pessoas</th><th></th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+function openFuncaoModal(data={}) {
+  const isEdit = !!data.id;
+  openModal(isEdit ? 'Editar Função' : 'Nova Função', `
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">NOME *</label>
+        <input class="form-input" id="func-nome" value="${escHtml(data.nome||'')}" placeholder="ex: operador"></div>
+      <div class="form-group"><label class="form-label">DESCRIÇÃO</label>
+        <input class="form-input" id="func-desc" value="${escHtml(data.descricao||'')}" placeholder="Descrição da função"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModalForce()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveFuncao(${data.id||0})">${isEdit?'Salvar':'Criar'}</button>
+    </div>`);
+}
+
+async function editFuncao(id) {
+  const r = await api('GET', `/api/funcoes`);
+  if (r.ok) { const f = (r.data||[]).find(x => x.id===id); if (f) openFuncaoModal(f); }
+}
+
+async function saveFuncao(id) {
+  const body = { nome: $id('func-nome').value.trim(), descricao: $id('func-desc').value.trim() };
+  if (!body.nome) { toast('Nome é obrigatório.','err'); return; }
+  const r = id
+    ? await api('PUT',  `/api/funcoes/${id}`, body)
+    : await api('POST', '/api/funcoes', body);
+  if (r.ok) { closeModalForce(); toast(id?'Função atualizada.':'Função criada.','ok'); renderFuncoes(); }
+  else toast(r.error||'Erro.','err');
+}
+
+async function deleteFuncao(id, nome) {
+  if (!confirm(`Excluir função "${nome}"?`)) return;
+  const r = await api('DELETE', `/api/funcoes/${id}`);
+  if (r.ok) { toast('Função excluída.','ok'); renderFuncoes(); }
+  else toast(r.error||'Erro.','err');
+}
+
+function fmtTiposAcesso(tipos) {
+  if (!tipos || tipos.length === 0) return '—';
+  const bySistema = {};
+  for (const t of tipos) {
+    const sf = t.sistema_folder || 'outros';
+    if (!bySistema[sf]) bySistema[sf] = [];
+    bySistema[sf].push(t.tipo_nome);
+  }
+  return Object.entries(bySistema).map(([sf, nomes]) =>
+    `<span class="tipo-badge">${sf}: ${nomes.join(', ')}</span>`
+  ).join(' ');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PESSOAS (departamento como combo filtrado por empresa)
+// ─────────────────────────────────────────────────────────────────────────────
+async function renderPessoas() {
+  const r = await api('GET', '/api/pessoas');
+  if (!r.ok) return;
+  const list = r.data || [];
+  const rows = list.map(p => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--accent);display:grid;place-items:center;font-size:.7rem;font-weight:700;color:var(--accent);flex-shrink:0">${escHtml(initials(p.nome))}</div>
+          <div>
+            <div style="font-weight:600">${escHtml(p.nome)}</div>
+            <div style="font-size:.72rem;color:var(--text-dim);font-family:var(--mono)">${escHtml(p.email)}</div>
+          </div>
+        </div>
+      </td>
+      <td>${escHtml(p.cargo||'—')}</td>
+      <td>${escHtml(p.departamento_nome||'—')}</td>
+      <td>${escHtml(p.empresa_nome||'—')}</td>
+      <td>${fmtTiposAcesso(p.tipos_acesso)}</td>
+      <td>
+        ${p.ativo ? '<span class="badge badge-ok"><span class="dot"></span>Ativo</span>' : '<span class="badge badge-err">Inativo</span>'}
+        ${p.trocar_senha ? '<span class="badge badge-warn" style="margin-left:4px">TROCAR SENHA</span>' : ''}
+      </td>
+      <td><span class="badge badge-gray">${fmtDate(p.criado_em)}</span></td>
+      <td style="text-align:right">
+        ${isAdmin() ? `<button class="btn btn-ghost btn-xs" onclick="editPessoa(${p.id})">Editar</button>` : ''}
+        ${isAdmin() && p.id !== currentUser.id && p.ativo ? `<button class="btn btn-ghost btn-xs" style="color:var(--danger)" onclick="deletePessoa(${p.id},'${escHtml(p.nome)}')">Desativar</button>` : ''}
+      </td>
+    </tr>`).join('') || `<tr><td colspan="8"><div class="empty">Nenhuma pessoa cadastrada.</div></td></tr>`;
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">CADASTROS</div><div class="ptit">Pessoas</div></div>
+      ${isAdmin() ? `<div style="display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="openImportModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Importar Excel
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="openPessoaModal()">+ Nova Pessoa</button>
+      </div>` : ''}
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Pessoas (${list.length})</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pessoa</th><th>Cargo</th><th>Departamento</th><th>Empresa</th><th>Tipos de Acesso</th><th>Status</th><th>Criado em</th><th></th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+async function openPessoaModal(data={}) {
+  const [rEmp, rFunc, rDeps, rPessoas] = await Promise.all([
+    api('GET','/api/empresas?ativo=1'),
+    api('GET','/api/funcoes'),
+    data.empresa_id ? api('GET',`/api/departamentos?empresa_id=${data.empresa_id}`) : Promise.resolve({data:[]}),
+    data.empresa_id ? api('GET',`/api/pessoas?empresa_id=${data.empresa_id}&ativo=1`) : Promise.resolve({data:[]}),
+  ]);
+  const empresas = rEmp.data || [];
+  const funcoes  = rFunc.data || [];
+  const deps     = rDeps.data || [];
+  const colegas  = (rPessoas.data || []).filter(p => p.id !== data.id);
+  const funcoesPessoa = (data.funcoes||[]).map(f=>f.id);
+  const isEdit = !!data.id;
+
+  const empOptions    = empresas.map(e => `<option value="${e.id}" ${data.empresa_id==e.id?'selected':''}>${escHtml(e.nome)}</option>`).join('');
+  const depOptions    = deps.map(d => `<option value="${d.id}" ${data.departamento_id==d.id?'selected':''}>${escHtml(d.nome)}</option>`).join('');
+  const gestorOptions = colegas.map(p => `<option value="${p.id}" ${data.gestor_id==p.id?'selected':''}>${escHtml(p.nome)}</option>`).join('');
+  const funcChecks = funcoes.map(f => `
+    <label><input type="checkbox" name="func" value="${f.id}" ${funcoesPessoa.includes(f.id)?'checked':''}>
+    ${escHtml(f.nome)} <span style="color:var(--text-dim);font-size:.72rem">${escHtml(f.descricao)}</span></label>
+  `).join('');
+
+  openModal(isEdit ? 'Editar Pessoa' : 'Nova Pessoa', `
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">NOME *</label>
+          <input class="form-input" id="pes-nome" value="${escHtml(data.nome||'')}" placeholder="Nome completo"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">CARGO</label>
+          <input class="form-input" id="pes-cargo" value="${escHtml(data.cargo||'')}" placeholder="ex: Analista"></div>
+      </div>
+      <div class="form-group" style="margin-top:12px"><label class="form-label">E-MAIL *</label>
+        <input class="form-input" id="pes-email" type="email" value="${escHtml(data.email||'')}" placeholder="email@empresa.com"></div>
+      <div class="form-group"><label class="form-label">${isEdit?'NOVA SENHA (deixe em branco para manter)':'SENHA *'}</label>
+        <input class="form-input" id="pes-senha" type="password" placeholder="••••••••"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">EMPRESA</label>
+          <select class="form-input" id="pes-empresa" onchange="onEmpresaChangePessoa()">
+            <option value="">— Sem empresa —</option>${empOptions}
+          </select></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">DEPARTAMENTO</label>
+          <select class="form-input" id="pes-departamento">
+            <option value="">— Selecione a empresa primeiro —</option>${depOptions}
+          </select></div>
+      </div>
+      <div class="form-group" style="margin-top:12px;margin-bottom:0"><label class="form-label">GESTOR DIRETO</label>
+        <select class="form-input" id="pes-gestor">
+          <option value="">— Sem gestor —</option>${gestorOptions}
+        </select></div>
+      <div class="form-group" style="margin-top:12px;margin-bottom:0"><label class="form-label">FUNÇÕES</label>
+        <div class="multi-check">${funcChecks}</div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModalForce()">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePessoa(${data.id||0})">${isEdit?'Salvar':'Criar'}</button>
+    </div>`);
+}
+
+async function onEmpresaChangePessoa() {
+  const empId  = $id('pes-empresa').value;
+  const depSel = $id('pes-departamento');
+  const gestorSel = $id('pes-gestor');
+
+  depSel.innerHTML = '<option value="">Carregando...</option>';
+  if (gestorSel) gestorSel.innerHTML = '<option value="">Carregando...</option>';
+
+  if (!empId) {
+    depSel.innerHTML = '<option value="">— Selecione a empresa primeiro —</option>';
+    if (gestorSel) gestorSel.innerHTML = '<option value="">— Sem gestor —</option>';
+    return;
+  }
+
+  const [rDeps, rPessoas] = await Promise.all([
+    api('GET', `/api/departamentos?empresa_id=${empId}`),
+    api('GET', `/api/pessoas?empresa_id=${empId}&ativo=1`),
+  ]);
+
+  const deps = rDeps.data || [];
+  depSel.innerHTML = deps.length
+    ? '<option value="">— Selecione —</option>' + deps.map(d => `<option value="${d.id}">${escHtml(d.nome)}</option>`).join('')
+    : '<option value="">— Nenhum departamento cadastrado —</option>';
+
+  if (gestorSel) {
+    const pessoas = rPessoas.data || [];
+    gestorSel.innerHTML = '<option value="">— Sem gestor —</option>' +
+      pessoas.map(p => `<option value="${p.id}">${escHtml(p.nome)}</option>`).join('');
+  }
+}
+
+async function editPessoa(id) {
+  const r = await api('GET', `/api/pessoas/${id}`);
+  if (r.ok) openPessoaModal(r.data);
+}
+
+async function savePessoa(id) {
+  const funcoes = [...document.querySelectorAll('input[name=func]:checked')].map(el => parseInt(el.value));
+  const body = {
+    nome:            $id('pes-nome').value.trim(),
+    email:           $id('pes-email').value.trim().toLowerCase(),
+    cargo:           $id('pes-cargo').value.trim(),
+    departamento_id: $id('pes-departamento').value || null,
+    empresa_id:      $id('pes-empresa').value || null,
+    gestor_id:       $id('pes-gestor').value || null,
+    funcoes,
+  };
+  const senha = $id('pes-senha').value;
+  if (senha) body.senha = senha;
+  if (!body.nome)  { toast('Nome é obrigatório.','err'); return; }
+  if (!body.email) { toast('E-mail é obrigatório.','err'); return; }
+  if (!id && !senha) { toast('Senha é obrigatória.','err'); return; }
+  const r = id
+    ? await api('PUT',  `/api/pessoas/${id}`, body)
+    : await api('POST', '/api/pessoas', body);
+  if (r.ok) { closeModalForce(); toast(id?'Pessoa atualizada.':'Pessoa criada.','ok'); renderPessoas(); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// IMPORTAR PESSOAS (Excel)
+// ─────────────────────────────────────────────────────────────────────────────
+function openImportModal() {
+  openModal('Importar Pessoas via Excel', `
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--text-mid);margin-bottom:16px">
+        Envie uma planilha <strong>.xlsx</strong> com as colunas:<br>
+        <span style="font-family:var(--mono);font-size:.75rem;color:var(--accent)">Nome · Email · Cargo · Empresa · Funcao</span><br>
+        <span style="font-size:.72rem;color:var(--text-dim)">Apenas Nome e Email são obrigatórios. Empresa e Funcao devem coincidir com os cadastros.</span>
+      </p>
+      <a href="#" onclick="baixarTemplate(event)" style="font-size:.78rem;display:inline-flex;align-items:center;gap:5px;margin-bottom:16px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Baixar planilha modelo
+      </a>
+      <div class="drop-zone" id="drop-zone" onclick="$id('file-input').click()"
+           ondragover="event.preventDefault();this.classList.add('over')"
+           ondragleave="this.classList.remove('over')"
+           ondrop="handleDrop(event)">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="12" y2="12"/><line x1="15" y1="15" x2="12" y2="12"/></svg>
+        <p>Clique ou arraste o arquivo aqui</p>
+        <small>Aceita .xlsx</small>
+      </div>
+      <input type="file" id="file-input" accept=".xlsx" style="display:none" onchange="handleFileSelect(this.files[0])">
+      <div id="import-result" class="import-result"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModalForce()">Fechar</button>
+      <button class="btn btn-primary" id="btn-enviar" onclick="enviarImport()" disabled>Importar</button>
+    </div>`);
+}
+
+let _importFile = null;
+
+function handleDrop(e) {
+  e.preventDefault();
+  $id('drop-zone').classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) handleFileSelect(f);
+}
+
+function handleFileSelect(file) {
+  if (!file) return;
+  _importFile = file;
+  $id('drop-zone').querySelector('p').textContent = file.name;
+  $id('drop-zone').querySelector('small').textContent = (file.size/1024).toFixed(1) + ' KB';
+  $id('btn-enviar').disabled = false;
+  $id('import-result').className = 'import-result';
+  $id('import-result').textContent = '';
+}
+
+async function enviarImport() {
+  if (!_importFile) return;
+  const btn = $id('btn-enviar');
+  btn.disabled = true;
+  btn.textContent = 'Importando...';
+  const form = new FormData();
+  form.append('arquivo', _importFile);
+  try {
+    const resp = await fetch('/api/pessoas/importar', { method:'POST', body: form, credentials:'include' });
+    const j = await resp.json();
+    const el = $id('import-result');
+    if (resp.ok && j.ok) {
+      const d = j.data;
+      let msg = `${d.criados} pessoa(s) criada(s).`;
+      if (d.ignorados) msg += ` ${d.ignorados} já existiam (ignoradas).`;
+      if (d.erros && d.erros.length) {
+        msg += ` ${d.erros.length} erro(s): ` + d.erros.map(e=>`linha ${e.linha} (${e.email}): ${e.motivo}`).join('; ');
+        el.className = 'import-result err';
+      } else {
+        el.className = 'import-result ok';
+      }
+      el.textContent = msg;
+      if (d.criados > 0) { renderPessoas(); toast(`${d.criados} pessoa(s) importada(s) com senha Trocar123.`, 'ok'); }
+    } else {
+      $id('import-result').className = 'import-result err';
+      $id('import-result').textContent = (j.error || 'Erro desconhecido.');
+    }
+  } catch(err) {
+    $id('import-result').className = 'import-result err';
+    $id('import-result').textContent = 'Falha na comunicação com o servidor.';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Importar';
+}
+
+function baixarTemplate(e) {
+  e.preventDefault();
+  const linhas = [
+    ['Nome', 'Email', 'Cargo', 'Empresa', 'Funcao'],
+    ['João Silva', 'joao@empresa.com', 'Analista', 'Empresa Exemplo', 'operador'],
+    ['Maria Souza', 'maria@empresa.com', 'Gerente', 'Empresa Exemplo', 'gestor'],
+  ];
+  let csv = linhas.map(l => l.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'modelo_importacao_atlas.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+async function deletePessoa(id, nome) {
+  if (!confirm(`Desativar "${nome}"?`)) return;
+  const r = await api('DELETE', `/api/pessoas/${id}`);
+  if (r.ok) { toast('Pessoa desativada.','ok'); renderPessoas(); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SISTEMAS
+// ─────────────────────────────────────────────────────────────────────────────
+async function renderSistemas() {
+  const r = await api('GET', '/api/sistemas');
+  if (!r.ok) return;
+  const list = r.data || [];
+  const rows = list.map(s => `
+    <tr>
+      <td><strong>${escHtml(s.nome)}</strong></td>
+      <td><span class="badge badge-gray" style="font-family:var(--mono)">${escHtml(s.folder)}</span></td>
+      <td>${s.ativo ? '<span class="badge badge-ok"><span class="dot"></span>Ativo</span>' : '<span class="badge badge-err">Inativo</span>'}</td>
+      <td><span class="badge badge-gray">${fmtDate(s.criado_em)}</span></td>
+    </tr>`).join('') || `<tr><td colspan="4"><div class="empty">Nenhum sistema. Sincronize com o Olimpus.</div></td></tr>`;
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">ACESSOS</div><div class="ptit">Sistemas</div></div>
+      <button class="btn btn-primary btn-sm" onclick="syncSistemas()">Sincronizar com Olimpus</button>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Sistemas (${list.length})</span></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nome</th><th>Pasta</th><th>Status</th><th>Sincronizado em</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+    </div>
+    <div style="font-size:.78rem;color:var(--text-dim)">
+      Clique em "Sincronizar" para importar automaticamente as pastas do Olimpus.
+    </div>`;
+}
+
+async function syncSistemas() {
+  const r = await api('POST', '/api/sistemas/sync');
+  if (r.ok) { toast(`${r.data.sincronizados} sistemas sincronizados.`,'ok'); renderSistemas(); }
+  else toast(r.error||'Erro ao sincronizar.','err');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TIPOS DE ACESSO
+// ─────────────────────────────────────────────────────────────────────────────
+async function renderTiposAcesso() {
+  const [rTipos, rSis, rPerms] = await Promise.all([
+    api('GET', '/api/tipos-acesso'),
+    api('GET', '/api/sistemas'),
+    api('GET', '/api/tipos-acesso/permissoes'),
+  ]);
+  if (!rTipos.ok) return;
+  const tipos = rTipos.data || [];
+  const sistemas = rSis.data || [];
+
+  const rows = tipos.map(t => {
+    const appsConfigurados = Object.keys(t.permissoes || {}).length;
+    const permsResumo = Object.entries(t.permissoes || {}).map(([sf, perms]) => {
+      const sNome = (sistemas.find(s => s.folder === sf) || {}).nome || sf;
+      return `<span class="tipo-badge">${escHtml(sNome)}: ${perms.length}</span>`;
+    }).join(' ') || '<span style="color:var(--text-dim);font-size:.72rem">Nenhuma permissão</span>';
+
+    return `<tr>
+      <td><strong>${escHtml(t.nome)}</strong></td>
+      <td style="color:var(--text-mid);max-width:200px">${escHtml(t.descricao||'—')}</td>
+      <td>${permsResumo}</td>
+      <td>${t.total_usuarios}</td>
+      <td style="text-align:right">
+        <button class="btn btn-ghost btn-xs" onclick="editTipoAcesso(${t.id})">Editar</button>
+        <button class="btn btn-ghost btn-xs" style="color:var(--danger)" onclick="deleteTipoAcesso(${t.id},'${escHtml(t.nome)}')">Excluir</button>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="5"><div class="empty">Nenhum tipo de acesso criado.</div></td></tr>`;
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">ACESSOS</div><div class="ptit">Tipos de Acesso</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openTipoAcessoModal()">+ Novo Tipo</button>
+    </div>
+    <p style="font-size:.82rem;color:var(--text-mid);margin-top:-8px">
+      Defina tipos de acesso e configure detalhadamente o que cada tipo pode fazer em cada aplicação.
+    </p>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Tipos de Acesso (${tipos.length})</span></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Nome</th><th>Descrição</th><th>Permissões por App</th><th>Usuários</th><th></th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+
+  // Guarda estado para uso no modal
+  window._tiposState = { sistemas, permissoes: rPerms.data || [] };
+}
+
+async function openTipoAcessoModal(data={}) {
+  const isEdit = !!data.id;
+  const { sistemas, permissoes } = window._tiposState || {};
+  if (!sistemas || !permissoes) {
+    const [rS, rP] = await Promise.all([api('GET','/api/sistemas'), api('GET','/api/tipos-acesso/permissoes')]);
+    window._tiposState = { sistemas: rS.data||[], permissoes: rP.data||[] };
+  }
+  const sist = window._tiposState.sistemas || [];
+  const perms = window._tiposState.permissoes || [];
+  const existingPerms = data.permissoes || {};
+
+  const PERM_LABELS = {
+    visualizar:'Visualizar', criar:'Criar', editar:'Editar', excluir:'Excluir',
+    aprovar:'Aprovar', exportar:'Exportar', importar:'Importar',
+    configurar:'Configurar', admin:'Admin (total)',
+  };
+
+  const appsHtml = sist.filter(s => s.ativo).map(s => {
+    const appPerms = existingPerms[s.folder] || [];
+    const checks = perms.map(p => {
+      const checked = appPerms.includes(p) ? 'checked' : '';
+      return `<label><input type="checkbox" name="perm_${s.folder.replace(/[^a-zA-Z0-9]/g,'_')}" value="${p}" ${checked}> ${PERM_LABELS[p]||p}</label>`;
+    }).join('');
+    return `<div class="perm-app">
+      <div class="perm-app-title">
+        ${escHtml(s.nome)}
+        <span class="badge badge-gray" style="font-size:.55rem">${escHtml(s.folder)}</span>
+      </div>
+      <div class="perm-checks" data-folder="${escHtml(s.folder)}">${checks}</div>
+    </div>`;
+  }).join('');
+
+  openModal(isEdit ? 'Editar Tipo de Acesso' : 'Novo Tipo de Acesso', `
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">NOME *</label>
+          <input class="form-input" id="tipo-nome" value="${escHtml(data.nome||'')}" placeholder="ex: Gestor RH"></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">DESCRIÇÃO</label>
+          <input class="form-input" id="tipo-desc" value="${escHtml(data.descricao||'')}" placeholder="Breve descrição"></div>
+      </div>
+      <div class="form-section">Permissões por Aplicação</div>
+      <p style="font-size:.72rem;color:var(--text-dim);margin-bottom:12px">Marque as permissões que este tipo de acesso terá em cada app.</p>
+      <div class="perm-grid">${appsHtml}</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModalForce()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTipoAcesso(${data.id||0})">${isEdit?'Salvar':'Criar'}</button>
+    </div>`, true);
+}
+
+async function editTipoAcesso(id) {
+  const r = await api('GET', `/api/tipos-acesso/${id}`);
+  if (r.ok) openTipoAcessoModal(r.data);
+}
+
+function saveTipoAcesso(id) {
+  const nome = $id('tipo-nome').value.trim();
+  const descricao = $id('tipo-desc').value.trim();
+  if (!nome) { toast('Nome é obrigatório.','err'); return; }
+
+  // Coleta permissões por app
+  const permissoes = {};
+  document.querySelectorAll('.perm-checks').forEach(el => {
+    const folder = el.dataset.folder;
+    const checked = [...el.querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);
+    if (checked.length > 0) permissoes[folder] = checked;
+  });
+
+  const body = { nome, descricao, permissoes };
+  const promise = id
+    ? api('PUT',  `/api/tipos-acesso/${id}`, body)
+    : api('POST', '/api/tipos-acesso', body);
+  promise.then(r => {
+    if (r.ok) { closeModalForce(); toast(id?'Tipo de acesso atualizado.':'Tipo de acesso criado.','ok'); renderTiposAcesso(); }
+    else toast(r.error||'Erro.','err');
+  });
+}
+
+async function deleteTipoAcesso(id, nome) {
+  if (!confirm(`Excluir tipo de acesso "${nome}"?`)) return;
+  const r = await api('DELETE', `/api/tipos-acesso/${id}`);
+  if (r.ok) { toast('Tipo de acesso excluído.','ok'); renderTiposAcesso(); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACESSOS (com tipos de acesso multi-seleção)
+// ─────────────────────────────────────────────────────────────────────────────
+let acessosTab = 'empresa';
+let acessosSelecionado = null;
+let acessosData = { empresas:[], pessoas:[], sistemas:[], tipos:[] };
+
+async function renderAcessos() {
+  const [rEmp, rPes, rSis, rTipos] = await Promise.all([
+    api('GET','/api/empresas?ativo=1'),
+    api('GET','/api/pessoas'),
+    api('GET','/api/sistemas'),
+    api('GET','/api/tipos-acesso'),
+  ]);
+  acessosData = {
+    empresas: rEmp.data || [],
+    pessoas:  rPes.data || [],
+    sistemas: rSis.data || [],
+    tipos:    rTipos.data || [],
+  };
+
+  if (acessosData.sistemas.length === 0) {
+    $id('page-body').innerHTML = `
+      <div class="phd"><div><div class="pey">ACESSOS</div><div class="ptit">Controle de Acesso</div></div></div>
+      <div class="card" style="padding:40px;text-align:center;color:var(--text-dim)">
+        <div style="font-size:1.4rem;margin-bottom:12px">↺</div>
+        <div>Nenhum sistema cadastrado. <a href="#" onclick="nav('sistemas')">Sincronize os sistemas</a> primeiro.</div>
+      </div>`;
+    return;
+  }
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">ACESSOS</div><div class="ptit">Controle de Acesso</div></div>
+    </div>
+    <div class="tabs">
+      <div class="tab ${acessosTab==='empresa'?'active':''}" onclick="switchAcessoTab('empresa')">Por Empresa</div>
+      <div class="tab ${acessosTab==='pessoa'?'active':''}" onclick="switchAcessoTab('pessoa')">Por Pessoa</div>
+    </div>
+    <div class="table-wrap" style="max-height:calc(100vh - 240px)">
+      <div style="display:flex;gap:16px;align-items:flex-start;flex:1;min-height:0">
+        <div style="width:240px;flex-shrink:0;display:flex;flex-direction:column;max-height:100%">
+          <div class="card" style="display:flex;flex-direction:column;overflow:hidden;max-height:100%">
+            <div style="padding:10px 14px;font-size:.68rem;font-weight:600;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--border);flex-shrink:0">
+              Selecione
+            </div>
+            <div id="acesso-list" style="overflow-y:auto;flex:1;min-height:0"></div>
+          </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;max-height:100%">
+          <div class="card" id="acesso-matriz">
+            <div class="empty">Selecione uma ${acessosTab==='empresa'?'empresa':'pessoa'} para ver os acessos.</div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+  renderAcessoList();
+}
+
+function switchAcessoTab(tab) {
+  acessosTab = tab;
+  acessosSelecionado = null;
+  renderAcessos();
+}
+
+function renderAcessoList() {
+  const items = acessosTab === 'empresa' ? acessosData.empresas : acessosData.pessoas;
+  const html = items.map(item => {
+    const nome = item.nome;
+    const sub  = acessosTab === 'pessoa' ? (item.empresa_nome||'Sem empresa') : `${item.total_pessoas||0} pessoa(s)`;
+    const isSel = acessosSelecionado && acessosSelecionado.id === item.id;
+    return `<div onclick="selectAcessoItem(${item.id})" style="
+      padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);
+      background:${isSel?'var(--accent-bg)':''};transition:background .1s;
+    " onmouseover="this.style.background='${isSel?'var(--accent-bg)':'var(--bg3)'}'"
+       onmouseout="this.style.background='${isSel?'var(--accent-bg)':''}'">
+      <div style="font-weight:600;font-size:.82rem">${escHtml(nome)}</div>
+      <div style="font-size:.7rem;color:var(--text-dim);font-family:var(--mono)">${escHtml(sub)}</div>
+    </div>`;
+  }).join('') || '<div class="empty" style="padding:20px">Nenhum item.</div>';
+  $id('acesso-list').innerHTML = html;
+}
+
+async function selectAcessoItem(id) {
+  const items = acessosTab === 'empresa' ? acessosData.empresas : acessosData.pessoas;
+  acessosSelecionado = items.find(x => x.id === id);
+  renderAcessoList();
+
+  const matrizEl = $id('acesso-matriz');
+  matrizEl.innerHTML = '<div class="loading">Carregando matriz...</div>';
+
+  const path = acessosTab === 'empresa'
+    ? `/api/acessos/matriz/empresa/${id}`
+    : `/api/acessos/matriz/pessoa/${id}`;
+  const r = await api('GET', path);
+  if (!r.ok) { matrizEl.innerHTML = '<div class="empty">Erro ao carregar.</div>'; return; }
+
+  const matriz = r.data || [];
+  const nome   = acessosSelecionado.nome;
+  const allTipos = acessosData.tipos || [];
+
+  const ATLAS_FOLDER = 'Atlas - Gestão de Acessos';
+
+  const rows = matriz.map(row => {
+    const isAtlas    = row.sistema_folder === ATLAS_FOLDER;
+    const isPessoa   = acessosTab === 'pessoa';
+
+    const isPermitido = isPessoa
+      ? (row.tem_regra_pessoal && row.status === 'permitido')
+      : (row.status === 'permitido');
+
+    const safeId = row.sistema_folder.replace(/[^a-zA-Z0-9]/g, '_');
+
+    // Badge de status
+    let badgeHtml;
+    if (isPessoa) {
+      if (row.tem_regra_pessoal) {
+        badgeHtml = row.status === 'permitido'
+          ? `<span class="badge badge-ok" style="font-size:.58rem">LIBERADO</span>`
+          : `<span class="badge badge-err" style="font-size:.58rem">BLOQUEADO</span>`;
+      } else if (row.status === 'permitido') {
+        badgeHtml = `<span class="badge badge-info" style="font-size:.58rem">VIA EMPRESA</span>`;
+      } else {
+        badgeHtml = `<span class="badge badge-gray" style="font-size:.58rem">SEM ACESSO</span>`;
+      }
+    } else {
+      badgeHtml = row.status === 'sem_regra'
+        ? `<span class="badge badge-gray" style="font-size:.58rem">PADRÃO</span>`
+        : row.status === 'permitido'
+        ? `<span class="badge badge-ok" style="font-size:.58rem">LIBERADO</span>`
+        : `<span class="badge badge-err" style="font-size:.58rem">BLOQUEADO</span>`;
+    }
+
+    // Tipos de acesso (apenas na aba Pessoa)
+    let tiposHtml = '';
+    if (isPessoa && !isAtlas) {
+      const pessoaTipos = (row.tipos_acesso || []).map(t => t.id);
+      const tiposBadges = (row.tipos_acesso || []).map(t =>
+        `<span class="tipo-badge">${escHtml(t.nome)}</span>`
+      ).join('') || '<span style="font-size:.65rem;color:var(--text-dim)">sem tipo</span>';
+
+      tiposHtml = `<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+        ${tiposBadges}
+        ${isPermitido ? `<button class="btn btn-ghost btn-xs" style="padding:2px 6px;font-size:.62rem" onclick="openTiposUsuarioModal(${acessosSelecionado.id},'${escHtml(row.sistema_folder)}')">editar</button>` : ''}
+      </div>`;
+    }
+
+    // Toggle
+    const toggleHtml = isAtlas
+      ? `<label class="toggle" title="O Atlas não pode ser bloqueado">
+           <input type="checkbox" checked disabled>
+           <span class="toggle-slider"></span>
+         </label>
+         <span style="font-size:.6rem;font-family:var(--mono);color:var(--text-dim)">fixo</span>`
+      : `<label class="toggle">
+           <input type="checkbox" id="chk_${safeId}" ${isPermitido?'checked':''}
+             onchange="toggleAcesso(this,'${escHtml(row.sistema_folder)}','${safeId}',${row.acesso_id||'null'})">
+           <span class="toggle-slider"></span>
+         </label>`;
+
+    return `<div class="acesso-row">
+      <div style="flex:1;min-width:0">
+        <div class="acesso-sistema">${escHtml(row.sistema_nome)}</div>
+        <div style="font-size:.68rem;color:var(--text-dim);font-family:var(--mono)">${escHtml(row.sistema_folder)}</div>
+        ${tiposHtml}
+      </div>
+      <div class="acesso-controls">
+        ${badgeHtml}
+        ${toggleHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  const dica = acessosTab === 'pessoa'
+    ? 'Toggle = concessão pessoal · Clique "editar" para atribuir tipos de acesso ao app'
+    : 'Toggle = liberar / bloquear para toda a empresa';
+
+  matrizEl.innerHTML = `
+    <div class="card-header">
+      <span class="card-header-title">Acessos — ${escHtml(nome)}</span>
+      <span style="font-size:.72rem;color:var(--text-dim)">${dica}</span>
+    </div>
+    <div style="padding:4px 20px 16px">${rows}</div>`;
+}
+
+async function toggleAcesso(checkbox, folder, safeId, acessoId) {
+  const permitido = checkbox.checked;
+  const body = { sistema_folder: folder, permitido };
+  if (acessosTab === 'empresa') body.empresa_id = acessosSelecionado.id;
+  else                          body.pessoa_id   = acessosSelecionado.id;
+
+  const r = await api('POST', '/api/acessos', body);
+  if (r.ok) {
+    toast(permitido ? `${folder} liberado.` : `${folder} bloqueado.`, 'ok');
+    selectAcessoItem(acessosSelecionado.id);
+  } else {
+    toast(r.error||'Erro.','err');
+    checkbox.checked = !permitido;
+  }
+}
+
+async function openTiposUsuarioModal(pessoaId, sistemaFolder) {
+  const allTipos = acessosData.tipos || [];
+  const rAtual = await api('GET', `/api/pessoas/${pessoaId}/tipos-acesso?sistema_folder=${encodeURIComponent(sistemaFolder)}`);
+  const atuais = (rAtual.data || []).map(t => t.tipo_acesso_id);
+
+  const sNome = (acessosData.sistemas.find(s => s.folder === sistemaFolder) || {}).nome || sistemaFolder;
+
+  const checks = allTipos.map(t => {
+    const permsApp = (t.permissoes || {})[sistemaFolder] || [];
+    const permsStr = permsApp.length > 0 ? permsApp.join(', ') : 'sem permissões neste app';
+    return `<label style="display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" name="tipo_sel" value="${t.id}" ${atuais.includes(t.id)?'checked':''} style="margin-top:3px;accent-color:var(--accent)">
+      <div>
+        <div style="font-weight:600;font-size:.82rem">${escHtml(t.nome)}</div>
+        <div style="font-size:.7rem;color:var(--text-dim)">${escHtml(t.descricao||'')}</div>
+        <div style="font-size:.68rem;color:var(--accent);font-family:var(--mono);margin-top:2px">${escHtml(permsStr)}</div>
+      </div>
+    </label>`;
+  }).join('') || '<div class="empty" style="padding:16px">Nenhum tipo de acesso criado. Crie em "Tipos de Acesso".</div>';
+
+  openModal(`Tipos de Acesso — ${sNome}`, `
+    <div class="modal-body">
+      <p style="font-size:.82rem;color:var(--text-mid);margin-bottom:14px">
+        Selecione os tipos de acesso que <strong>${escHtml(acessosSelecionado.nome)}</strong> terá em <strong>${escHtml(sNome)}</strong>.
+      </p>
+      <div>${checks}</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModalForce()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTiposUsuario(${pessoaId},'${escHtml(sistemaFolder)}')">Salvar</button>
+    </div>`);
+}
+
+async function saveTiposUsuario(pessoaId, sistemaFolder) {
+  const tipoIds = [...document.querySelectorAll('input[name=tipo_sel]:checked')].map(el => parseInt(el.value));
+  const r = await api('POST', `/api/pessoas/${pessoaId}/tipos-acesso`, {
+    sistema_folder: sistemaFolder,
+    tipo_ids: tipoIds,
+  });
+  if (r.ok) {
+    closeModalForce();
+    toast('Tipos de acesso atualizados.', 'ok');
+    selectAcessoItem(acessosSelecionado.id);
+  } else {
+    toast(r.error || 'Erro ao salvar.', 'err');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUDITORIA
+// ─────────────────────────────────────────────────────────────────────────────
+async function renderAuditoria() {
+  const r = await api('GET', '/api/audit?limit=200');
+  if (!r.ok) return;
+  const list = r.data || [];
+  const icons = {
+    login:'🔑', logout:'🚪', criar:'✨', editar:'✏️', desativar:'🚫',
+    excluir:'🗑️', liberar:'✅', bloquear:'🔒', sync:'🔄',
+    remover_regra:'❌', change_password:'🔐', importar:'📥',
+  };
+  const rows = list.map(ev => `
+    <tr>
+      <td>${icons[ev.acao]||'📋'} <strong>${escHtml(ev.acao)}</strong></td>
+      <td>${escHtml(ev.entidade||'—')}</td>
+      <td>${escHtml(ev.pessoa_nome||'Sistema')}<br><span style="font-size:.68rem;color:var(--text-dim)">${escHtml(ev.pessoa_email||'')}</span></td>
+      <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis">${escHtml(ev.detalhe||'—')}</td>
+      <td><span class="badge badge-gray">${escHtml(ev.ip||'—')}</span></td>
+      <td style="white-space:nowrap"><span class="badge badge-gray">${fmtDate(ev.criado_em)}</span></td>
+    </tr>`).join('') || `<tr><td colspan="6"><div class="empty">Nenhum evento registrado.</div></td></tr>`;
+
+  $id('page-body').innerHTML = `
+    <div class="phd">
+      <div><div class="pey">SISTEMA</div><div class="ptit">Log de Auditoria</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="renderAuditoria()">Atualizar</button>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-header-title">Eventos (${list.length})</span></div>
+      <div class="table-wrap">
+        <table><thead><tr><th>Ação</th><th>Entidade</th><th>Pessoa</th><th>Detalhe</th><th>IP</th><th>Data/Hora</th></tr></thead>
+        <tbody>${rows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+init();
+
+// Dark mode
+function toggleDark(){
+  document.body.classList.toggle('dark-mode');
+  try{localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light');}catch(e){}
+}
+(function(){
+  try{if(localStorage.getItem('theme')==='dark')document.body.classList.add('dark-mode');}catch(e){}
+})();
+</script>
+</body>
+</html>

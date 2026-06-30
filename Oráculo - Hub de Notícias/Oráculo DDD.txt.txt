@@ -1,0 +1,259 @@
+📘 DDD — ORÁCULO (VERSÃO COMPLETA)
+1. 📌 DOMÍNIO
+
+Nome: Inteligência Corporativa e Curadoria de Informação
+Objetivo: Transformar dados internos + notícias externas em informação acionável entregue automaticamente por contexto organizacional
+
+2. 🧱 SUBDOMÍNIOS
+🔷 Core Domain (núcleo)
+Curadoria de notícias
+Classificação e resumo
+Motor de insights
+Newsletter inteligente (automática e segmentada)
+🔶 Supporting
+KPIs internos
+Integração com fontes externas
+Gestão de usuários e departamentos
+⚙️ Generic
+Autenticação
+Envio de e-mail
+Agendamento (scheduler)
+3. 🧭 BOUNDED CONTEXTS
+3.1 📥 Ingestion Context
+
+Responsável por coletar dados externos
+
+Entidades
+
+NewsSource
+RawNews
+
+Regras
+
+Fonte deve ser válida (RSS/API)
+Coleta periódica automática
+3.2 🧠 Content Processing Context
+
+Responsável por transformar dado bruto em informação
+
+Entidades
+
+News
+Category
+Summary
+
+Value Objects
+
+RelevanceScore
+Keywords
+
+Regras
+
+Toda notícia deve ter ≥1 categoria
+Resumo obrigatório
+Classificação pode ser multi-categoria
+3.3 🏢 Corporate Data Context
+
+Dados internos da empresa
+
+Entidades
+
+KPI
+KPIValue
+
+Regras
+
+Dados devem ter timestamp
+Fonte confiável obrigatória
+3.4 🔗 Insight Context
+
+Geração de inteligência
+
+Entidades
+
+Insight
+
+Value Objects
+
+ImpactLevel
+CorrelationType
+
+Regras
+
+Insight só existe se relevância > threshold
+Deve estar ligado a notícia ou KPI
+3.5 👥 User & Organization Context
+
+Entidades
+
+User
+Department
+
+Value Objects
+
+Email
+Role
+
+Regras
+
+Todo usuário pertence a 1 departamento
+Departamento define contexto informacional
+3.6 📬 Newsletter Context (CRÍTICO)
+
+Aqui está o coração do seu ajuste.
+
+4. 📬 NEWSLETTER CONTEXT — DETALHADO
+🎯 Responsabilidade
+
+Gerar e enviar newsletters automaticamente, todos os dias, por departamento.
+
+🧱 ENTIDADES
+Newsletter
+id
+department_id
+content
+created_at
+NewsletterDispatch
+id
+newsletter_id
+sent_at
+status
+📦 VALUE OBJECTS
+NewsletterContent
+EmailTemplate
+SendSchedule (hora, frequência)
+⚙️ AGGREGATE ROOT
+
+Newsletter
+
+Responsável por:
+
+Montagem do conteúdo
+Garantir consistência antes do envio
+🔄 DOMAIN SERVICES
+1. NewsletterGeneratorService
+
+Responsável por montar o conteúdo
+
+Input:
+
+Departamento
+Notícias (24h)
+KPIs
+Insights
+
+Output:
+
+Newsletter pronta
+
+Regra:
+
+Prioridade:
+Insights
+KPIs
+Notícias
+2. NewsletterSchedulerService
+
+Responsável por disparo automático
+
+Regra:
+
+Executa diariamente (ex: 08:00)
+Pode variar por departamento
+3. NewsletterDispatcherService
+
+Responsável pelo envio
+
+Regra:
+
+Envia para todos usuários do departamento
+Loga status
+📜 DOMAIN EVENTS
+NewsletterGenerated
+NewsletterSent
+NewsletterSkipped (sem conteúdo relevante)
+📏 REGRAS DE NEGÓCIO (CRÍTICAS)
+Envio automático diário (sem intervenção humana)
+Conteúdo deve ser filtrado por departamento
+Não enviar se não houver relevância mínima
+Máximo de 5 notícias por envio
+Sempre incluir pelo menos:
+1 KPI OU
+1 Insight
+5. 🔗 CONTEXT MAP
+
+Relacionamento entre contextos:
+
+Ingestion → Content Processing
+Content Processing → Insight
+Corporate Data → Insight
+Insight + News + KPI → Newsletter
+User Context → Newsletter (segmentação)
+6. 🧠 LINGUAGEM UBÍQUA
+
+Termos oficiais do sistema:
+
+Notícia
+Categoria
+Relevância
+Insight
+KPI
+Departamento
+Newsletter
+Disparo
+Resumo
+
+👉 Nada de sinônimos. Nome é esse e pronto.
+
+7. 🧩 AGREGADOS PRINCIPAIS
+News
+KPI
+Insight
+Newsletter
+User (com Department)
+8. 🗃️ REPOSITORIES
+NewsRepository
+KPIRepository
+InsightRepository
+NewsletterRepository
+UserRepository
+DepartmentRepository
+9. ⚙️ APLICAÇÃO (APPLICATION LAYER)
+Use Cases principais
+ProcessNews
+ClassifyNews
+GenerateInsights
+GenerateNewsletter
+SendNewsletter (automático)
+ConfigureDepartmentPreferences
+10. 🧱 INFRASTRUCTURE
+Scheduler (cron / worker)
+Email provider (SMTP/API)
+Banco de dados
+APIs externas (notícias)
+Integrações internas (ERP/BI)
+11. 🔄 FLUXO COMPLETO (MANHÃ AUTOMÁTICA)
+
+Todo dia:
+
+Scheduler dispara
+Para cada departamento:
+Busca notícias (24h)
+Busca KPIs
+Busca insights
+Gera newsletter
+Valida relevância
+Envia e-mail
+Registra log
+12. 🚨 PONTOS CRÍTICOS (SEM ILUSÃO)
+Se a classificação for ruim → sistema vira spam
+Se não tiver filtro → ninguém lê
+Se não tiver relevância → morre em 1 semana
+13. 🧠 EVOLUÇÃO NATURAL
+
+Depois do MVP:
+
+Machine Learning para relevância
+Personalização por usuário (não só departamento)
+Ranking por clique/abertura
+Recomendações automáticas

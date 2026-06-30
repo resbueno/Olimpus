@@ -1,0 +1,9 @@
+{
+  "name": "Argos",
+  "myth": "cem olhos que nunca dormem — vigia cada pulso do sistema",
+  "cat": "Monitoração",
+  "desc": "Plataforma de monitoração de aplicações WEB. Acompanha disponibilidade, tempo de resposta e capturas de tela em tempo real.",
+  "color": "#2563eb",
+  "icon": "eye",
+  "port": 5000
+}

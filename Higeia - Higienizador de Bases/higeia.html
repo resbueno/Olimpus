@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>HIGEIA — Higienizador de Bases</title>
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23059669'/><text x='16' y='22' text-anchor='middle' font-size='18' fill='white'>🧼</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff; --bg2: #ffffff; --bg3: #f8f9fa; --bg-alt: #f8f9fa;
+      --border: rgba(0,0,0,.08); --border2: rgba(0,0,0,.13);
+      --accent: #7c3aed; --accent2: #6d28d9; --accent-bg: rgba(124,58,237,.08);
+      --success: #16a34a; --success-bg: rgba(22,163,74,.07);
+      --danger: #dc2626; --danger-bg: rgba(220,38,38,.07);
+      --warn: #d97706; --warn-bg: rgba(217,119,6,.07);
+      --info: #2563eb; --info-bg: rgba(37,99,235,.07);
+      --text: #1f1f1f; --text-mid: #5f6368; --text-dim: #9ca3af;
+      --sans: 'Outfit', sans-serif; --display: 'Space Grotesk', sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --r: 12px; --r2: 20px; --sh: 0 4px 20px rgba(0,0,0,.06);
+    }
+    body.dark-mode {
+      --bg: #0d0d14; --bg2: #16162a; --bg3: #1a1a2e; --bg-alt: #1a1a2e;
+      --border: rgba(255,255,255,.07); --border2: rgba(255,255,255,.11);
+      --accent: #a78bfa; --accent2: #8b5cf6; --accent-bg: rgba(167,139,250,.1);
+      --text: #f0f0ff; --text-mid: #a0a0c0; --text-dim: #6060a0;
+      --sh: 0 4px 28px rgba(0,0,0,.45);
+    }
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0 }
+    body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column }
+    ::-webkit-scrollbar { width: 8px; height: 8px }
+    ::-webkit-scrollbar-track { background: transparent }
+    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,.13); border-radius: 20px }
+    body.dark-mode ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.13) }
+    * { scrollbar-width: thin }
+    button { font-family: inherit }
+    a { color: var(--accent) }
+
+    /* TOPBAR */
+    .topbar { height: 56px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; position: sticky; top: 0; z-index: 100; flex-shrink: 0 }
+    .tbl { display: flex; align-items: center; gap: 14px }
+    .bicon { width: 34px; height: 34px; background: var(--accent-bg); border: 1px solid var(--accent); border-radius: 8px; display: grid; place-items: center; font-size: 18px }
+    .bname { font-family: var(--display); font-size: 1.15rem; font-weight: 700; letter-spacing: .1em }
+    .bmod { font-family: var(--mono); font-size: .66rem; color: var(--text-dim); letter-spacing: .12em; text-transform: uppercase }
+    .tbr { display: flex; align-items: center; gap: 8px }
+
+    /* BUTTONS */
+    .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border2); background: var(--bg2); color: var(--text-mid); font-size: .8rem; font-weight: 500; padding: 7px 12px; border-radius: var(--r); cursor: pointer; transition: all .15s; white-space: nowrap }
+    .btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg) }
+    .btn svg { width: 14px; height: 14px }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff }
+    .btn.primary:hover { background: var(--accent2); color: #fff }
+    .btn.primary:disabled { background: var(--bg3); border-color: var(--border); color: var(--text-dim); cursor: not-allowed }
+    .btn.lg { padding: 11px 22px; font-size: .92rem }
+    .btn.danger { border-color: var(--danger); color: var(--danger); background: var(--danger-bg) }
+    .icon-btn { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg2); display: grid; place-items: center; cursor: pointer; color: var(--text-mid); transition: all .15s }
+    .icon-btn:hover { border-color: var(--accent); color: var(--accent) }
+    .icon-btn svg { width: 17px; height: 17px }
+
+    /* LAYOUT — sidebar + panel */
+    html { height: 100% }
+    body { height: 100%; overflow: hidden }
+    .shell { flex: 1; display: flex; min-height: 0; overflow: hidden }
+    .sidebar { width: 400px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden }
+    .sb-body { flex: 1; overflow-y: auto; padding: 16px 18px }
+    .sb-sep { border: none; border-top: 1px solid var(--border); margin: 14px 0 }
+    .sb-ttl { font-size: .68rem; font-weight: 700; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; margin: 18px 0 10px }
+    .sb-run { border-top: 1px solid var(--border); padding: 14px 18px; background: var(--bg2); flex-shrink: 0 }
+    .file-strip { display: flex; align-items: center; gap: 10px; background: var(--accent-bg); border: 1px solid var(--accent); border-radius: var(--r); padding: 9px 12px }
+    .file-strip .ic { font-size: 20px; flex-shrink: 0 }
+    .file-strip .meta { flex: 1; min-width: 0 }
+    .file-strip .name { font-weight: 600; font-size: .84rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+    .file-strip .dims { color: var(--text-dim); font-size: .7rem; font-family: var(--mono) }
+    .panel { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden }
+    .panel-drop { flex: 1; display: flex; align-items: center; justify-content: center; padding: 48px }
+    .panel-drop .drop { width: 100%; max-width: 560px; padding: 64px 40px }
+    .panel-ready { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; color: var(--text-dim) }
+    .pr-icon { font-size: 54px }
+    .pr-text { font-size: 1.05rem; font-weight: 600; color: var(--text-mid) }
+    .pr-hint { font-size: .84rem }
+    .panel-result { flex: 1; display: flex; flex-direction: column; overflow: hidden }
+    .result-header { padding: 20px 24px 12px; flex-shrink: 0 }
+
+    /* SECTIONS */
+    .sec { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 20px 22px; margin-bottom: 18px; box-shadow: var(--sh) }
+    .sec-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 6px }
+    .sec-n { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: .82rem; font-weight: 700; font-family: var(--display); flex: none }
+    .sec-ttl { font-family: var(--display); font-size: 1rem; font-weight: 600 }
+    .sec-desc { font-size: .8rem; color: var(--text-dim); margin-bottom: 16px; line-height: 1.55 }
+    .sec-desc code { background: var(--bg3); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; font-family: var(--mono); font-size: .74rem; color: var(--accent2) }
+
+    /* DROP ZONE */
+    .drop { border: 2px dashed var(--border2); border-radius: var(--r2); padding: 36px 32px; text-align: center; cursor: pointer; transition: .15s; background: var(--bg-alt) }
+    .drop:hover, .drop.over { border-color: var(--accent); background: var(--accent-bg) }
+    .drop .big { font-size: 36px; margin-bottom: 10px }
+    .drop input { display: none }
+    .drop b { color: var(--text) }
+
+    /* FILE INFO */
+    .file-info { display: flex; align-items: center; gap: 13px; background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--r); padding: 11px 14px; margin-top: 16px }
+    .file-info .ic { font-size: 22px }
+    .file-info .meta { flex: 1; min-width: 0 }
+    .file-info .name { font-weight: 600; font-size: .88rem }
+    .file-info .dims { color: var(--text-dim); font-size: .72rem; font-family: var(--mono); margin-top: 2px }
+
+    /* FIELDS */
+    .lab { display: block; font-size: .74rem; font-weight: 600; color: var(--text-mid); letter-spacing: .03em; margin-bottom: 6px }
+    select, input[type=text] { width: 100%; background: var(--bg-alt); border: 1px solid var(--border); color: var(--text); font-family: var(--sans); font-size: .86rem; padding: 9px 12px; border-radius: var(--r); outline: none; transition: border-color .15s, box-shadow .15s }
+    select:focus, input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg) }
+
+    /* GRIDS */
+    .opt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px }
+    .opt-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px }
+
+    /* TOGGLES */
+    .toggle-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 4px 22px; margin-top: 6px }
+    .toggle { display: flex; align-items: flex-start; gap: 9px; padding: 7px 0; cursor: pointer; font-size: .83rem; color: var(--text-mid); user-select: none }
+    .toggle input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; flex: none; margin-top: 2px }
+
+    /* DIVIDER LABEL */
+    .dlab { font-size: .7rem; font-weight: 600; color: var(--text-dim); letter-spacing: .1em; text-transform: uppercase; margin: 18px 0 8px }
+
+    /* STATS */
+    .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px }
+    .stat { background: var(--bg-alt); border: 1px solid var(--border); border-radius: var(--r); padding: 13px 18px; min-width: 120px; flex: 1 }
+    .stat .n { font-size: 1.65rem; font-weight: 700; font-family: var(--display); line-height: 1.1 }
+    .stat .l { color: var(--text-dim); font-size: .72rem; margin-top: 2px }
+    .stat.ok .n   { color: var(--success) }
+    .stat.warn .n { color: var(--warn) }
+    .stat.danger .n { color: var(--danger) }
+    .stat.info .n { color: var(--info) }
+
+    /* TABLE */
+    .tbl-wrap { flex: 1; overflow: auto; border: none; border-top: 1px solid var(--border); max-height: none }
+    table.data { border-collapse: collapse; width: 100%; font-size: .8rem }
+    table.data th { position: sticky; top: 0; background: var(--bg3); text-align: left; padding: 8px 12px; font-weight: 600; border-bottom: 1px solid var(--border2); white-space: nowrap; font-family: var(--mono); font-size: .7rem; color: var(--accent2); z-index: 2 }
+    table.data td { padding: 6px 12px; border-bottom: 1px solid var(--border); white-space: nowrap; max-width: 220px; overflow: hidden; text-overflow: ellipsis }
+    table.data tr:hover td { background: var(--bg3) }
+    table.data td.invalid { color: var(--danger); background: var(--danger-bg) }
+    table.data td.fixed   { color: var(--info);   background: var(--info-bg) }
+    table.data td.empty-cell { color: var(--text-dim); font-style: italic }
+
+    /* VALIDATION CARDS */
+    .val-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px }
+    .val-card { border: 1px solid var(--border); border-radius: var(--r); padding: 13px 14px; transition: .12s; background: var(--bg-alt) }
+    .val-card.active { border-color: var(--accent); background: var(--accent-bg) }
+    .val-card label { display: flex; align-items: flex-start; gap: 9px; cursor: pointer; user-select: none }
+    .val-card input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); flex: none; margin-top: 2px }
+    .val-card .vc-ttl { font-weight: 600; font-size: .85rem; color: var(--text) }
+    .val-card .vc-sub { font-size: .73rem; color: var(--text-dim); margin-top: 3px; line-height: 1.4 }
+
+    /* DEDUP CHIPS */
+    .chip-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; padding: 10px; border: 1px solid var(--border); border-radius: var(--r); background: var(--bg-alt); min-height: 44px }
+    .chip { display: inline-flex; align-items: center; gap: 6px; background: var(--bg2); border: 1px solid var(--border); border-radius: 20px; padding: 3px 10px; font-size: .75rem; cursor: pointer; user-select: none; transition: .12s }
+    .chip:hover { border-color: var(--accent) }
+    .chip.on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 600 }
+    .chip-hint { font-size: .73rem; color: var(--text-dim) }
+
+    /* HELP BOX */
+    .help { background: var(--info-bg); border: 1px solid var(--info); border-radius: var(--r); padding: 11px 14px; font-size: .8rem; color: var(--text-mid); line-height: 1.6 }
+    .note { background: var(--warn-bg); border: 1px solid var(--warn); border-radius: var(--r); padding: 10px 14px; font-size: .79rem; color: var(--text-mid); line-height: 1.55; margin-top: 12px }
+    .err { background: var(--danger-bg); border: 1px solid var(--danger); border-radius: var(--r); padding: 10px 14px; font-size: .8rem; color: var(--danger); margin-top: 12px }
+
+    /* VAL SUMMARY */
+    .val-summary { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px }
+    .val-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 20px; font-size: .77rem; font-weight: 600 }
+    .val-badge.ok  { background: var(--success-bg); color: var(--success); border: 1px solid var(--success) }
+    .val-badge.bad { background: var(--danger-bg);  color: var(--danger);  border: 1px solid var(--danger) }
+    .val-badge.fix { background: var(--info-bg);    color: var(--info);    border: 1px solid var(--info) }
+
+    /* ACTIONS */
+    .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 6px }
+    .muted { color: var(--text-dim); font-size: .78rem }
+
+    /* TOAST */
+    #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: var(--bg); padding: 11px 20px; border-radius: var(--r); font-size: .85rem; font-weight: 500; opacity: 0; pointer-events: none; transition: all .25s; z-index: 9999; box-shadow: 0 8px 30px rgba(0,0,0,.25) }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0) }
+    #toast.err { background: var(--danger); color: #fff }
+
+    .hidden { display: none !important }
+
+    footer { display: none }
+
+    @media (max-width: 768px) {
+      .shell { flex-direction: column }
+      .sidebar { width: 100%; max-height: 55vh; border-right: none; border-bottom: 1px solid var(--border) }
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tbl">
+    <div class="bicon">🧼</div>
+    <div>
+      <div class="bname">HIGEIA</div>
+      <div class="bmod">Higienizador de Bases · Olimpus</div>
+    </div>
+  </div>
+  <div class="tbr">
+    <span class="muted" id="xlsxStatus" style="font-family:var(--mono);font-size:.7rem"></span>
+    <button class="icon-btn" id="btnTheme" title="Alternar tema">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<div class="shell">
+
+  <!-- ─── SIDEBAR ──────────────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sb-body">
+
+      <!-- File strip (aparece após carregar arquivo) -->
+      <div id="fileInfo" class="hidden">
+        <div class="file-strip">
+          <div class="ic" id="fileIc">📄</div>
+          <div class="meta">
+            <div class="name" id="fileName"></div>
+            <div class="dims" id="fileDims"></div>
+          </div>
+          <button class="btn danger" id="btnClear" style="padding:4px 9px;font-size:.75rem;flex-shrink:0">✕</button>
+        </div>
+      </div>
+
+      <!-- SEC 2: Parâmetros de leitura -->
+      <div id="secParams" class="hidden">
+        <div class="sb-sep"></div>
+        <div class="sb-ttl">Parâmetros de leitura</div>
+        <div id="csvOpts">
+          <div class="opt-grid">
+            <div>
+              <label class="lab">Separador</label>
+              <select id="csvSep">
+                <option value="auto">Detectar automaticamente</option>
+                <option value=";">Ponto e vírgula (;)</option>
+                <option value=",">,Vírgula (,)</option>
+                <option value="&#9;">Tabulação (tab)</option>
+                <option value="|">Pipe (|)</option>
+              </select>
+            </div>
+            <div>
+              <label class="lab">Encoding</label>
+              <select id="csvEnc">
+                <option value="auto">Detectar automaticamente</option>
+                <option value="utf-8">UTF-8</option>
+                <option value="latin1">Latin-1 / ISO-8859-1</option>
+                <option value="windows-1252">Windows-1252 (CP1252)</option>
+              </select>
+            </div>
+          </div>
+          <div class="muted" id="csvDetected" style="margin-top:8px"></div>
+        </div>
+        <div id="xlsxOpts" class="hidden">
+          <label class="lab">Aba (planilha)</label>
+          <select id="xlsxSheet"></select>
+        </div>
+        <div class="actions" style="margin-top:14px">
+          <button class="btn primary" id="btnLoad">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Carregar dados
+          </button>
+          <span class="muted" id="loadStatus"></span>
+        </div>
+      </div>
+
+      <!-- SEC 3: Configurar higienização -->
+      <div id="secConfig" class="hidden">
+        <div class="sb-sep"></div>
+
+        <!-- Mapeamento de colunas -->
+        <div class="sb-ttl">Mapeamento de colunas</div>
+        <div class="sec-desc" style="margin-bottom:10px">Indique o tipo de cada coluna com dado estruturado. As demais serão tratadas como texto livre.</div>
+        <div class="opt-grid" id="colMapGrid"></div>
+
+        <!-- Deduplicação -->
+        <div class="sb-ttl">Colunas para deduplicação <span class="muted" style="text-transform:none;letter-spacing:0;font-size:.7rem">(vazio = linha inteira)</span></div>
+        <div class="chip-wrap" id="dedupChips"></div>
+
+        <!-- Limpeza de texto -->
+        <div class="sb-ttl">Limpeza de texto</div>
+        <div class="toggle-grid">
+          <label class="toggle"><input type="checkbox" id="optRmAccent"> Remover acentos (á → a)</label>
+          <label class="toggle"><input type="checkbox" id="optUpperName" checked> Nomes em MAIÚSCULAS</label>
+          <label class="toggle"><input type="checkbox" id="optCleanAll" checked> Limpar espaços em todas as colunas</label>
+          <label class="toggle"><input type="checkbox" id="optUpperAll"> MAIÚSCULAS em todo o texto</label>
+        </div>
+
+        <!-- Linhas -->
+        <div class="sb-ttl">Linhas</div>
+        <div class="toggle-grid">
+          <label class="toggle"><input type="checkbox" id="optDropBlanks" checked> Remover linhas totalmente vazias</label>
+          <label class="toggle"><input type="checkbox" id="optDedup" checked> Remover duplicatas</label>
+        </div>
+
+        <!-- Datas -->
+        <div class="sb-ttl">Datas <span class="muted" style="text-transform:none;letter-spacing:0;font-size:.7rem">(coluna mapeada como Data)</span></div>
+        <div class="opt-grid-2">
+          <div>
+            <label class="lab">Formato de entrada</label>
+            <input type="text" id="dateFmtIn" value="%d/%m/%Y" placeholder="Ex: %d/%m/%Y">
+          </div>
+          <div>
+            <label class="lab">Formato de saída</label>
+            <select id="dateFmtOut">
+              <optgroup label="Numérico">
+                <option value="%d/%m/%Y">29/06/2026 — dd/mm/aaaa</option>
+                <option value="%Y-%m-%d">2026-06-29 — aaaa-mm-dd (ISO)</option>
+                <option value="%d-%m-%Y">29-06-2026 — dd-mm-aaaa</option>
+                <option value="%d.%m.%Y">29.06.2026 — dd.mm.aaaa</option>
+                <option value="%m/%d/%Y">06/29/2026 — mm/dd/aaaa (EUA)</option>
+              </optgroup>
+              <optgroup label="Extenso (PT-BR)">
+                <option value="%e de %B de %Y">29 de junho de 2026</option>
+                <option value="%d/%m/%Y (%e de %B de %Y)">29/06/2026 (29 de junho de 2026)</option>
+                <option value="%B de %Y">junho de 2026</option>
+              </optgroup>
+              <optgroup label="Com dia da semana">
+                <option value="%A, %d/%m/%Y">domingo, 29/06/2026</option>
+                <option value="%A, %e de %B de %Y">domingo, 29 de junho de 2026</option>
+                <option value="%A (%d/%m/%Y)">domingo (29/06/2026)</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <!-- Validação -->
+        <div class="sb-ttl">Validação de campos</div>
+        <div class="sec-desc" style="margin-bottom:10px">Marque os campos que devem ser validados após a limpeza. CPF e CNPJ passam por verificação dos dígitos verificadores.</div>
+        <div class="val-grid" id="valGrid">
+          <div class="val-card" id="vcCPF">
+            <label><input type="checkbox" id="valCPF"><div><div class="vc-ttl">CPF</div><div class="vc-sub">Verifica dígitos verificadores (mod 11)</div></div></label>
+          </div>
+          <div class="val-card" id="vcCNPJ">
+            <label><input type="checkbox" id="valCNPJ"><div><div class="vc-ttl">CNPJ</div><div class="vc-sub">Verifica dígitos verificadores</div></div></label>
+          </div>
+          <div class="val-card" id="vcEmail">
+            <label><input type="checkbox" id="valEmail"><div><div class="vc-ttl">E-mail</div><div class="vc-sub">Verifica formato básico (user@domínio)</div></div></label>
+          </div>
+          <div class="val-card" id="vcTel">
+            <label><input type="checkbox" id="valTel"><div><div class="vc-ttl">Telefone</div><div class="vc-sub">Verifica 10 ou 11 dígitos</div></div></label>
+          </div>
+          <div class="val-card" id="vcCEP">
+            <label><input type="checkbox" id="valCEP"><div><div class="vc-ttl">CEP</div><div class="vc-sub">Verifica exatamente 8 dígitos</div></div></label>
+          </div>
+        </div>
+        <div class="toggle-grid" style="margin-top:12px">
+          <label class="toggle"><input type="checkbox" id="optMarkInvalid" checked> Marcar inválidos (adiciona coluna <code style="font-family:var(--mono);font-size:.73rem">__erros</code>)</label>
+          <label class="toggle"><input type="checkbox" id="optRemoveInvalid"> Remover linhas com qualquer campo inválido</label>
+        </div>
+
+        <!-- Autocorreção -->
+        <div class="sb-ttl">Autocorreção <span class="muted" style="text-transform:none;letter-spacing:0;font-size:.7rem">(antes da validação)</span></div>
+        <div class="sec-desc" style="margin-bottom:10px">Corrige erros comuns automaticamente. CPF e CNPJ não são alterados.</div>
+        <div class="val-grid" id="autoGrid">
+          <div class="val-card" id="acEmail">
+            <label><input type="checkbox" id="autoEmail"><div>
+              <div class="vc-ttl">E-mail</div>
+              <div class="vc-sub">Domínios com typo (gamil→gmail, hotmai→hotmail…) e TLD faltante (@gmail → @gmail.com)</div>
+            </div></label>
+          </div>
+          <div class="val-card" id="acTel">
+            <label><input type="checkbox" id="autoTel"><div>
+              <div class="vc-ttl">Telefone</div>
+              <div class="vc-sub">Remove DDI +55 quando resultar em número válido (10 ou 11 dígitos)</div>
+            </div></label>
+          </div>
+          <div class="val-card" style="opacity:.65;pointer-events:none">
+            <div>
+              <div class="vc-ttl">CEP <span style="font-size:.68rem;color:var(--success);font-weight:600">automático</span></div>
+              <div class="vc-sub">Zero inicial completado sempre que o CEP tiver 7 dígitos</div>
+            </div>
+          </div>
+        </div>
+        <div class="toggle-grid" style="margin-top:10px">
+          <label class="toggle"><input type="checkbox" id="optMarkFixed"> Registrar correções (adiciona coluna <code style="font-family:var(--mono);font-size:.73rem">__correcoes</code>)</label>
+        </div>
+
+      </div><!-- /secConfig -->
+    </div><!-- /sb-body -->
+
+    <!-- Run button — sticky no rodapé da sidebar -->
+    <div class="sb-run hidden" id="sbRun">
+      <button class="btn primary lg" id="btnRun" style="width:100%;justify-content:center">
+        ✨ Higienizar base
+      </button>
+      <div style="text-align:center;margin-top:6px"><span class="muted" id="runStatus"></span></div>
+    </div>
+
+  </aside><!-- /sidebar -->
+
+  <!-- ─── PANEL ─────────────────────────────────────────────────────────── -->
+  <main class="panel">
+
+    <!-- Estado inicial: drop zone -->
+    <div class="panel-drop" id="panelDrop">
+      <div class="drop" id="drop">
+        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+        <div class="big">📂</div>
+        <div><b>Clique para escolher</b> ou arraste o arquivo aqui</div>
+        <div class="muted" style="margin-top:6px">CSV · Excel (.xlsx / .xls) · Sem limite de tamanho</div>
+      </div>
+    </div>
+
+    <!-- Estado pronto: arquivo carregado, aguardando run -->
+    <div class="panel-ready hidden" id="panelReady">
+      <div class="pr-icon">⚙️</div>
+      <div class="pr-text">Base carregada — configure e higienize</div>
+      <div class="pr-hint">Ajuste as opções na barra lateral e clique em <strong>Higienizar base</strong></div>
+    </div>
+
+    <!-- Resultado -->
+    <div class="panel-result hidden" id="secResult">
+      <div class="result-header">
+        <div class="stats" id="stats"></div>
+        <div id="valSummary" class="hidden" style="margin-bottom:14px">
+          <div class="dlab">Correções &amp; Validação</div>
+          <div class="val-summary" id="valBadges"></div>
+        </div>
+        <div class="actions" style="margin-bottom:12px">
+          <button class="btn primary lg" id="btnExportXlsx">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Baixar Excel (.xlsx)
+          </button>
+          <button class="btn" id="btnExportCsv">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Baixar CSV (;)
+          </button>
+          <button class="btn" id="btnRunAgain">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8"/></svg>
+            Novo arquivo
+          </button>
+        </div>
+        <div class="muted" style="margin-bottom:8px" id="previewNote"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="data" id="resultTable"></table>
+      </div>
+    </div>
+
+  </main><!-- /panel -->
+
+</div><!-- /shell -->
+
+<div id="toast"></div>
+<footer>🧼 HIGEIA · Dev by RBBrDev</footer>
+
+<script>
+'use strict';
+
+// ─── Shortcuts ──────────────────────────────────────────────────────────────
+const $ = (s, c=document) => c.querySelector(s);
+const $$ = (s, c=document) => [...c.querySelectorAll(s)];
+const hide = el => el && el.classList.add('hidden');
+const show = el => el && el.classList.remove('hidden');
+
+// ─── State ──────────────────────────────────────────────────────────────────
+const S = {
+  file: null,
+  rawData: [],   // array of arrays, first row = headers
+  headers: [],
+  wb: null,      // workbook for xlsx
+  cleanData: [], // processed rows (with headers)
+  baseName: '',
+  validationResults: {}, // {field: {valid, invalid, col}}
+};
+
+// ─── Theme ──────────────────────────────────────────────────────────────────
+(function() {
+  const dark = localStorage.getItem('higeia-dark') === '1';
+  if (dark) document.body.classList.add('dark-mode');
+})();
+$('#btnTheme').onclick = () => {
+  document.body.classList.toggle('dark-mode');
+  localStorage.setItem('higeia-dark', document.body.classList.contains('dark-mode') ? '1' : '0');
+};
+
+// ─── SheetJS check ──────────────────────────────────────────────────────────
+if (typeof XLSX === 'undefined') {
+  $('#xlsxStatus').textContent = '⚠ XLSX offline indisponível';
+  $('#xlsxStatus').style.color = 'var(--warn)';
+}
+
+// ─── Toast ──────────────────────────────────────────────────────────────────
+let _toastT;
+function toast(msg, err=false) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'show' + (err ? ' err' : '');
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => t.className = '', 3000);
+}
+
+// ─── Utils ──────────────────────────────────────────────────────────────────
+function fmtN(n) { return n.toLocaleString('pt-BR'); }
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+
+function stripAccents(s) {
+  return s.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function guessSep(text) {
+  const sample = text.slice(0, 8192);
+  const counts = { ';': 0, ',': 0, '\t': 0, '|': 0 };
+  for (const c of sample) if (c in counts) counts[c]++;
+  const best = Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+  return best[1] > 0 ? best[0] : ';';
+}
+
+// ─── Drop zone ──────────────────────────────────────────────────────────────
+const drop = $('#drop'), fi = $('#fileInput');
+drop.onclick = () => fi.click();
+fi.onchange = e => handleFile(e.target.files[0]);
+drop.ondragover = e => { e.preventDefault(); drop.classList.add('over'); };
+drop.ondragleave = () => drop.classList.remove('over');
+drop.ondrop = e => { e.preventDefault(); drop.classList.remove('over'); handleFile(e.dataTransfer.files[0]); };
+
+$('#btnClear').onclick = resetAll;
+
+function handleFile(file) {
+  if (!file) return;
+  S.file = file;
+  S.baseName = file.name.replace(/\.[^.]+$/, '');
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  $('#fileName').textContent = file.name;
+  $('#fileDims').textContent = fmtBytes(file.size) + ' · ' + ext.toUpperCase();
+  $('#fileIc').textContent = (ext === 'csv') ? '📄' : '📊';
+  show($('#fileInfo'));
+
+  show($('#secParams'));
+  hide($('#secConfig'));
+  hide($('#secResult'));
+  S.rawData = []; S.headers = []; S.cleanData = [];
+
+  if (ext === 'csv') {
+    show($('#csvOpts')); hide($('#xlsxOpts'));
+    file.text().then(text => {
+      const sep = guessSep(text);
+      const sepMap = {';':'Ponto e vírgula (;)', ',':'Vírgula (,)', '\t':'Tabulação (tab)', '|':'Pipe (|)'};
+      $('#csvDetected').textContent = `Detectado → separador: "${sep === '\t' ? 'tab' : sep}" · encoding estimado pelo browser`;
+      $('#csvSep').value = 'auto';
+      S._csvText = text;
+      S._detectedSep = sep;
+    }).catch(() => file.arrayBuffer().then(buf => { S._csvBuf = buf; }));
+  } else {
+    hide($('#csvOpts')); show($('#xlsxOpts'));
+    file.arrayBuffer().then(buf => {
+      if (typeof XLSX === 'undefined') { toast('SheetJS não carregado — sem internet?', true); return; }
+      try {
+        S.wb = XLSX.read(buf, { type: 'array' });
+        const sel = $('#xlsxSheet');
+        sel.innerHTML = '';
+        S.wb.SheetNames.forEach(name => {
+          const o = document.createElement('option');
+          o.value = name; o.textContent = name;
+          sel.appendChild(o);
+        });
+      } catch(e) { toast('Erro ao ler Excel: ' + e.message, true); }
+    });
+  }
+}
+
+// ─── Load data ──────────────────────────────────────────────────────────────
+$('#btnLoad').onclick = loadData;
+
+function loadData() {
+  if (!S.file) return;
+  $('#loadStatus').textContent = 'Carregando...';
+  setTimeout(() => {
+    try {
+      const ext = S.file.name.split('.').pop().toLowerCase();
+      let rows;
+      if (ext === 'csv') {
+        let sep = $('#csvSep').value;
+        if (sep === 'auto') sep = S._detectedSep || ';';
+        rows = parseCSVText(S._csvText, sep);
+      } else {
+        if (!S.wb) { toast('Workbook não lido ainda', true); return; }
+        const sheetName = $('#xlsxSheet').value;
+        const ws = S.wb.Sheets[sheetName];
+        rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+      }
+      if (!rows || rows.length < 2) { toast('Arquivo vazio ou sem dados', true); $('#loadStatus').textContent = ''; return; }
+      S.rawData = rows;
+      S.headers = rows[0].map(String);
+      $('#loadStatus').textContent = `${fmtN(rows.length-1)} linhas · ${S.headers.length} colunas`;
+      buildConfigSection();
+      show($('#secConfig'));
+      show($('#sbRun'));
+      hide($('#secResult'));
+      hide($('#panelDrop'));
+      show($('#panelReady'));
+      toast(`Carregado: ${fmtN(rows.length-1)} linhas`);
+    } catch(e) {
+      toast('Erro ao carregar: ' + e.message, true);
+      $('#loadStatus').textContent = '';
+    }
+  }, 20);
+}
+
+// Simple CSV parser (handles quoted fields)
+function parseCSVText(text, sep) {
+  const lines = text.split(/\r?\n/);
+  const result = [];
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const row = [];
+    let i = 0, cell = '';
+    while (i <= line.length) {
+      if (i === line.length) { row.push(cell); break; }
+      const ch = line[i];
+      if (ch === '"') {
+        i++;
+        while (i < line.length) {
+          if (line[i] === '"' && line[i+1] === '"') { cell += '"'; i += 2; }
+          else if (line[i] === '"') { i++; break; }
+          else { cell += line[i++]; }
+        }
+        if (i < line.length && line[i] === sep) i++;
+        row.push(cell); cell = '';
+      } else {
+        const next = line.indexOf(sep, i);
+        if (next === -1) { row.push(line.slice(i)); break; }
+        row.push(line.slice(i, next));
+        i = next + 1;
+      }
+    }
+    result.push(row);
+  }
+  return result;
+}
+
+// ─── Config section ─────────────────────────────────────────────────────────
+const ROLE_TYPES = [
+  { id:'name',  label:'Nome / Razão Social', keys:['nome','name','cliente','razao','razão','razao_social','razaosocial'] },
+  { id:'cpf',   label:'CPF',   keys:['cpf'] },
+  { id:'cnpj',  label:'CNPJ',  keys:['cnpj'] },
+  { id:'phone', label:'Telefone', keys:['telefone','celular','fone','whatsapp','tel','phone','contato'] },
+  { id:'email', label:'E-mail',   keys:['email','e-mail','mail'] },
+  { id:'cep',   label:'CEP',   keys:['cep','zip','postal','cep_'] },
+  { id:'date',  label:'Data',  keys:['data','date','dt_','dt','nascimento','cadastro','emissao','emissão','vencimento'] },
+];
+
+function normKey(s) { return stripAccents(s).toLowerCase().replace(/[^a-z0-9]/g,''); }
+
+function guessRole(col) {
+  const n = normKey(col);
+  for (const rt of ROLE_TYPES) {
+    if (rt.keys.some(k => n.includes(k))) return rt.id;
+  }
+  return '';
+}
+
+function buildConfigSection() {
+  // Column mapping
+  const grid = $('#colMapGrid');
+  grid.innerHTML = '';
+  ROLE_TYPES.forEach(rt => {
+    const div = document.createElement('div');
+    div.innerHTML = `<label class="lab">${rt.label}</label>`;
+    const sel = document.createElement('select');
+    sel.id = 'role_' + rt.id;
+    sel.innerHTML = '<option value="">— Nenhuma —</option>' +
+      S.headers.map(h => `<option value="${h.replace(/"/g,'&quot;')}"${h===''?'':''} ${guessRole(h)===rt.id?'selected':''}>${h}</option>`).join('');
+    div.appendChild(sel);
+    grid.appendChild(div);
+  });
+
+  // Dedup chips
+  const chips = $('#dedupChips');
+  chips.innerHTML = '<span class="chip-hint">Clique para selecionar/remover colunas da deduplicação:</span>';
+  const mapped = getMappedCols();
+  S.headers.forEach(h => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (mapped.includes(h) ? ' on' : '');
+    chip.textContent = h;
+    chip.dataset.col = h;
+    chip.onclick = () => chip.classList.toggle('on');
+    chips.appendChild(chip);
+  });
+
+  // Validation card states (disable if no matching column)
+  const valMap = { CPF:'cpf', CNPJ:'cnpj', Email:'email', Tel:'phone', CEP:'cep' };
+  Object.entries(valMap).forEach(([k,role]) => {
+    const hasSel = $(`#role_${role}`) && $(`#role_${role}`).value;
+    const card = $(`#vc${k}`);
+    if (card) card.style.opacity = hasSel ? '1' : '0.5';
+  });
+
+  // Wire validation + autocorrect card active state
+  $$('#valGrid input[type=checkbox], #autoGrid input[type=checkbox]').forEach(cb => {
+    cb.onchange = () => cb.closest('.val-card').classList.toggle('active', cb.checked);
+  });
+}
+
+function getMappedCols() {
+  return ROLE_TYPES.map(rt => {
+    const sel = $(`#role_${rt.id}`);
+    return sel ? sel.value : '';
+  }).filter(Boolean);
+}
+
+function getRoles() {
+  const roles = {};
+  ROLE_TYPES.forEach(rt => {
+    const sel = $(`#role_${rt.id}`);
+    if (sel && sel.value) roles[sel.value] = rt.id;
+  });
+  return roles;
+}
+
+function getDedupSubset() {
+  return $$('#dedupChips .chip.on').map(c => c.dataset.col).filter(Boolean);
+}
+
+// ─── CLEANING FUNCTIONS ──────────────────────────────────────────────────────
+function cleanTextVal(s, rmAccent, upper) {
+  if (s == null || s === '') return s;
+  s = String(s);
+  s = s.replace(/[\u00A0\u200B\u200C\u200D\uFEFF\r]/g, ' ');
+  s = s.replace(/\s+/g, ' ').trim();
+  if (rmAccent) s = stripAccents(s);
+  if (upper) s = s.toUpperCase();
+  return s;
+}
+function cleanDigits(s, pad) {
+  if (s == null || s === '') return s;
+  const d = String(s).replace(/\D/g, '');
+  return pad ? d.padStart(pad, '0') : d;
+}
+function cleanEmail(s) {
+  if (s == null || s === '') return s;
+  return String(s).replace(/[\u00A0\u200B\uFEFF]/g,'').trim().toLowerCase();
+}
+
+// ─── VALIDATION FUNCTIONS ────────────────────────────────────────────────────
+// Retornam null se válido, ou string com motivo do erro se inválido
+function validarCPF(raw) {
+  const cpf = (String(raw||'')).replace(/\D/g,'');
+  if (cpf.length < 11) return 'CPF incompleto';
+  if (cpf.length > 11) return 'CPF com dígitos a mais';
+  if (/^(\d)\1{10}$/.test(cpf)) return 'CPF inválido';
+  let s = 0;
+  for (let i=0;i<9;i++) s += +cpf[i] * (10-i);
+  let r = (s*10) % 11; if (r===10||r===11) r=0;
+  if (r !== +cpf[9]) return 'CPF inválido';
+  s = 0;
+  for (let i=0;i<10;i++) s += +cpf[i] * (11-i);
+  r = (s*10) % 11; if (r===10||r===11) r=0;
+  if (r !== +cpf[10]) return 'CPF inválido';
+  return null;
+}
+function validarCNPJ(raw) {
+  const c = (String(raw||'')).replace(/\D/g,'');
+  if (c.length < 14) return 'CNPJ incompleto';
+  if (c.length > 14) return 'CNPJ com dígitos a mais';
+  if (/^(\d)\1{13}$/.test(c)) return 'CNPJ inválido';
+  const calc = len => {
+    let sum=0, pos=len-7;
+    for (let i=len;i>=1;i--) { sum += +c[len-i] * pos--; if(pos<2) pos=9; }
+    const r = sum%11; return r<2 ? 0 : 11-r;
+  };
+  if (calc(12) !== +c[12] || calc(13) !== +c[13]) return 'CNPJ inválido';
+  return null;
+}
+function validarEmail(raw) {
+  if (!raw || String(raw).trim()==='') return 'E-mail inválido';
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(raw).trim().toLowerCase())) return 'E-mail inválido';
+  return null;
+}
+function validarTel(raw) {
+  if (!raw || String(raw).trim()==='') return 'Telefone inválido';
+  const d = String(raw).replace(/\D/g,'');
+  if (d.length < 10) return 'Telefone incompleto';
+  if (d.length > 11) return 'Telefone com dígitos a mais';
+  return null;
+}
+function validarCEP(raw) {
+  if (!raw || String(raw).trim()==='') return 'CEP inválido';
+  const d = String(raw).replace(/\D/g,'');
+  if (d.length < 8) return 'CEP incompleto';
+  if (d.length > 8) return 'CEP com dígitos a mais';
+  return null;
+}
+
+// ─── Date reformat ───────────────────────────────────────────────────────────
+const MESES_PT = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const DIAS_PT  = ['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
+
+function reformatDate(val, fmtIn, fmtOut) {
+  if (!val && val!==0) return val;
+  const v = String(val).trim();
+  const order = [];
+  const regexStr = fmtIn
+    .replace(/%d/g, () => { order.push('d'); return '(\\d{1,2})'; })
+    .replace(/%m/g, () => { order.push('m'); return '(\\d{1,2})'; })
+    .replace(/%Y/g, () => { order.push('Y'); return '(\\d{4})'; })
+    .replace(/[-/.]/g, '[\\-/.]');
+  const match = v.match(new RegExp('^' + regexStr + '$'));
+  if (!match) return val;
+  const parts = {};
+  order.forEach((k,i) => parts[k] = match[i+1]);
+  if (!parts.d || !parts.m || !parts.Y) return val;
+
+  const day   = parseInt(parts.d, 10);
+  const month = parseInt(parts.m, 10);
+  const year  = parseInt(parts.Y, 10);
+  const dateObj  = new Date(year, month - 1, day);
+  const weekday  = DIAS_PT[dateObj.getDay()];
+  const monthName = MESES_PT[month - 1] || '';
+
+  return fmtOut
+    .replace('%A', weekday)                        // dia da semana por extenso
+    .replace('%B', monthName)                      // mês por extenso
+    .replace('%e', String(day))                    // dia sem zero inicial
+    .replace('%d', String(day).padStart(2, '0'))   // dia com zero
+    .replace('%m', String(month).padStart(2, '0')) // mês com zero
+    .replace('%Y', String(year));                  // ano 4 dígitos
+}
+
+// ─── AUTO-CORRECTION FUNCTIONS ───────────────────────────────────────────────
+const EMAIL_DOMAIN_FIXES = {
+  'gamil.com':'gmail.com',   'gmai.com':'gmail.com',    'gmial.com':'gmail.com',
+  'gmail.co':'gmail.com',    'gmail.con':'gmail.com',   'gmail.cm':'gmail.com',
+  'hotmai.com':'hotmail.com','homail.com':'hotmail.com','hotmial.com':'hotmail.com',
+  'hotmail.co':'hotmail.com','hotmail.con':'hotmail.com','hotmaill.com':'hotmail.com',
+  'yaho.com':'yahoo.com',    'yahooo.com':'yahoo.com',  'yahoo.co':'yahoo.com',
+  'yahoo.con':'yahoo.com',   'yaho.com.br':'yahoo.com.br',
+  'outlok.com':'outlook.com','outloook.com':'outlook.com','outllok.com':'outlook.com',
+  'outlook.co':'outlook.com','outlook.con':'outlook.com',
+  'iclod.com':'icloud.com',  'iclould.com':'icloud.com','icoud.com':'icloud.com',
+  'live.co':'live.com',      'live.con':'live.com',
+  'gmal.com':'gmail.com',    'gmali.com':'gmail.com',   'gmaill.com':'gmail.com',
+};
+
+// Domínios canônicos usados para detectar onde inserir o @
+const KNOWN_DOMAINS = [
+  // .com.br — checar primeiro (mais específicos)
+  'hotmail.com.br','outlook.com.br','yahoo.com.br','live.com.br',
+  'gmail.com.br','terra.com.br','uol.com.br','bol.com.br','ig.com.br',
+  // internacionais
+  'gmail.com','hotmail.com','yahoo.com','outlook.com','icloud.com',
+  'live.com','msn.com','me.com','mac.com','globo.com','r7.com',
+];
+
+// Retorna { value, fix } — fix é string descritiva ou null se nenhuma correção
+function corrigirEmail(v) {
+  if (!v) return { value: v, fix: null };
+  let val = String(v).trim().toLowerCase();
+  let fix = null;
+
+  // ── Sem @: tenta localizar domínio conhecido no final da string ─────────────
+  if (!val.includes('@')) {
+    // Lista de detecção: canônicos + typos conhecidos (mais longos primeiro)
+    const detectList = [...KNOWN_DOMAINS, ...Object.keys(EMAIL_DOMAIN_FIXES)]
+      .sort((a, b) => b.length - a.length);
+
+    for (const d of detectList) {
+      if (val.endsWith(d) && val.length > d.length) {
+        const user = val.slice(0, val.length - d.length);
+        if (user.length > 0 && !/\s/.test(user)) {
+          const corrDomain = EMAIL_DOMAIN_FIXES[d] || d;
+          fix = `@ inserido (${user}@${corrDomain})`;
+          val = user + '@' + corrDomain;
+          break;
+        }
+      }
+    }
+    return { value: val, fix };
+  }
+
+  // ── Com @: aplica correções de domínio ─────────────────────────────────────
+  const atIdx = val.lastIndexOf('@');
+  const user = val.slice(0, atIdx);
+  let domain = val.slice(atIdx + 1);
+
+  if (EMAIL_DOMAIN_FIXES[domain]) {
+    fix = `domínio corrigido (${domain} → ${EMAIL_DOMAIN_FIXES[domain]})`;
+    domain = EMAIL_DOMAIN_FIXES[domain];
+  } else if (domain.length > 0 && !domain.includes('.')) {
+    fix = `TLD adicionado (@${domain} → @${domain}.com)`;
+    domain = domain + '.com';
+  } else {
+    const clean = domain.replace(/\.{2,}/g, '.');
+    if (clean !== domain) { fix = 'ponto duplo removido no domínio'; domain = clean; }
+  }
+
+  return { value: user + '@' + domain, fix };
+}
+
+function corrigirTel(v) {
+  if (!v) return { value: v, fix: null };
+  const d = String(v).replace(/\D/g, '');
+  // 12 dígitos com DDI 55 → número fixo válido (10 dígitos)
+  // 13 dígitos com DDI 55 → celular válido (11 dígitos)
+  if ((d.length === 12 || d.length === 13) && d.startsWith('55')) {
+    const stripped = d.slice(2);
+    return { value: stripped, fix: `DDI removido (55→ ${stripped.slice(0,2)}…)` };
+  }
+  return { value: v, fix: null };
+}
+
+// ─── Main process ────────────────────────────────────────────────────────────
+$('#btnRun').onclick = runProcess;
+
+function runProcess() {
+  const { rawData, headers } = S;
+  if (!rawData.length) return;
+  $('#runStatus').textContent = 'Processando...';
+
+  setTimeout(() => {
+    try {
+      const roles = getRoles();
+      const rmAccent = $('#optRmAccent').checked;
+      const upperName = $('#optUpperName').checked;
+      const cleanAll = $('#optCleanAll').checked;
+      const upperAll = $('#optUpperAll').checked;
+      const dropBlanks = $('#optDropBlanks').checked;
+      const doDedup = $('#optDedup').checked;
+      const dedupSubset = getDedupSubset();
+      const dateFmtIn  = $('#dateFmtIn').value.trim() || '%d/%m/%Y';
+      const dateFmtOut = $('#dateFmtOut').value || '%d/%m/%Y';
+
+      const doValCPF   = $('#valCPF').checked;
+      const doValCNPJ  = $('#valCNPJ').checked;
+      const doValEmail = $('#valEmail').checked;
+      const doValTel   = $('#valTel').checked;
+      const doValCEP   = $('#valCEP').checked;
+      const markInvalid   = $('#optMarkInvalid').checked;
+      const removeInvalid = $('#optRemoveInvalid').checked;
+      const anyVal = doValCPF||doValCNPJ||doValEmail||doValTel||doValCEP;
+
+      const doAutoEmail = $('#autoEmail').checked;
+      const doAutoTel   = $('#autoTel').checked;
+      const markFixed   = $('#optMarkFixed').checked;
+
+      const dataRows = rawData.slice(1);
+      const nOrig = dataRows.length;
+
+      // Identify validation columns
+      const valCols = {};
+      if (doValCPF)   { const c = Object.keys(roles).find(k=>roles[k]==='cpf');   if(c) valCols.cpf   = {col:c, fn:validarCPF,  label:'CPF'}; }
+      if (doValCNPJ)  { const c = Object.keys(roles).find(k=>roles[k]==='cnpj');  if(c) valCols.cnpj  = {col:c, fn:validarCNPJ, label:'CNPJ'}; }
+      if (doValEmail) { const c = Object.keys(roles).find(k=>roles[k]==='email'); if(c) valCols.email = {col:c, fn:validarEmail,label:'E-mail'}; }
+      if (doValTel)   { const c = Object.keys(roles).find(k=>roles[k]==='phone'); if(c) valCols.tel   = {col:c, fn:validarTel,  label:'Tel'}; }
+      if (doValCEP)   { const c = Object.keys(roles).find(k=>roles[k]==='cep');   if(c) valCols.cep   = {col:c, fn:validarCEP,  label:'CEP'}; }
+
+      // Process each row
+      let processed = dataRows.map(rawRow => {
+        const row = headers.map((h,i) => {
+          let v = rawRow[i] != null ? rawRow[i] : '';
+          const role = roles[h];
+          if (role === 'name')  v = cleanTextVal(v, rmAccent, upperName);
+          else if (role === 'cpf')   v = cleanDigits(v, 11);
+          else if (role === 'cnpj')  v = cleanDigits(v, 14);
+          else if (role === 'phone') v = cleanDigits(v, 0);
+          else if (role === 'email') v = cleanEmail(v);
+          else if (role === 'cep')   v = cleanDigits(v, 8);
+          else if (role === 'date')  v = reformatDate(v, dateFmtIn, dateFmtOut);
+          else if (cleanAll && typeof v === 'string') v = cleanTextVal(v, rmAccent, upperAll);
+          return v;
+        });
+        return row;
+      });
+
+      // ── Autocorrect — bundle rows with fix logs to survive filtering ────────
+      const fixStats = { email: 0, tel: 0 };
+      const emailCI = doAutoEmail ? (() => { const c = Object.keys(roles).find(k => roles[k]==='email'); return c ? headers.indexOf(c) : -1; })() : -1;
+      const telCI   = doAutoTel   ? (() => { const c = Object.keys(roles).find(k => roles[k]==='phone'); return c ? headers.indexOf(c) : -1; })() : -1;
+      const needsFixCol = markFixed && (emailCI >= 0 || telCI >= 0);
+
+      let bundled = processed.map(row => ({ row, fixes: [] }));
+
+      if (emailCI >= 0) {
+        bundled = bundled.map(b => {
+          const { value, fix } = corrigirEmail(b.row[emailCI]);
+          if (!fix) return b;
+          fixStats.email++;
+          const row = [...b.row]; row[emailCI] = value;
+          return { row, fixes: [...b.fixes, `E-mail: ${fix}`] };
+        });
+      }
+      if (telCI >= 0) {
+        bundled = bundled.map(b => {
+          const { value, fix } = corrigirTel(b.row[telCI]);
+          if (!fix) return b;
+          fixStats.tel++;
+          const row = [...b.row]; row[telCI] = value;
+          return { row, fixes: [...b.fixes, `Tel: ${fix}`] };
+        });
+      }
+
+      // Drop blank rows
+      if (dropBlanks) {
+        bundled = bundled.filter(({row}) => row.some(v => v != null && String(v).trim() !== ''));
+      }
+
+      // Deduplication
+      if (doDedup) {
+        const seen = new Set();
+        const idxMap = dedupSubset.length
+          ? dedupSubset.map(c => headers.indexOf(c)).filter(i=>i>=0)
+          : null;
+        bundled = bundled.filter(({row}) => {
+          const key = idxMap ? idxMap.map(i=>String(row[i]||'')).join('§') : row.map(v=>String(v||'')).join('§');
+          if (seen.has(key)) return false;
+          seen.add(key); return true;
+        });
+      }
+
+      // Unbundle after all filtering
+      processed = bundled.map(b => b.row);
+      const fixLogs = bundled.map(b => b.fixes);
+
+      // Validation
+      const valStats = {};
+      Object.keys(valCols).forEach(k => valStats[k] = { valid:0, invalid:0, col:valCols[k].col, label:valCols[k].label });
+
+      const needsErrCol = anyVal && markInvalid && Object.keys(valCols).length > 0;
+      let outHeaders = [...headers];
+      if (needsFixCol) outHeaders.push('__correcoes');
+      if (needsErrCol) outHeaders.push('__erros');
+
+      let validatedRows = processed.map((row, ri) => {
+        const errors = [];
+        Object.entries(valCols).forEach(([k, {col, fn}]) => {
+          const ci = headers.indexOf(col);
+          const v = ci >= 0 ? row[ci] : null;
+          if (v == null || String(v).trim() === '') return;
+          const errMsg = fn(v);
+          if (!errMsg) valStats[k].valid++;
+          else { valStats[k].invalid++; errors.push(errMsg); }
+        });
+        const out = [...row];
+        if (needsFixCol) out.push(fixLogs[ri].join('; '));
+        if (needsErrCol) out.push(errors.join(', '));
+        return out;
+      });
+
+      // Remove invalid
+      if (removeInvalid && Object.keys(valCols).length > 0) {
+        const errIdx = needsErrCol ? outHeaders.indexOf('__erros') : -1;
+        if (errIdx >= 0) {
+          validatedRows = validatedRows.filter(row => !row[errIdx]);
+        } else {
+          validatedRows = validatedRows.filter(row => {
+            return !Object.values(valCols).some(({col, fn}) => {
+              const ci = headers.indexOf(col);
+              const v = ci >= 0 ? row[ci] : null;
+              if (!v || String(v).trim()==='') return false;
+              return !!fn(v);
+            });
+          });
+        }
+      }
+
+      const nClean = validatedRows.length;
+      S.cleanData = [outHeaders, ...validatedRows];
+      S.validationResults = valStats;
+
+      // Build results
+      buildResults(nOrig, nClean, valStats, fixStats, outHeaders, validatedRows, anyVal && Object.keys(valCols).length>0);
+      show($('#secResult'));
+      hide($('#panelReady'));
+      $('#runStatus').textContent = `✔ Concluído — ${fmtN(nClean)} linhas`;
+      toast(`Higienização concluída — ${fmtN(nClean)} linhas`);
+    } catch(e) {
+      toast('Erro: ' + e.message, true);
+      $('#runStatus').textContent = '';
+      console.error(e);
+    }
+  }, 30);
+}
+
+function buildResults(nOrig, nClean, valStats, fixStats, headers, rows, hasVal) {
+  const nRemoved = nOrig - nClean;
+  const nCols = headers.length;
+  const totalFixed = (fixStats.email || 0) + (fixStats.tel || 0);
+
+  // Stats
+  $('#stats').innerHTML = `
+    <div class="stat"><div class="n">${fmtN(nOrig)}</div><div class="l">Linhas originais</div></div>
+    <div class="stat ok"><div class="n">${fmtN(nClean)}</div><div class="l">Linhas finais</div></div>
+    <div class="stat ${nRemoved>0?'warn':''}"><div class="n">${fmtN(nRemoved)}</div><div class="l">Removidas</div></div>
+    <div class="stat ${totalFixed>0?'info':''}"><div class="n">${fmtN(totalFixed)}</div><div class="l">Corrigidas</div></div>
+    <div class="stat"><div class="n">${nCols}</div><div class="l">Colunas</div></div>
+  `;
+
+  // Validation + fix summary
+  const fixBadges = [];
+  if (fixStats.email > 0) fixBadges.push(`<span class="val-badge fix">✎ E-mail: ${fmtN(fixStats.email)} corrigidos</span>`);
+  if (fixStats.tel   > 0) fixBadges.push(`<span class="val-badge fix">✎ Telefone: ${fmtN(fixStats.tel)} corrigidos</span>`);
+
+  const valBadges = hasVal && Object.keys(valStats).length > 0
+    ? Object.values(valStats).map(vs => {
+        if (vs.invalid === 0) return `<span class="val-badge ok">✔ ${vs.label}: ${fmtN(vs.valid)} válidos</span>`;
+        return `<span class="val-badge bad">✖ ${vs.label}: ${fmtN(vs.invalid)} inválidos de ${fmtN(vs.valid+vs.invalid)}</span>`;
+      })
+    : [];
+
+  const allBadges = [...fixBadges, ...valBadges];
+  if (allBadges.length > 0) {
+    $('#valBadges').innerHTML = allBadges.join('');
+    show($('#valSummary'));
+  } else {
+    hide($('#valSummary'));
+  }
+
+  // Preview table (first 50 rows)
+  const PREVIEW = Math.min(50, rows.length);
+  $('#previewNote').textContent = rows.length > PREVIEW
+    ? `Prévia: ${PREVIEW} de ${fmtN(rows.length)} linhas. O arquivo exportado contém todas.`
+    : `${fmtN(rows.length)} linhas`;
+
+  const errIdx = headers.indexOf('__erros');
+  const fixIdx = headers.indexOf('__correcoes');
+  let html = '<thead><tr>' + headers.map(h => `<th>${esc(h)}</th>`).join('') + '</tr></thead><tbody>';
+  for (let i=0;i<PREVIEW;i++) {
+    const row = rows[i];
+    html += '<tr>' + headers.map((_,ci) => {
+      const v = row[ci] != null ? row[ci] : '';
+      const s = String(v);
+      const isEmpty = s.trim() === '';
+      const isErrCol = ci === errIdx && s.trim() !== '';
+      const isFixCol = ci === fixIdx && s.trim() !== '';
+      let cls = isEmpty ? 'empty-cell' : '';
+      if (isErrCol) cls = 'invalid';
+      if (isFixCol) cls = 'fixed';
+      return `<td${cls?' class="'+cls+'"':''}>${isEmpty ? '∅' : esc(s)}</td>`;
+    }).join('') + '</tr>';
+  }
+  html += '</tbody>';
+  $('#resultTable').innerHTML = html;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ─── EXPORT ──────────────────────────────────────────────────────────────────
+$('#btnExportCsv').onclick = exportCSV;
+$('#btnExportXlsx').onclick = exportXLSX;
+$('#btnRunAgain').onclick = resetAll;
+
+function exportCSV() {
+  if (!S.cleanData.length) return;
+  const sep = ';';
+  const lines = S.cleanData.map(row =>
+    row.map(v => {
+      const s = String(v == null ? '' : v);
+      return (s.includes(sep) || s.includes('"') || s.includes('\n'))
+        ? '"' + s.replace(/"/g,'""') + '"' : s;
+    }).join(sep)
+  );
+  const bom = '\ufeff';
+  const blob = new Blob([bom + lines.join('\r\n')], { type:'text/csv;charset=utf-8;' });
+  dlBlob(blob, `higeia_${S.baseName}.csv`);
+  toast('CSV exportado');
+}
+
+function exportXLSX() {
+  if (!S.cleanData.length) return;
+  if (typeof XLSX === 'undefined') { toast('SheetJS não disponível — sem internet', true); return; }
+  try {
+    const ws = XLSX.utils.aoa_to_sheet(S.cleanData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Higeia');
+    XLSX.writeFile(wb, `higeia_${S.baseName}.xlsx`);
+    toast('Excel exportado');
+  } catch(e) { toast('Erro ao exportar Excel: ' + e.message, true); }
+}
+
+function dlBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+// ─── Reset ───────────────────────────────────────────────────────────────────
+function resetAll() {
+  S.file = null; S.rawData = []; S.headers = []; S.cleanData = []; S.wb = null;
+  $('#fileInput').value = '';
+  hide($('#fileInfo'));
+  hide($('#secParams'));
+  hide($('#secConfig'));
+  hide($('#secResult'));
+  hide($('#sbRun'));
+  hide($('#panelReady'));
+  show($('#panelDrop'));
+  $('#loadStatus').textContent = '';
+  $('#runStatus').textContent = '';
+}
+</script>
+</body>
+</html>

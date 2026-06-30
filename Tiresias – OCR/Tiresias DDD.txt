@@ -1,0 +1,100 @@
+Tiresias – OCR Local Inteligente
+Proposta Completa
+Descrição Tiresias é um processador OCR 100% local (sem enviar nada para a nuvem) que recebe imagens de documentos (notas fiscais, contratos, recibos, holerites, CNH, etc.), extrai o texto, faz validações automáticas, classifica o documento e executa uma das ações que você pediu:
+•	Move o arquivo para a pasta correta
+•	Valida informações (CPF, CNPJ, valores, datas, etc.)
+•	Abastece uma tabela (Excel, CSV ou banco SQLite)
+Ideal para uso interno de empresas brasileiras, contadores, departamentos de RH ou financeiro que recebem muitos documentos escaneados.
+Objetivos Principais
+•	Eliminar digitação manual
+•	Reduzir erros de transcrição em > 95%
+•	Organizar automaticamente pastas e dados
+•	Funcionar offline e com total privacidade (LGPD)
+Funcionalidades Principais
+1.	Monitoramento automático de pasta “Entrada” (watchdog)
+2.	OCR de alta qualidade com suporte total ao português brasileiro
+3.	Extração estruturada (campos como: número da NF, CNPJ, valor, data, CPF, etc.)
+4.	Validações inteligentes
+o	CPF/CNPJ válidos
+o	Valor total bate com itens
+o	Data de emissão coerente
+o	Detecção de duplicatas
+5.	Classificação automática (por tipo de documento)
+6.	Ações pós-processamento
+o	Mover para pasta específica (Financeiro, Contratos, RH, Pessoal, etc.)
+o	Renomear arquivo com padrão inteligente (ex: NF_000123_2026-04-15_CNPJ.pdf)
+o	Abastecer tabela Excel ou SQLite
+7.	Interface simples
+o	App web local (roda no navegador via localhost)
+o	Ou modo CLI + interface gráfica leve
+8.	Logs e histórico completo de todos os processamentos
+9.	Modo manual (arrastar e soltar imagem)
+User Flow Principal
+1.	Usuário joga o PDF/imagem na pasta “Entrada”
+2.	Tiresias processa automaticamente em < 8 segundos
+3.	Move o arquivo + insere linha na planilha “Financeiro.xlsx” ou “Contratos.db”
+4.	Notifica o usuário (tray icon ou toast)
+Stack Tecnológica (100% local e leve)
+•	Linguagem: Python 3.12
+•	OCR: Tesseract 5 + pytesseract (treinado em português) OU EasyOCR (mais moderno)
+•	Visão computacional: OpenCV
+•	Validações BR: validate-docbr + expressões regulares
+•	Monitoramento: watchdog
+•	Interface: Streamlit (web local) ou Tauri (app desktop leve)
+•	Tabelas: pandas + openpyxl (Excel) ou SQLite
+•	Empacotamento: PyInstaller ou Tauri (um único .exe para Windows)
+Requisitos de Hardware Mínimos
+•	8 GB RAM, processador i5 ou equivalente
+Funciona perfeitamente em notebook comum
+Documentação para Documentation-Driven Development (DDD)
+1. Visão Geral do Produto Tiresias é um OCR local que transforma imagens de documentos em dados estruturados e organizados automaticamente.
+2. Requisitos Funcionais (User Stories)
+Como usuário
+•	Quero que o sistema monitore uma pasta e processe automaticamente qualquer imagem/PDF que cair nela
+•	Quero que o OCR extraia campos importantes de notas fiscais, contratos e holerites
+•	Quero validações automáticas de CPF, CNPJ, valores e datas
+•	Quero que o documento seja movido para a pasta correta e renomeado
+•	Quero que os dados sejam inseridos automaticamente em uma planilha Excel ou tabela SQLite
+•	Quero ver histórico de todos os documentos processados com status (sucesso/erro)
+3. Requisitos Não-Funcionais
+•	100% offline (sem internet, sem API externa)
+•	Tempo de processamento médio < 10 segundos por página
+•	Suporte a português brasileiro (acentuação, ç, etc.)
+•	Privacidade total (LGPD) – nada sai do computador
+•	Funcionar no Windows 10/11 (prioridade) e Linux
+•	Interface amigável para usuários não-técnicos
+4. Arquitetura de Alto Nível
+•	Pasta “Entrada” → Watchdog detecta arquivo → Processador OCR → Validador → Classificador → Executor de ações (mover + salvar dados)
+•	Banco de configuração em JSON + SQLite para histórico
+•	Logs em arquivo + interface visual
+5. Modelo de Dados / Saída
+•	Tabela de saída (exemplo em Excel ou SQLite):
+o	data_processamento, nome_original, tipo_documento, cnpj, cpf, valor_total, data_emissao, status_validacao, caminho_final, observacao
+6. Pastas de Organização (exemplo configurável)
+•	./Documentos/Financeiro/Notas_Fiscais/
+•	./Documentos/Contratos/
+•	./Documentos/RH/Holerites/
+•	./Documentos/Pessoal/
+•	./Documentos/Arquivados/
+7. Configuração (arquivo config.yaml)
+YAML
+pasta_entrada: "C:/Documentos/Entrada"
+pasta_saida_padrao: "C:/Documentos/Processados"
+idioma_ocr: "por"
+salvar_em_excel: true
+salvar_em_sqlite: true
+validar_cpf_cnpj: true
+renomear_arquivos: true
+8. Roadmap de Desenvolvimento (MVP) Fase 1 (MVP – 1 semana)
+•	Monitoramento de pasta + OCR básico com Tesseract
+•	Extração de texto completo + salvamento em TXT
+•	Interface Streamlit simples
+Fase 2 (2 semanas)
+•	Extração estruturada (campos por tipo de documento)
+•	Validações BR (CPF/CNPJ)
+•	Movimentação automática de arquivos
+Fase 3 (2 semanas)
+•	Abastecimento de Excel/SQLite
+•	Renomeação inteligente
+•	Logs e histórico visual
+Empacotamento em .exe

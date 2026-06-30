@@ -1,0 +1,9 @@
+{
+  "name": "Minotauro",
+  "myth": "habita o labirinto dos dados — cruza planilhas perdidas e traz o caminho de volta",
+  "cat": "Merge de Planilhas",
+  "desc": "Motor de VLOOKUP visual. Carregue várias planilhas, defina as chaves de cruzamento e obtenha o resultado mesclado em segundos — sem fórmulas, sem macros.",
+  "color": "#c2410c",
+  "icon": "git-merge",
+  "port": 5095
+}

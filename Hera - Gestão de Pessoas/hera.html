@@ -1,0 +1,2028 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hera — Gestão de Pessoas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #ffffff;
+  --bg-alt: #f8f9fa;
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --glass: rgba(255, 255, 255, 0.7);
+  --border: rgba(0, 0, 0, 0.08);
+  --border2: rgba(0, 0, 0, 0.12);
+  --accent:#db2777;--accent2:#be185d;--accent-bg:rgba(219, 39, 119, 0.05);
+  --success:#16a34a;--success-bg:rgba(22, 163, 74, 0.05);
+  --danger:#dc2626;--danger-bg:rgba(220, 38, 38, 0.05);
+  --warn:#d97706;--warn-bg:rgba(217, 119, 6, 0.05);
+  --text:#1f1f1f;--text-mid:#5f6368;--text-dim:#70757a;
+  --sans:'Outfit',sans-serif;
+  --display: 'Space Grotesk', sans-serif;
+  --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --r:12px;--r2:24px;--radius: 24px;--sh:0 12px 40px rgba(0, 0, 0, 0.04);
+  /* aliases */
+  --pink:var(--accent);--pink-d:var(--accent2);--pink-l:var(--accent-bg);
+  --card:var(--bg2);--muted:var(--text-mid);
+}
+
+body.dark-mode {
+  --bg: #0b0f1a;
+  --bg-alt: #111827;
+  --bg2: #1f2937;
+  --bg3: #374151;
+  --glass: rgba(17, 24, 39, 0.7);
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.12);
+  --text: #f3f4f6;
+  --text-mid: #9ca3af;
+  --text-dim: #6b7280;
+  --sh: 0 12px 40px rgba(0, 0, 0, 0.3);
+  --accent-bg: rgba(219, 39, 119, 0.15);
+  --success-bg: rgba(22, 163, 74, 0.15);
+  --danger-bg: rgba(220, 38, 38, 0.15);
+  --warn-bg: rgba(217, 119, 6, 0.15);
+}
+
+body.dark-mode .card, body.dark-mode .sidebar, body.dark-mode .stat-card, body.dark-mode .topbar, body.dark-mode .login-card, body.dark-mode .modal, body.dark-mode .theme-toggle {
+  background: #1f2937;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0; -webkit-font-smoothing: antialiased;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5; overflow: hidden; transition: background-color 0.4s, color 0.4s;}
+a { color: inherit; text-decoration: none; }
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0, 0, 0, 0.08);border-radius:20px}
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.15); }
+body.dark-mode ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
+
+/* Layout */
+.dashboard-layout {
+  padding: 24px;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+.main-area {
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  border: none;
+  overflow: hidden;
+  position: relative;
+}
+.main-area::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 150px 80px var(--bg);
+  pointer-events: none;
+  z-index: 1;
+}
+.hero-blob {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  border-radius: 50%;
+  filter: blur(160px);
+  z-index: 0;
+  opacity: 0.15;
+  pointer-events: none;
+}
+.blob-1 { top: -200px; right: -200px; background: radial-gradient(circle, #db2777, transparent); }
+.blob-2 { bottom: -100px; left: -100px; background: radial-gradient(circle, #be185d, transparent); }
+.blob-3 { top: 20%; left: 10%; background: radial-gradient(circle, #ea4335, transparent); width: 400px; height: 400px; }
+.blob-4 { bottom: 20%; right: 10%; background: radial-gradient(circle, #fbbc05, transparent); width: 300px; height: 300px; }
+
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  transition: all 0.3s;
+}
+.theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-card{width:440px;padding:48px;text-align:center}
+.login-top{margin-bottom:40px}
+.l-logo{display:flex;align-items:center;gap:16px;justify-content:center;margin-bottom:8px}
+.l-icon{width:48px;height:48px;background:var(--accent);border-radius:12px;display:grid;place-items:center;box-shadow: 0 8px 24px var(--accent-bg);}
+.l-icon svg{width:24px;height:24px;stroke:white}
+.l-brand{font-family:var(--display);font-size:2rem;font-weight:700;letter-spacing:-0.01em;color:var(--text)}
+.l-sub{font-size:.85rem;color:var(--text-dim);margin-top:4px}
+.login-body{display:flex;flex-direction:column;gap:16px}
+#login-err{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:12px;font-size:.8rem;color:var(--danger);display:none}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:1rem;font-weight:600;padding:16px;border-radius:16px;cursor:pointer;transition:all 0.3s;letter-spacing:.02em;width:100%}
+.btn-login:hover{background:var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-bg);}
+
+/* ── APP SHELL ── */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{height:56px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tbl{display:flex;align-items:center;gap:14px}
+.bicon{width:32px;height:32px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:6px;display:grid;place-items:center;flex-shrink:0}
+.bicon svg{width:17px;height:17px;stroke:var(--accent)}
+.bname{font-size:1.05rem;font-weight:700;letter-spacing:.08em}
+.bsep{width:1px;height:20px;background:var(--border)}
+.tb-title{font-size:.88rem;font-weight:600;color:var(--text-mid)}
+.tbr{display:flex;align-items:center;gap:12px}
+#topbar-actions{display:flex;gap:8px;align-items:center}
+.user-chip{display:flex;align-items:center;gap:8px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;transition:all .15s;position:relative;user-select:none}
+.user-chip:hover{border-color:var(--border2);background:var(--bg3)}
+.uc-av{width:26px;height:26px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:.6rem;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+.uc-info{display:flex;flex-direction:column;gap:1px}
+.uc-name{font-size:.78rem;font-weight:600;line-height:1.2}
+.uc-role{font-family:var(--mono);font-size:.6rem;color:var(--text-dim)}
+.user-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:160px;display:none;z-index:200}
+.user-chip.open .user-menu{display:block}
+.um-item{padding:9px 14px;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text-mid);transition:background .1s}
+.um-item:hover{background:var(--bg3);color:var(--text)}
+.um-item.danger:hover{background:var(--danger-bg);color:var(--danger)}
+
+/* ── BODY WRAP ── */
+.bwrap{display:flex;flex:1;overflow:hidden;height:calc(100vh - 56px)}
+
+/* ── SIDEBAR ── */
+#sidebar{ width: 280px; min-width: 280px; background: var(--glass); backdrop-filter: blur(8px); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; z-index: 3;}
+.sbhd{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.sbhd-row{display:flex;align-items:center;gap:10px}
+.sbhd-row .bname{font-size:.95rem}
+.sbttl{font-size:.65rem;font-weight:600;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-top:5px}
+#sidebar nav{flex:1;overflow-y:auto;padding:8px 0}
+#sidebar nav a{ padding: 12px 20px; border-radius: 16px; margin: 2px 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display:flex; align-items:center; gap:10px; font-size:.82rem; font-weight:500; color:var(--text-mid); text-decoration:none; position: relative;}
+#sidebar nav a svg{width:15px;height:15px;flex-shrink:0;stroke:var(--text-dim);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:.2s}
+#sidebar nav a:hover{background:var(--accent-bg);color:var(--accent)}
+#sidebar nav a:hover svg{stroke:var(--accent)}
+#sidebar nav a.active{ background: var(--bg2); border: 1px solid var(--border); box-shadow: var(--sh); color: var(--accent); font-weight:600;}
+#sidebar nav a.active svg{stroke:var(--accent)}
+.sb-divider{height:1px;background:var(--border);margin:6px 0; opacity: 0.5;}
+.sb-section{padding:10px 20px 4px;font-size:.62rem;font-weight:600;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase; opacity: 0.7;}
+
+/* ── MAIN ── */
+#main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+#content{padding:24px;flex:1;display:flex;flex-direction:column;gap:16px}
+
+/* ── STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.stat-card{ background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 24px; box-shadow: var(--sh); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display:flex; flex-direction:column; gap:4px; cursor: default;}
+.stat-card:hover { transform: translateY(-5px) scale(1.02); border-color: var(--accent); }
+.stat-card .val{ font-family: var(--display); font-size: 1.8rem; font-weight: 700; color:var(--accent); line-height: 1;}
+.stat-card .lbl{font-size:.68rem;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase;margin-top:5px}
+
+/* ── CARD ── */
+.card{ background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--sh);}
+.card-header{ padding: 20px 24px; border-bottom: 1px solid var(--border); background: var(--bg-alt); display:flex; align-items:center; justify-content:space-between; gap:12px;}
+.card-header h2{ font-family: var(--display); font-size: 1rem; font-weight: 700;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:800px){.grid2{grid-template-columns:1fr}}
+
+/* ── TABLE ── */
+table{width:100%;border-collapse:collapse}
+th{font-size:.65rem;font-weight:600;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;padding:10px 16px;text-align:left;background:var(--bg3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:.82rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafbfc}
+
+/* ── BUTTONS ── */
+.btn{font-family:var(--sans);font-size:.85rem;font-weight:600;padding:10px 20px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:all 0.3s;display:inline-flex;align-items:center;gap:8px;letter-spacing:.01em}
+.btn-primary,.bp{background:var(--accent);border-color:var(--accent);color:#fff}.btn-primary:hover,.bp:hover{background:var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-bg);}
+.btn-secondary,.bo{background:var(--bg2);border-color:var(--border);color:var(--text-mid)}.btn-secondary:hover,.bo:hover{border-color:var(--accent);color:var(--accent);background:var(--bg3)}
+.btn-danger,.bd{background:var(--bg2);border-color:var(--border);color:var(--text-mid)}.btn-danger:hover,.bd:hover{background:var(--danger-bg);border-color:var(--danger);color:var(--danger); transform: translateY(-2px);}
+.btn-success,.bs{background:var(--bg2);border-color:var(--border);color:var(--text-mid)}.btn-success:hover,.bs:hover{background:var(--success-bg);border-color:var(--success);color:var(--success); transform: translateY(-2px);}
+.btn-sm{padding:5px 12px;font-size:.76rem}
+.btn-xs{padding:3px 9px;font-size:.7rem}
+.btn-icon{padding:5px 8px;background:transparent;border:none;cursor:pointer;color:var(--text-dim);border-radius:var(--r);transition:.15s}
+.btn-icon:hover{background:var(--bg3);color:var(--text)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;font-family:var(--mono);font-size:.6rem;font-weight:600;padding:3px 7px;border-radius:3px;letter-spacing:.05em;white-space:nowrap}
+.badge-pink,.b-accent{background:var(--accent-bg);color:var(--accent2);border:1px solid #db277733}
+.badge-green,.b-success{background:var(--success-bg);color:var(--success);border:1px solid #16a34a33}
+.badge-yellow,.b-warn{background:var(--warn-bg);color:var(--warn);border:1px solid #d9770633}
+.badge-red,.b-danger{background:var(--danger-bg);color:var(--danger);border:1px solid #dc262633}
+.badge-blue,.b-info{background:#eff6ff;color:#1d4ed8;border:1px solid #1d4ed833}
+.badge-gray,.b-neutral{background:var(--bg3);color:var(--text-mid);border:1px solid var(--border)}
+
+/* ── FORM ── */
+.form-group{margin-bottom:14px;display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:.75rem;font-weight:600;color:var(--text-mid);letter-spacing:.02em;margin-bottom:4px}
+.form-group input,.form-group select,.form-group textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:1rem;padding:12px 16px;border-radius:14px;outline:none;transition:all 0.3s;width:100%}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-bg);background:var(--bg2)}
+.form-input{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:1rem;padding:12px 16px;border-radius:14px;outline:none;transition:all 0.3s}
+.form-input:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-bg);background:var(--bg2)}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:.95rem;font-weight:700}
+.modal-body{padding:24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── PROGRESS ── */
+.progress{background:var(--bg3);border-radius:99px;height:6px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;background:var(--accent);transition:.3s}
+
+/* ── AVATAR ── */
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+
+/* ── KUDOS ── */
+.kudos-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;gap:12px;align-items:flex-start}
+.kudo-valor-tag{display:inline-block;padding:2px 8px;border-radius:3px;font-size:.6rem;font-weight:700;background:var(--accent-bg);color:var(--accent2);margin-bottom:6px;font-family:var(--mono);letter-spacing:.04em}
+
+/* ── TABS ── */
+.tabs{display:flex;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 18px;cursor:pointer;font-size:.82rem;font-weight:500;color:var(--text-dim);border-bottom:2px solid transparent;margin-bottom:-2px;transition:color .15s,border-color .15s}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ── MISC ── */
+.section{display:none}.section.active{display:block}
+.empty{padding:48px 24px;text-align:center;color:var(--text-dim);font-size:.85rem}
+.alert{padding:10px 14px;border-radius:var(--r);font-size:.82rem;margin-bottom:14px}
+.alert-err{background:var(--danger-bg);color:var(--danger);border:1px solid #fca5a5}
+.alert-ok{background:var(--success-bg);color:var(--success);border:1px solid #86efac}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;border-radius:var(--r);padding:10px 18px;font-size:.8rem;font-family:var(--mono);letter-spacing:.03em;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:9999;max-width:340px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{background:var(--success)}
+#toast.err{background:var(--danger)}
+#toast.warn{background:var(--warn)}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-top">
+      <div class="l-logo">
+        <div class="l-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div class="l-brand">HERA</div>
+      </div>
+      <div class="l-sub">Gestão de Pessoas · Olimpus</div>
+    </div>
+    <div class="login-body">
+      <div id="login-err"></div>
+      <input class="form-input" id="l-email" type="email" placeholder="E-mail" autocomplete="username">
+      <input class="form-input" id="l-senha" type="password" placeholder="Senha" autocomplete="current-password">
+      <button class="btn-login" onclick="doLogin()">Entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- App -->
+<div class="dashboard-layout">
+<main class="main-area">
+  <div class="hero-blob blob-1"></div>
+  <div class="hero-blob blob-2"></div>
+  <div class="hero-blob blob-3"></div>
+  <div class="hero-blob blob-4"></div>
+<div id="app" style="display:none; height:100%; position:relative; z-index:2;">
+
+  <!-- Topbar -->
+  <div class="topbar" style="height:80px; background:transparent;">
+    <div class="tbl">
+      <div class="bicon" style="width:36px; height:36px; border-radius:10px; background: var(--accent); box-shadow: 0 4px 12px var(--accent-bg);">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="stroke: white;">
+          <rect width="32" height="32" rx="8" fill="transparent" />
+          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="9" cy="7" r="4" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="bname" style="font-family: var(--display); font-size: 1.5rem; letter-spacing: -0.01em;">HERA</span>
+      <div class="bsep"></div>
+      <span class="tb-title" id="page-title" style="font-size: 1rem; opacity: 0.6; font-weight: 400;">Dashboard</span>
+    </div>
+    
+    <div class="tbr">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+        <svg id="sun-icon" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+
+      <div id="topbar-actions"></div>
+      <div class="user-chip" id="user-chip" onclick="this.classList.toggle('open')" style="padding: 8px 16px; border-radius: 40px; background: var(--bg2); box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+        <div class="uc-av" id="uc-avatar" style="width: 32px; height: 32px; font-size: 0.75rem;">?</div>
+        <div class="uc-info" style="margin-left: 4px;">
+          <div class="uc-name" id="sb-user-name" style="font-size: 0.85rem;">—</div>
+          <div class="uc-role" id="sb-user-role" style="font-size: 0.7rem;">—</div>
+        </div>
+        <div class="user-menu" style="top: calc(100% + 10px); border-radius: 20px;">
+          <div class="um-item danger" onclick="doLogout()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Sair
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="bwrap">
+
+    <!-- Sidebar -->
+    <div id="sidebar">
+      <div class="sbhd">
+        <div class="sbhd-row">
+          <div class="bicon">
+            <svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <span class="bname">HERA</span>
+        </div>
+        <div class="sbttl">Gestão de Pessoas</div>
+      </div>
+      <nav>
+        <a href="#" class="active" data-sec="dashboard">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+        <a href="#" data-sec="colaboradores">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Colaboradores
+        </a>
+        <a href="#" data-sec="onboarding">
+          <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Onboarding
+        </a>
+        <a href="#" data-sec="ferias">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+          Férias
+        </a>
+        <div class="sb-divider"></div>
+        <div class="sb-section">Desenvolvimento</div>
+        <a href="#" data-sec="avaliacoes">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          Avaliações 360°
+        </a>
+        <a href="#" data-sec="feedbacks">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Feedbacks
+        </a>
+        <a href="#" data-sec="kudos">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+          Kudos
+        </a>
+        <a href="#" data-sec="pdi">
+          <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          PDI
+        </a>
+        <a href="#" data-sec="treinamentos">
+          <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Treinamentos
+        </a>
+        <div class="sb-divider"></div>
+        <div class="sb-section" id="admin-sec-label">Administração</div>
+        <a href="#" data-sec="relatorios" id="nav-relatorios">
+          <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Relatórios
+        </a>
+        <a href="#" data-sec="config" id="nav-config">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Configurações
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main -->
+    <div id="main">
+      <div id="content">
+
+        <!-- Dashboard -->
+        <div id="sec-dashboard" class="section active">
+          <div class="stats-grid" id="stats-grid"></div>
+          <div class="grid2">
+            <div class="card">
+              <div class="card-header"><h2>Kudos Recentes</h2></div>
+              <div id="kudos-home" style="padding:0 20px"></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h2>Aniversários do Mês</h2></div>
+              <div id="aniversariantes-home" style="padding:0 20px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Colaboradores -->
+        <div id="sec-colaboradores" class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2>Diretório de Colaboradores</h2>
+              <div style="display:flex;gap:8px">
+                <input id="search-colab" placeholder="Buscar nome..." style="border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:.82rem;width:180px;background:var(--bg3);outline:none" oninput="filterColabs()">
+                <select id="filter-dept" style="border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:.82rem;background:var(--bg3);outline:none" onchange="filterColabs()">
+                  <option value="">Todos os departamentos</option>
+                </select>
+              </div>
+            </div>
+            <table>
+              <thead><tr><th>Nome</th><th>Cargo</th><th>Departamento</th><th>E-mail</th><th>Desde</th><th></th></tr></thead>
+              <tbody id="colab-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Onboarding -->
+        <div id="sec-onboarding" class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2>Onboarding de Colaboradores</h2>
+              <select id="onb-user-select" style="border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:.82rem;background:var(--bg3);outline:none" onchange="loadOnboarding()">
+                <option value="">Selecione um colaborador</option>
+              </select>
+            </div>
+            <div id="onboarding-content" style="padding:0 20px 20px"><div class="empty">Selecione um colaborador para ver o progresso de onboarding.</div></div>
+          </div>
+          <div class="card" id="etapas-admin-card" style="display:none">
+            <div class="card-header">
+              <h2>Etapas do Onboarding</h2>
+              <button class="btn btn-primary btn-sm" onclick="openModalEtapa()">+ Nova Etapa</button>
+            </div>
+            <table>
+              <thead><tr><th>#</th><th>Etapa</th><th>Obrigatória</th><th>Status</th><th></th></tr></thead>
+              <tbody id="etapas-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Férias -->
+        <div id="sec-ferias" class="section">
+          <!-- Cálculo de Férias -->
+          <div class="grid2">
+            <div class="card">
+              <div class="card-header"><h2>Calcular Valor das Férias</h2></div>
+              <div style="padding:20px">
+                <div class="form-group"><label>Colaborador</label>
+                  <select id="fc-user" onchange="atualizarCalculoFerias()">
+                    <option value="">Selecione...</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Dias de Férias</label>
+                  <input id="fc-dias" type="number" min="1" max="30" value="30" onchange="atualizarCalculoFerias()">
+                </div>
+                <div id="fc-resultado" style="display:none;margin-top:16px;padding:16px;background:var(--success-bg);border:1px solid var(--success);border-radius:var(--r)">
+                  <div style="font-size:.8rem;color:var(--text-dim);margin-bottom:8px">Salário Mensal</div>
+                  <div style="font-size:1.2rem;font-weight:600;color:var(--text);font-family:var(--mono);margin-bottom:16px" id="fc-salario">—</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div>
+                      <div style="font-size:.75rem;color:var(--text-dim)">Valor Base</div>
+                      <div style="font-size:1rem;font-weight:600;font-family:var(--mono)" id="fc-base">—</div>
+                    </div>
+                    <div>
+                      <div style="font-size:.75rem;color:var(--text-dim)">Adicional 1/3</div>
+                      <div style="font-size:1rem;font-weight:600;font-family:var(--mono)" id="fc-adicional">—</div>
+                    </div>
+                    <div style="grid-column:1/-1;padding-top:12px;border-top:1px solid var(--success)">
+                      <div style="font-size:.75rem;color:var(--text-dim)">TOTAL</div>
+                      <div style="font-size:1.4rem;font-weight:700;font-family:var(--mono);color:var(--success)" id="fc-total">—</div>
+                    </div>
+                  </div>
+                </div>
+                <div id="fc-erro" style="display:none;margin-top:16px;padding:12px;background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);color:var(--danger);font-size:.85rem"></div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header"><h2>Opções de Divisão</h2></div>
+              <div style="padding:20px">
+                <div id="fc-opcoes">
+                  <div class="empty">Selecione um colaborador acima para ver as opções.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tabs">
+            <div class="tab active" onclick="switchFeriasTab('pendentes',this)">Pendentes</div>
+            <div class="tab" onclick="switchFeriasTab('aprovada',this)">Aprovadas</div>
+            <div class="tab" onclick="switchFeriasTab('recusada',this)">Recusadas</div>
+            <div class="tab" id="tab-ferias-equipe" style="display:none" onclick="switchFeriasTab('equipe',this)">Minha Equipe</div>
+            <div class="tab" onclick="switchFeriasTab('all',this)">Todas</div>
+          </div>
+          <div class="card" id="card-ferias-lista">
+            <div class="card-header">
+              <h2 id="ferias-lista-titulo">Solicitações de Férias</h2>
+              <button class="btn btn-primary btn-sm" onclick="openModalFerias()">+ Solicitar</button>
+            </div>
+            <table>
+              <thead><tr><th>Colaborador</th><th>Período</th><th>Dias</th><th>Fracionado</th><th>Status</th><th>Solicitado em</th><th></th></tr></thead>
+              <tbody id="ferias-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="card" id="card-ferias-equipe" style="display:none">
+            <div class="card-header">
+              <h2>Status de Férias da Equipe</h2>
+              <button class="btn btn-primary btn-sm" onclick="gerarRelatorioFerias()">⬇ Baixar Relatório de Férias (Equipe)</button>
+            </div>
+            <table>
+              <thead><tr><th>Colaborador</th><th>Admissão</th><th>Situação CLT</th><th>Ações</th></tr></thead>
+              <tbody id="ferias-equipe-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Avaliações -->
+        <div id="sec-avaliacoes" class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2>Ciclos de Avaliação 360°</h2>
+              <button class="btn btn-primary btn-sm" id="btn-new-ciclo" onclick="openModalCiclo()">+ Novo Ciclo</button>
+            </div>
+            <table>
+              <thead><tr><th>Ciclo</th><th>Tipo</th><th>Início</th><th>Fim</th><th>Status</th><th>Avaliações</th><th></th></tr></thead>
+              <tbody id="ciclos-tbody"></tbody>
+            </table>
+          </div>
+          <div id="ciclo-detalhe" style="display:none">
+            <div class="card">
+              <div class="card-header">
+                <h2 id="ciclo-detalhe-titulo">Avaliações do Ciclo</h2>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-secondary btn-sm" onclick="closeCicloDetalhe()">← Voltar</button>
+                  <button class="btn btn-primary btn-sm" onclick="openModalAvaliacao()">+ Nova Avaliação</button>
+                </div>
+              </div>
+              <table>
+                <thead><tr><th>Avaliado</th><th>Avaliador</th><th>Tipo</th><th>Nota</th><th>Status</th><th></th></tr></thead>
+                <tbody id="aval-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Feedbacks -->
+        <div id="sec-feedbacks" class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2>Feedbacks Contínuos</h2>
+              <button class="btn btn-primary btn-sm" onclick="openModalFeedback()">+ Dar Feedback</button>
+            </div>
+            <div id="feedbacks-list" style="padding:0 20px 20px"></div>
+          </div>
+        </div>
+
+        <!-- Kudos -->
+        <div id="sec-kudos" class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2>Mural de Reconhecimentos</h2>
+              <button class="btn btn-primary btn-sm" onclick="openModalKudos()">+ Enviar Kudos</button>
+            </div>
+            <div id="kudos-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:20px"></div>
+          </div>
+        </div>
+
+        <!-- PDI -->
+        <div id="sec-pdi" class="section">
+          <div class="card">
+            <div class="card-header">
+              <h2>Planos de Desenvolvimento Individual</h2>
+              <div style="display:flex;gap:8px">
+                <select id="pdi-user-select" style="border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font-size:.82rem;background:var(--bg3);outline:none" onchange="loadPDI()">
+                  <option value="">Meus PDIs</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="openModalPDI()">+ Novo PDI</button>
+              </div>
+            </div>
+            <div id="pdi-list" style="padding:0 20px 20px"></div>
+          </div>
+          <div id="pdi-detalhe" style="display:none">
+            <div class="card">
+              <div class="card-header">
+                <h2 id="pdi-detalhe-titulo">Ações do PDI</h2>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-secondary btn-sm" onclick="closePDIDetalhe()">← Voltar</button>
+                  <button class="btn btn-primary btn-sm" onclick="openModalAcao()">+ Nova Ação</button>
+                </div>
+              </div>
+              <table>
+                <thead><tr><th>Ação</th><th>Prazo</th><th>Status</th><th></th></tr></thead>
+                <tbody id="acoes-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Treinamentos -->
+        <div id="sec-treinamentos" class="section">
+          <div class="tabs">
+            <div class="tab active" onclick="switchTreiTab('catalogo',this)">Catálogo</div>
+            <div class="tab" onclick="switchTreiTab('meus',this)">Meus Treinamentos</div>
+          </div>
+          <div id="trei-catalogo">
+            <div class="card">
+              <div class="card-header">
+                <h2>Catálogo de Treinamentos</h2>
+                <button class="btn btn-primary btn-sm" id="btn-new-trei" onclick="openModalTreinamento()">+ Novo</button>
+              </div>
+              <table>
+                <thead><tr><th>Título</th><th>Modalidade</th><th>Carga Horária</th><th>Inscritos</th><th>Concluídos</th><th></th></tr></thead>
+                <tbody id="trei-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="trei-meus" style="display:none">
+            <div class="card">
+              <div class="card-header"><h2>Meus Treinamentos</h2></div>
+              <table>
+                <thead><tr><th>Treinamento</th><th>Status</th><th>Nota</th><th>Concluído em</th><th></th></tr></thead>
+                <tbody id="meus-trei-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Relatórios -->
+        <div id="sec-relatorios" class="section">
+          <div class="grid2">
+            <div class="card">
+              <div class="card-header"><h2>Por Departamento</h2></div>
+              <div id="rel-dept" style="padding:0 20px 20px"></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><h2>Férias Pendentes</h2></div>
+              <div id="rel-ferias" style="padding:0 20px 20px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Config -->
+        <div id="sec-config" class="section">
+          <div class="card" style="max-width:500px">
+            <div class="card-header"><h2>Sincronizar com Atlas</h2></div>
+            <div style="padding:20px 24px">
+              <p style="color:var(--text-dim);font-size:.82rem;margin-bottom:16px">Importa departamentos (empresas) e colaboradores (pessoas) do Atlas.</p>
+              <div class="alert alert-err" id="sync-err" style="display:none"></div>
+              <div class="alert alert-ok" id="sync-ok" style="display:none"></div>
+              <div class="form-group"><label>E-MAIL ATLAS</label><input id="sync-email" type="email" placeholder="admin@olimpus.local"></div>
+              <div class="form-group"><label>SENHA ATLAS</label><input id="sync-senha" type="password" placeholder="••••••••"></div>
+              <button class="btn btn-primary" onclick="doSync()">Sincronizar Agora</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /main -->
+  </div><!-- /bwrap -->
+</div>
+  <footer style="padding:24px; text-align:center; font-size:0.85rem; color:var(--text); border-top:1px solid var(--border); z-index:2; position:relative;">Desenvolvido por RBBrDev - Renato Bueno</footer>
+</main>
+</div>
+
+<div id="toast"></div>
+<div id="modal-root"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  updateThemeIcons(isDark);
+}
+
+function updateThemeIcons(isDark) {
+  document.getElementById('sun-icon').style.display = isDark ? 'block' : 'none';
+  document.getElementById('moon-icon').style.display = isDark ? 'none' : 'block';
+}
+
+const API = '';
+let ME = null;
+let ALL_USERS = [];
+let ALL_DEPTS = [];
+let CUR_CICLO = null;
+let CUR_PDI   = null;
+let FERIAS_TAB = 'pendentes';
+let MINHA_EQUIPE = [];
+
+// ── Utilitários ───────────────────────────────────────────────────────────────
+
+async function apiFetch(path, opts={}) {
+  const r = await fetch(API + path, {
+    credentials:'include',
+    headers:{'Content-Type':'application/json'},
+    ...opts
+  });
+  return r.json();
+}
+
+function toast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.className = '', 2800);
+}
+
+function badge(status) {
+  const map = {
+    pendente:'badge-yellow',aprovada:'badge-green',recusada:'badge-red',
+    inscrito:'badge-blue',em_andamento:'badge-pink',concluido:'badge-green',cancelado:'badge-red',
+    ativo:'badge-green',encerrado:'badge-gray',
+    colaborador:'badge-gray',rh:'badge-blue',admin:'badge-pink',
+  };
+  return `<span class="badge ${map[status]||'badge-gray'}">${status}</span>`;
+}
+
+function initials(nome) {
+  return (nome||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  return d.split('T')[0].split('-').reverse().join('/');
+}
+
+function showModal(html) {
+  const r = document.getElementById('modal-root');
+  r.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">${html}</div>`;
+}
+
+function closeModal() {
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+// ── Login / Logout ─────────────────────────────────────────────────────────────
+
+async function doLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const senha = document.getElementById('l-senha').value;
+  const err   = document.getElementById('login-err');
+  err.style.display = 'none';
+  const r = await apiFetch('/api/auth/login', {method:'POST', body:JSON.stringify({email,senha})});
+  if (r.ok) {
+    ME = r.data;
+    startApp();
+  } else {
+    err.textContent = r.error || 'Credenciais inválidas.';
+    err.style.display = 'block';
+  }
+}
+
+document.getElementById('l-senha').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+
+async function doLogout() {
+  await apiFetch('/api/auth/logout', {method:'POST'});
+  location.reload();
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+
+async function boot() {
+  const r = await apiFetch('/api/auth/me');
+  if (r.ok) { ME = r.data; startApp(); }
+  else { document.getElementById('login-screen').style.display = 'flex'; }
+}
+
+async function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display          = 'flex';
+  document.getElementById('sb-user-name').textContent   = ME.nome;
+  document.getElementById('sb-user-role').textContent   = ME.role;
+  document.getElementById('uc-avatar').textContent      = initials(ME.nome);
+
+  // Esconde itens admin se não for admin/rh/gestor
+  if (!['admin','rh'].includes(ME.role) && !ME.is_gestor) {
+    document.getElementById('admin-sec-label').style.display = 'none';
+    document.getElementById('nav-relatorios').style.display   = 'none';
+    document.getElementById('nav-config').style.display      = 'none';
+  } else if (!['admin','rh'].includes(ME.role) && ME.is_gestor) {
+    // Gestor vê Relatórios, mas não Config
+    document.getElementById('nav-config').style.display = 'none';
+  }
+
+  if (ME.is_gestor || ['admin','rh'].includes(ME.role)) {
+    const tabEquipe = document.getElementById('tab-ferias-equipe');
+    if (tabEquipe) tabEquipe.style.display = 'block';
+  }
+
+  // Navegação
+  document.querySelectorAll('#sidebar nav a[data-sec]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      showSection(a.dataset.sec);
+    });
+  });
+
+  // Fecha user menu ao clicar fora
+  document.addEventListener('click', e => {
+    const chip = document.getElementById('user-chip');
+    if (chip && !chip.contains(e.target)) chip.classList.remove('open');
+  });
+
+  await loadGlobals();
+  showSection('dashboard');
+}
+
+async function showSection(sid) {
+  const sections = document.querySelectorAll('.section');
+  sections.forEach(s => s.classList.remove('active'));
+  
+  const target = document.getElementById('sec-' + sid);
+  if (target) {
+    target.classList.add('active');
+    if (window.gsap) {
+      gsap.fromTo(target, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
+    }
+  }
+
+  // Links active state
+  document.querySelectorAll('#sidebar nav a').forEach(a => a.classList.remove('active'));
+  const link = document.querySelector(`#sidebar nav a[data-sec="${sid}"]`);
+  if (link) link.classList.add('active');
+
+  const titles = {
+    dashboard:'Dashboard', colaboradores:'Colaboradores', onboarding:'Onboarding',
+    ferias:'Gestão de Férias', avaliacoes:'Avaliações 360°', feedbacks:'Feedbacks',
+    kudos:'Mural de Kudos', pdi:'PDI', treinamentos:'Treinamentos',
+    relatorios:'Relatórios', config:'Configurações'
+  };
+  document.getElementById('page-title').textContent = titles[sid] || sid;
+
+  const ta = document.getElementById('topbar-actions');
+  ta.innerHTML = '';
+
+  if (sid === 'dashboard')      loadDashboard();
+  else if (sid === 'colaboradores')  loadColabs();
+  else if (sid === 'onboarding')     initOnboarding();
+  else if (sid === 'ferias')         { loadFerias(); inicializarCalculoFerias(); }
+  else if (sid === 'avaliacoes')     loadCiclos();
+  else if (sid === 'feedbacks')      loadFeedbacks();
+  else if (sid === 'kudos')          loadKudos();
+  else if (sid === 'pdi')            initPDI();
+  else if (sid === 'treinamentos')   loadTreinamentos();
+  else if (sid === 'relatorios')     loadRelatorios();
+}
+
+async function loadGlobals() {
+  const [u, d] = await Promise.all([
+    apiFetch('/api/users'), apiFetch('/api/departments')
+  ]);
+  ALL_USERS = u.data || [];
+  ALL_DEPTS = d.data || [];
+  const sel = document.getElementById('filter-dept');
+  sel.innerHTML = '<option value="">Todos os departamentos</option>';
+  ALL_DEPTS.forEach(d => sel.innerHTML += `<option value="${d.id}">${d.nome}</option>`);
+  ['onb-user-select','pdi-user-select'].forEach(id => {
+    const s = document.getElementById(id);
+    if (!s) return;
+    const base = id === 'pdi-user-select' ? '<option value="">Meus PDIs</option>' : '<option value="">Selecione um colaborador</option>';
+    s.innerHTML = base + ALL_USERS.map(u => `<option value="${u.id}">${u.nome}</option>`).join('');
+  });
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+
+async function loadDashboard() {
+  const r = await apiFetch('/api/dashboard');
+  if (!r.ok) return;
+  const d = r.data;
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="val">${d.total_colaboradores}</div><div class="lbl">Colaboradores</div></div>
+    <div class="stat-card"><div class="val">${d.total_departamentos}</div><div class="lbl">Departamentos</div></div>
+    <div class="stat-card"><div class="val">${d.ferias_pendentes}</div><div class="lbl">Férias Pendentes</div></div>
+    <div class="stat-card"><div class="val">${d.avaliacoes_abertas}</div><div class="lbl">Ciclos Abertos</div></div>
+    <div class="stat-card"><div class="val">${d.treinamentos_ativos}</div><div class="lbl">Treinamentos</div></div>
+    <div class="stat-card"><div class="val">${d.kudos_mes}</div><div class="lbl">Kudos este Mês</div></div>
+  `;
+  const kh = document.getElementById('kudos-home');
+  if (!d.kudos_recentes?.length) { kh.innerHTML = '<div class="empty">Nenhum kudos ainda.</div>'; }
+  else kh.innerHTML = d.kudos_recentes.map(k => `
+    <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+      <strong>${k.de_nome}</strong> → <strong>${k.para_nome}</strong>
+      <div style="color:var(--text-dim);font-size:.82rem;margin-top:2px">${k.mensagem}</div>
+      <div style="color:var(--text-dim);font-size:.75rem;margin-top:2px;font-family:var(--mono)">${fmtDate(k.criado_em)}</div>
+    </div>`).join('');
+  const ah = document.getElementById('aniversariantes-home');
+  if (!d.aniversariantes?.length) { ah.innerHTML = '<div class="empty">Nenhum aniversário este mês.</div>'; }
+  else ah.innerHTML = d.aniversariantes.map(a => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div class="avatar">${initials(a.nome)}</div>
+      <div>
+        <div style="font-weight:600;font-size:.875rem">${a.nome}</div>
+        <div style="color:var(--text-dim);font-size:.78rem">${a.cargo||'—'} · ${fmtDate(a.data_admissao)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Colaboradores ─────────────────────────────────────────────────────────────
+
+async function loadColabs() {
+  await loadGlobals();
+  renderColabs(ALL_USERS);
+}
+
+function filterColabs() {
+  const q    = document.getElementById('search-colab').value.toLowerCase();
+  const dept = document.getElementById('filter-dept').value;
+  renderColabs(ALL_USERS.filter(u =>
+    (!q || u.nome.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)) &&
+    (!dept || String(u.departamento_id) === dept)
+  ));
+}
+
+function renderColabs(list) {
+  document.getElementById('colab-tbody').innerHTML = list.map(u => `
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div class="avatar">${initials(u.nome)}</div>
+        <div><div style="font-weight:600">${u.nome}</div><div style="color:var(--text-dim);font-size:.75rem;font-family:var(--mono)">${u.email}</div></div>
+      </div></td>
+      <td>${u.cargo||'—'}</td>
+      <td>${u.departamento_nome||'—'}</td>
+      <td style="color:var(--text-dim);font-size:.82rem;font-family:var(--mono)">${u.email}</td>
+      <td style="font-family:var(--mono);font-size:.78rem">${fmtDate(u.data_admissao)}</td>
+      <td>
+        ${['admin','rh'].includes(ME.role) ? `<button class="btn btn-secondary btn-sm" onclick="openModalEditColab(${u.id})">Editar</button>` : ''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">Nenhum colaborador.</td></tr>';
+}
+
+async function openModalEditColab(uid) {
+  const u = await apiFetch(`/api/users/${uid}`);
+  if (!u.ok) return;
+  const c = u.data;
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Editar Colaborador</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Nome</label><input id="ec-nome" value="${c.nome||''}"></div>
+      <div class="form-group"><label>Cargo</label><input id="ec-cargo" value="${c.cargo||''}"></div>
+      <div class="form-row">
+        <div class="form-group"><label>Departamento</label>
+          <select id="ec-dept">
+            <option value="">—</option>
+            ${ALL_DEPTS.map(d=>`<option value="${d.id}" ${d.id===c.departamento_id?'selected':''}>${d.nome}</option>`).join('')}
+          </select></div>
+        <div class="form-group"><label>Gestor</label>
+          <select id="ec-gestor">
+            <option value="">—</option>
+            ${ALL_USERS.filter(u=>u.id!==uid).map(u=>`<option value="${u.id}" ${u.id===c.gestor_id?'selected':''}>${u.nome}</option>`).join('')}
+          </select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Data de Admissão</label><input id="ec-admissao" type="date" value="${c.data_admissao||''}"></div>
+        <div class="form-group"><label>Salário Mensal (R$)</label><input id="ec-salario" type="number" step="0.01" value="${c.salario_mensal||''}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Papel</label>
+          <select id="ec-role">
+            ${['colaborador','rh','admin'].map(r=>`<option value="${r}" ${r===c.role?'selected':''}>${r}</option>`).join('')}
+          </select></div>
+        <div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveColab(${uid})">Salvar</button>
+    </div>
+  </div>`);
+}
+
+async function saveColab(uid) {
+  const data = {
+    nome:           document.getElementById('ec-nome').value.trim(),
+    cargo:          document.getElementById('ec-cargo').value.trim(),
+    departamento_id:Number(document.getElementById('ec-dept').value)||null,
+    gestor_id:      Number(document.getElementById('ec-gestor').value)||null,
+    data_admissao:  document.getElementById('ec-admissao').value||null,
+    salario_mensal: Number(document.getElementById('ec-salario').value)||null,
+    role:           document.getElementById('ec-role').value,
+  };
+  const r = await apiFetch(`/api/users/${uid}`, {method:'PUT', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Colaborador atualizado!'); loadColabs(); }
+  else toast(r.error||'Erro ao salvar.','err');
+}
+
+// ── Onboarding ─────────────────────────────────────────────────────────────────
+
+function initOnboarding() {
+  if (['admin','rh'].includes(ME.role)) {
+    document.getElementById('etapas-admin-card').style.display = 'block';
+    loadEtapas();
+  }
+}
+
+async function loadEtapas() {
+  const r = await apiFetch('/api/onboarding/etapas');
+  if (!r.ok) return;
+  document.getElementById('etapas-tbody').innerHTML = r.data.map(e => `
+    <tr>
+      <td style="font-family:var(--mono)">${e.ordem}</td>
+      <td><strong>${e.titulo}</strong><div style="color:var(--text-dim);font-size:.78rem">${e.descricao}</div></td>
+      <td>${e.obrigatoria?'Sim':'—'}</td>
+      <td>${badge(e.ativo?'ativo':'encerrado')}</td>
+      <td>
+        <button class="btn-icon" onclick="toggleEtapa(${e.id},${e.ativo?0:1})">${e.ativo?'🚫':'✅'}</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Nenhuma etapa.</td></tr>';
+}
+
+async function loadOnboarding() {
+  const uid = document.getElementById('onb-user-select').value;
+  if (!uid) { document.getElementById('onboarding-content').innerHTML = '<div class="empty">Selecione um colaborador.</div>'; return; }
+  const r = await apiFetch(`/api/onboarding/${uid}`);
+  if (!r.ok) return;
+  const etapas = r.data;
+  const total    = etapas.length;
+  const concluidas = etapas.filter(e=>e.concluida).length;
+  const pct = total ? Math.round(concluidas/total*100) : 0;
+  document.getElementById('onboarding-content').innerHTML = `
+    <div style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:.875rem;font-weight:600">Progresso: ${concluidas}/${total} etapas</span>
+        <span style="font-size:.875rem;font-weight:700;color:var(--accent);font-family:var(--mono)">${pct}%</span>
+      </div>
+      <div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div>
+    </div>
+    ${etapas.map(e => `
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;background:${e.concluida?'var(--success-bg)':'var(--bg2)'}">
+      <input type="checkbox" ${e.concluida?'checked':''} onchange="toggleEtapaProgresso(${uid},${e.etapa_id},this.checked)"
+             style="margin-top:2px;width:16px;height:16px;accent-color:var(--accent)">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:.875rem;${e.concluida?'text-decoration:line-through;color:var(--text-dim)':''}">${e.titulo} ${e.obrigatoria?'<span style="color:var(--danger);font-size:.75rem">*</span>':''}</div>
+        <div style="color:var(--text-dim);font-size:.78rem;margin-top:2px">${e.descricao}</div>
+        ${e.concluida_em?`<div style="color:var(--success);font-size:.75rem;margin-top:4px;font-family:var(--mono)">✓ Concluída em ${fmtDate(e.concluida_em)}</div>`:''}
+      </div>
+    </div>`).join('')}
+  `;
+}
+
+async function toggleEtapaProgresso(uid, eid, concluida) {
+  await apiFetch(`/api/onboarding/${uid}/etapa/${eid}`, {method:'PUT', body:JSON.stringify({concluida})});
+  loadOnboarding();
+}
+
+async function toggleEtapa(eid, ativo) {
+  await apiFetch(`/api/onboarding/etapas/${eid}`, {method:'PUT', body:JSON.stringify({ativo})});
+  loadEtapas();
+}
+
+function openModalEtapa() {
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Nova Etapa de Onboarding</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Título</label><input id="ne-titulo" placeholder="Ex: Configuração de acesso"></div>
+      <div class="form-group"><label>Descrição</label><textarea id="ne-desc" placeholder="Detalhes da etapa..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Ordem</label><input id="ne-ordem" type="number" value="10"></div>
+        <div class="form-group"><label>Obrigatória</label>
+          <select id="ne-obrig"><option value="1">Sim</option><option value="0">Não</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEtapa()">Salvar</button>
+    </div>
+  </div>`);
+}
+
+async function saveEtapa() {
+  const data = {
+    titulo:     document.getElementById('ne-titulo').value.trim(),
+    descricao:  document.getElementById('ne-desc').value.trim(),
+    ordem:      Number(document.getElementById('ne-ordem').value)||0,
+    obrigatoria:Number(document.getElementById('ne-obrig').value),
+  };
+  if (!data.titulo) return toast('Título obrigatório.','err');
+  const r = await apiFetch('/api/onboarding/etapas', {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Etapa criada!'); loadEtapas(); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ── Férias ────────────────────────────────────────────────────────────────────
+
+async function loadFerias() {
+  const params = new URLSearchParams();
+  if (FERIAS_TAB === 'equipe') return loadFeriasEquipe();
+  
+  if (FERIAS_TAB !== 'all' && FERIAS_TAB !== 'pendentes') params.set('status', FERIAS_TAB);
+  const r = await apiFetch('/api/ferias?' + params);
+  if (!r.ok) return;
+  let list = r.data;
+  if (FERIAS_TAB === 'pendentes') list = list.filter(f=>f.status==='pendente');
+
+  document.getElementById('card-ferias-lista').style.display = 'block';
+  document.getElementById('card-ferias-equipe').style.display = 'none';
+
+  document.getElementById('ferias-tbody').innerHTML = list.map(f => {
+    const canManage = ['admin','rh'].includes(ME.role) || (Number(f.gestor_id) === Number(ME.id));
+    return `
+    <tr>
+      <td><div style="font-weight:600">${f.user_nome}</div><div style="color:var(--text-dim);font-size:.75rem;font-family:var(--mono)">${f.user_email}</div></td>
+      <td style="font-family:var(--mono);font-size:.8rem">${fmtDate(f.data_inicio)} → ${fmtDate(f.data_fim)}</td>
+      <td style="font-family:var(--mono)">${f.dias}</td>
+      <td>${f.fracionado ? '<span style="color:var(--success);font-weight:600">Sim</span>' : 'Não'}</td>
+      <td>${badge(f.status)}</td>
+      <td style="font-family:var(--mono);font-size:.78rem">${fmtDate(f.criado_em)}</td>
+      <td>${canManage && f.status==='pendente' ? `
+        <button class="btn btn-success btn-xs" onclick="atualizarFerias(${f.id},'aprovada')">Aprovar</button>
+        <button class="btn btn-danger btn-xs" onclick="atualizarFerias(${f.id},'recusada')">Recusar</button>
+        <button class="btn btn-secondary btn-xs" onclick="openModalFracionarFerias(${f.id})">Fracionar</button>` : ''}
+      </td>
+    </tr>`}).join('') || '<tr><td colspan="7" class="empty">Nenhuma solicitação.</td></tr>';
+}
+
+async function loadFeriasEquipe() {
+  document.getElementById('card-ferias-lista').style.display = 'none';
+  document.getElementById('card-ferias-equipe').style.display = 'block';
+  const r = await apiFetch('/api/ferias/equipe');
+  if (!r.ok) return;
+  MINHA_EQUIPE = r.data;
+  document.getElementById('ferias-equipe-tbody').innerHTML = r.data.map(u => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="avatar">${initials(u.nome)}</div>
+          <div><div style="font-weight:600">${u.nome}</div><div style="font-size:.7rem;color:var(--text-dim)">${u.cargo || '—'}</div></div>
+        </div>
+      </td>
+      <td style="font-family:var(--mono)">${fmtDate(u.data_admissao)}</td>
+      <td>
+        <span class="badge" style="background:${u.cor}22;color:${u.cor};border-color:${u.cor}44">
+          ${u.status}
+        </span>
+      </td>
+      <td>
+        <button class="btn btn-xs btn-secondary" onclick="openModalDetalhesFerias(${u.id})">Ver Detalhes</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty">Nenhum colaborador sob sua gestão.</td></tr>';
+}
+
+async function openModalDetalhesFerias(uid) {
+  const r = await apiFetch(`/api/ferias/resumo/${uid}`);
+  if (!r.ok) return toast(r.error || 'Erro ao carregar detalhes.', 'err');
+  
+  const d = r.data;
+  const hist = d.historico.map(h => `
+    <div style="padding:8px;border-bottom:1px solid var(--border);font-size:.85rem">
+      <div style="display:flex;justify-content:space-between">
+        <span style="font-weight:600">${fmtDate(h.data_inicio)} → ${fmtDate(h.data_fim)}</span>
+        ${badge(h.status)}
+      </div>
+      <div style="color:var(--text-dim);font-size:.75rem">${h.dias} dias ${h.fracionado ? '(Fracionado)' : ''}</div>
+    </div>
+  `).join('') || '<div class="empty">Nenhum histórico encontrado.</div>';
+
+  const fin = d.financeiro ? `
+    <div style="background:var(--bg3);padding:12px;border-radius:var(--r);margin-top:12px">
+      <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Estimativa Financeira (30 dias)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.85rem">
+        <span>Salário Base:</span> <span style="text-align:right;font-weight:600">R$ ${d.financeiro.salario_mensal.toFixed(2)}</span>
+        <span>Adicional 1/3:</span> <span style="text-align:right;font-weight:600">R$ ${d.financeiro.valor_adicional.toFixed(2)}</span>
+        <span style="font-weight:700">Total Bruto:</span> <span style="text-align:right;font-weight:700;color:var(--success)">R$ ${d.financeiro.valor_total.toFixed(2)}</span>
+      </div>
+    </div>
+  ` : '';
+
+  showModal(`<div class="modal" style="max-width:500px">
+    <div class="modal-header"><h3>Detalhes de Férias: ${d.user.nome}</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="display:flex;gap:12px;margin-bottom:20px;align-items:center">
+        <div class="avatar" style="width:48px;height:48px;font-size:1rem">${initials(d.user.nome)}</div>
+        <div>
+          <div style="font-weight:700;font-size:1.1rem">${d.user.nome}</div>
+          <div style="color:var(--text-dim);font-size:.85rem">${d.user.cargo || 'Colaborador'} · Admissão: ${fmtDate(d.user.data_admissao)}</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:.7rem;color:var(--text-dim);text-transform:uppercase;margin-bottom:8px">Situação CLT</div>
+        <div class="badge" style="background:${d.status_clt.cor}22;color:${d.status_clt.cor};border:1px solid ${d.status_clt.cor}44;padding:6px 12px;font-size:.85rem;display:block;text-align:center">
+          ${d.status_clt.status}
+        </div>
+      </div>
+
+      <div style="max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--bg2)">
+        <div style="padding:10px;font-size:.75rem;font-weight:700;background:var(--bg3);border-bottom:1px solid var(--border)">HISTÓRICO DE SOLICITAÇÕES</div>
+        ${hist}
+      </div>
+
+      ${fin}
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal()">Fechar</button>
+    </div>
+  </div>`);
+}
+
+function gerarRelatorioFerias() {
+  if (!MINHA_EQUIPE.length) return toast('Sem dados.','warn');
+  let t = "RELATÓRIO DE FÉRIAS - EQUIPE\n" + "=".repeat(30) + "\n\n";
+  MINHA_EQUIPE.forEach(u => t += `Colaborador: ${u.nome}\nAdmissão: ${fmtDate(u.data_admissao)}\nSituação: ${u.status.toUpperCase()}\n` + "-".repeat(20) + "\n");
+  const b = new Blob([t], {type:'text/plain'});
+  const u = URL.createObjectURL(b);
+  const a = document.createElement('a'); a.href = u; a.download = 'relatorio_ferias.txt'; a.click();
+  toast('Relatório gerado!');
+}
+
+function switchFeriasTab(tab, el) {
+  FERIAS_TAB = tab;
+  document.querySelectorAll('#sec-ferias .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  loadFerias();
+}
+
+function openModalFerias() {
+  const userOptions = ['admin','rh'].includes(ME.role)
+    ? ALL_USERS.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('')
+    : `<option value="${ME.id}">${ME.nome}</option>`;
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Solicitar Férias</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      ${['admin','rh'].includes(ME.role)?`<div class="form-group"><label>Colaborador</label><select id="nf-user">${userOptions}</select></div>`:''}
+      <div class="form-row">
+        <div class="form-group"><label>Data de Início</label><input id="nf-inicio" type="date"></div>
+        <div class="form-group"><label>Data de Fim</label><input id="nf-fim" type="date"></div>
+      </div>
+      <div class="form-group"><label>Observação</label><textarea id="nf-obs" placeholder="Opcional..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveFerias()">Solicitar</button>
+    </div>
+  </div>`);
+}
+
+async function saveFerias() {
+  const uel = document.getElementById('nf-user');
+  const data = {
+    user_id:    Number(uel ? uel.value : ME.id),
+    data_inicio:document.getElementById('nf-inicio').value,
+    data_fim:   document.getElementById('nf-fim').value,
+    observacao: document.getElementById('nf-obs').value,
+  };
+  if (!data.data_inicio||!data.data_fim) return toast('Preencha as datas.','err');
+  const r = await apiFetch('/api/ferias', {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Solicitação enviada!'); loadFerias(); }
+  else toast(r.error||'Erro.','err');
+}
+
+async function atualizarFerias(fid, status) {
+  try {
+    const r = await apiFetch(`/api/ferias/${fid}/status`, {method:'PUT', body:JSON.stringify({status})});
+    if (r.ok) {
+      toast(`Férias ${status} com sucesso!`, 'ok');
+      loadFerias();
+    } else {
+      console.error('Erro ao atualizar férias:', r.error);
+      toast(r.error || 'Erro ao processar solicitação.', 'err');
+    }
+  } catch (e) {
+    console.error('Falha na requisição:', e);
+    toast('Erro de conexão com o servidor.', 'err');
+  }
+}
+
+// ── Férias CLT: Cálculo e Fracionamento ─────────────────────────────────────────
+
+async function inicializarCalculoFerias() {
+  const sel = document.getElementById('fc-user');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Selecione...</option>' +
+    ALL_USERS.filter(u=>u.id===ME.id || ['admin','rh'].includes(ME.role))
+      .map(u=>`<option value="${u.id}">${u.nome}</option>`).join('');
+}
+
+async function atualizarCalculoFerias() {
+  const userEl = document.getElementById('fc-user');
+  const diasEl = document.getElementById('fc-dias');
+  const resultEl = document.getElementById('fc-resultado');
+  const erroEl = document.getElementById('fc-erro');
+
+  if (!userEl.value) {
+    resultEl.style.display = 'none';
+    erroEl.style.display = 'none';
+    document.getElementById('fc-opcoes').innerHTML = '<div class="empty">Selecione um colaborador.</div>';
+    return;
+  }
+
+  const uid = parseInt(userEl.value);
+  const dias = parseInt(diasEl.value) || 30;
+
+  try {
+    const r = await apiFetch(`/api/ferias/${uid}/calcular`,
+      {method:'POST', body:JSON.stringify({dias})});
+
+    if (r.ok) {
+      const f = r.data.ferias;
+      document.getElementById('fc-salario').textContent = 'R$ ' + f.salario_mensal.toFixed(2);
+      document.getElementById('fc-base').textContent = 'R$ ' + f.valor_base.toFixed(2);
+      document.getElementById('fc-adicional').textContent = 'R$ ' + f.valor_adicional.toFixed(2);
+      document.getElementById('fc-total').textContent = 'R$ ' + f.valor_total.toFixed(2);
+      resultEl.style.display = 'block';
+      erroEl.style.display = 'none';
+      carregarOpcoesFracionamento(dias);
+    } else {
+      erroEl.textContent = r.error || 'Erro ao calcular';
+      erroEl.style.display = 'block';
+      resultEl.style.display = 'none';
+      document.getElementById('fc-opcoes').innerHTML = '<div class="empty">Erro ao carregar opcoes.</div>';
+    }
+  } catch (e) {
+    erroEl.textContent = 'Erro na requisição';
+    erroEl.style.display = 'block';
+    resultEl.style.display = 'none';
+  }
+}
+
+async function carregarOpcoesFracionamento(dias = 30) {
+  try {
+    const r = await apiFetch(`/api/ferias/opcoes-fracionamento?dias=${dias}`);
+    if (r.ok && r.data.opcoes) {
+      const opcoesDiv = document.getElementById('fc-opcoes');
+      opcoesDiv.innerHTML = r.data.opcoes.map(opt => `
+        <div style="margin-bottom:16px;padding:12px;background:var(--bg3);border-radius:var(--r);border-left:3px solid var(--accent)">
+          <div style="font-weight:600;margin-bottom:4px">${opt.nome}</div>
+          <div style="font-size:.85rem;color:var(--text-mid);margin-bottom:8px">${opt.descricao}</div>
+          <div style="font-size:.78rem;font-family:var(--mono);color:var(--text-dim)">
+            Períodos: ${opt.periodos.map(p=>`<strong>${p}</strong>d`).join(' + ')}
+          </div>
+          ${opt.observacao ? `<div style="font-size:.75rem;color:var(--text-dim);margin-top:6px;font-style:italic">${opt.observacao}</div>` : ''}
+        </div>
+      `).join('');
+    }
+  } catch (e) {
+    console.error('Erro ao carregar opcoes:', e);
+  }
+}
+
+function openModalFracionarFerias(fid) {
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Fracionar Férias</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div style="padding:12px;background:var(--warn-bg);border:1px solid var(--warn);border-radius:var(--r);margin-bottom:16px;font-size:.85rem;color:var(--warn)">
+        <strong>Regras CLT:</strong> máximo 3 períodos (mínimo 14 dias em um e 5 nos demais)
+      </div>
+      <div id="mf-periodos"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePeriodsFerias(${fid})">Adicionar Períodos</button>
+    </div>
+  </div>`);
+  carregarPeriodsUI(fid);
+}
+
+async function carregarPeriodsUI(fid) {
+  const r = await apiFetch(`/api/ferias/${fid}`);
+  if (!r.ok) return;
+
+  const f = r.data;
+  const perfDiv = document.getElementById('mf-periodos');
+
+  perfDiv.innerHTML = `
+    <div class="form-group"><label>Total de Dias: ${f.dias}</label></div>
+    <div style="margin-bottom:12px">
+      <label>Período 1 (mínimo 14 dias)</label>
+      <div class="form-row">
+        <input id="mf-p1-ini" type="date" placeholder="Início" class="form-input" style="flex:1">
+        <input id="mf-p1-fim" type="date" placeholder="Fim" class="form-input" style="flex:1">
+        <input id="mf-p1-dias" type="number" min="14" max="${f.dias}" value="14" class="form-input" style="flex:0.6">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Período 2 (mínimo 5 dias)</label>
+      <div class="form-row">
+        <input id="mf-p2-ini" type="date" placeholder="Início" class="form-input" style="flex:1">
+        <input id="mf-p2-fim" type="date" placeholder="Fim" class="form-input" style="flex:1">
+        <input id="mf-p2-dias" type="number" min="5" max="${f.dias}" value="${Math.min(8, f.dias-14)}" class="form-input" style="flex:0.6">
+      </div>
+    </div>
+    <div style="margin-bottom:12px">
+      <label>Período 3 (mínimo 5 dias)</label>
+      <div class="form-row">
+        <input id="mf-p3-ini" type="date" placeholder="Início" class="form-input" style="flex:1">
+        <input id="mf-p3-fim" type="date" placeholder="Fim" class="form-input" style="flex:1">
+        <input id="mf-p3-dias" type="number" min="5" max="${f.dias}" value="${Math.max(5, f.dias-14-8)}" class="form-input" style="flex:0.6">
+      </div>
+    </div>
+  `;
+}
+
+async function savePeriodsFerias(fid) {
+  const periodos = [];
+  for (let i=1; i<=3; i++) {
+    const ini = document.getElementById(`mf-p${i}-ini`).value;
+    const fim = document.getElementById(`mf-p${i}-fim`).value;
+    const dias = parseInt(document.getElementById(`mf-p${i}-dias`).value) || 0;
+    if (dias > 0 && ini && fim) {
+      periodos.push({data_inicio: ini, data_fim: fim, duracao_dias: dias});
+    }
+  }
+
+  if (periodos.length === 0) return toast('Adicione pelo menos um período.', 'err');
+
+  const r = await apiFetch(`/api/ferias/${fid}/periodos`,
+    {method:'POST', body:JSON.stringify({periodos})});
+
+  if (r.ok) {
+    closeModal();
+    toast(`${periodos.length} período(s) adicionado(s)!`);
+    loadFerias();
+  } else {
+    toast(r.error || 'Erro ao adicionar períodos.', 'err');
+  }
+}
+
+// ── Avaliações ─────────────────────────────────────────────────────────────────
+
+async function loadCiclos() {
+  const r = await apiFetch('/api/ciclos');
+  if (!r.ok) return;
+  document.getElementById('btn-new-ciclo').style.display = ['admin','rh'].includes(ME.role)?'inline-flex':'none';
+  document.getElementById('ciclos-tbody').innerHTML = r.data.map(c => `
+    <tr>
+      <td><strong>${c.titulo}</strong><div style="color:var(--text-dim);font-size:.78rem">${c.descricao}</div></td>
+      <td>${c.tipo}</td>
+      <td style="font-family:var(--mono);font-size:.78rem">${fmtDate(c.data_inicio)}</td>
+      <td style="font-family:var(--mono);font-size:.78rem">${fmtDate(c.data_fim)}</td>
+      <td>${badge(c.ativo?'ativo':'encerrado')}</td>
+      <td style="font-family:var(--mono)">${c.total_avaliacoes}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openCiclo(${c.id},'${c.titulo}')">Ver</button></td>
+    </tr>`).join('') || '<tr><td colspan="7" class="empty">Nenhum ciclo.</td></tr>';
+}
+
+function openCiclo(cid, titulo) {
+  CUR_CICLO = cid;
+  document.getElementById('ciclo-detalhe').style.display = 'block';
+  document.getElementById('ciclo-detalhe-titulo').textContent = `Avaliações — ${titulo}`;
+  loadAvaliacoes(cid);
+}
+
+function closeCicloDetalhe() {
+  document.getElementById('ciclo-detalhe').style.display = 'none';
+  CUR_CICLO = null;
+}
+
+async function loadAvaliacoes(cid) {
+  const r = await apiFetch(`/api/ciclos/${cid}/avaliacoes`);
+  if (!r.ok) return;
+  document.getElementById('aval-tbody').innerHTML = r.data.map(a => `
+    <tr>
+      <td>${a.avaliado_nome}</td>
+      <td>${a.avaliador_nome}</td>
+      <td>${badge(a.tipo_avaliador)}</td>
+      <td style="font-family:var(--mono)">${a.nota_geral!=null?a.nota_geral.toFixed(1):'—'}</td>
+      <td>${badge(a.enviada?'concluido':'pendente')}</td>
+      <td><button class="btn btn-secondary btn-sm" onclick="openModalAvaliacao(${a.id})">Ver/Editar</button></td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">Nenhuma avaliação.</td></tr>';
+}
+
+function openModalCiclo() {
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Novo Ciclo de Avaliação</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Título</label><input id="nc-titulo" placeholder="Ex: Avaliação Semestral 2025.1"></div>
+      <div class="form-group"><label>Descrição</label><textarea id="nc-desc"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo</label>
+          <select id="nc-tipo"><option>360</option><option>gestor</option><option>auto</option></select></div>
+        <div class="form-group"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Data de Início</label><input id="nc-inicio" type="date"></div>
+        <div class="form-group"><label>Data de Fim</label><input id="nc-fim" type="date"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCiclo()">Criar</button>
+    </div>
+  </div>`);
+}
+
+async function saveCiclo() {
+  const data = {
+    titulo:      document.getElementById('nc-titulo').value.trim(),
+    descricao:   document.getElementById('nc-desc').value.trim(),
+    tipo:        document.getElementById('nc-tipo').value,
+    data_inicio: document.getElementById('nc-inicio').value,
+    data_fim:    document.getElementById('nc-fim').value,
+  };
+  if (!data.titulo||!data.data_inicio||!data.data_fim) return toast('Preencha todos os campos.','err');
+  const r = await apiFetch('/api/ciclos', {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Ciclo criado!'); loadCiclos(); }
+  else toast(r.error||'Erro.','err');
+}
+
+function openModalAvaliacao(aid) {
+  const avaliadorOptions = ALL_USERS.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('');
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Avaliação 360°</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Avaliado</label>
+          <select id="av-avaliado">${avaliadorOptions}</select></div>
+        <div class="form-group"><label>Avaliador</label>
+          <select id="av-avaliador">${avaliadorOptions}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Tipo</label>
+          <select id="av-tipo">
+            <option value="par">Par</option><option value="gestor">Gestor</option>
+            <option value="auto">Auto</option><option value="subordinado">Subordinado</option>
+          </select></div>
+        <div class="form-group"><label>Nota Geral (0-10)</label>
+          <input id="av-nota" type="number" min="0" max="10" step="0.5" placeholder="Ex: 8.5"></div>
+      </div>
+      <div class="form-group"><label>Pontos Fortes</label><textarea id="av-fortes" placeholder="Descreva os pontos fortes..."></textarea></div>
+      <div class="form-group"><label>Pontos de Melhoria</label><textarea id="av-melhoria" placeholder="Áreas para desenvolvimento..."></textarea></div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="av-enviada" style="width:16px;height:16px;accent-color:var(--accent)"> Marcar como enviada/concluída
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAvaliacao()">Salvar</button>
+    </div>
+  </div>`);
+  const sel = document.getElementById('av-avaliador');
+  for (let opt of sel.options) if (Number(opt.value)===ME.id) { opt.selected=true; break; }
+}
+
+async function saveAvaliacao() {
+  const data = {
+    avaliado_id:   Number(document.getElementById('av-avaliado').value),
+    avaliador_id:  Number(document.getElementById('av-avaliador').value),
+    tipo_avaliador:document.getElementById('av-tipo').value,
+    nota_geral:    parseFloat(document.getElementById('av-nota').value)||null,
+    pontos_fortes: document.getElementById('av-fortes').value.trim(),
+    pontos_melhoria:document.getElementById('av-melhoria').value.trim(),
+    enviada:       document.getElementById('av-enviada').checked,
+  };
+  const r = await apiFetch(`/api/ciclos/${CUR_CICLO}/avaliacoes`, {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Avaliação salva!'); loadAvaliacoes(CUR_CICLO); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ── Feedbacks ─────────────────────────────────────────────────────────────────
+
+async function loadFeedbacks() {
+  const r = await apiFetch('/api/feedbacks');
+  if (!r.ok) return;
+  const el = document.getElementById('feedbacks-list');
+  if (!r.data.length) { el.innerHTML = '<div class="empty">Nenhum feedback ainda.</div>'; return; }
+  el.innerHTML = r.data.map(f => `
+    <div style="padding:14px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="avatar">${initials(f.de_nome)}</div>
+          <div>
+            <span style="font-weight:600">${f.de_nome}</span>
+            <span style="color:var(--text-dim)"> → ${f.para_nome}</span>
+          </div>
+          ${badge(f.tipo)}
+        </div>
+        <span style="color:var(--text-dim);font-size:.78rem;font-family:var(--mono)">${fmtDate(f.criado_em)}</span>
+      </div>
+      <p style="color:var(--text);font-size:.875rem">${f.texto}</p>
+      ${['admin','rh'].includes(ME.role)?`<button class="btn-icon btn-sm" style="color:var(--danger);margin-top:6px" onclick="delFeedback(${f.id})">🗑 Excluir</button>`:''}
+    </div>`).join('');
+}
+
+function openModalFeedback() {
+  const opts = ALL_USERS.filter(u=>u.id!==ME.id).map(u=>`<option value="${u.id}">${u.nome}</option>`).join('');
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Dar Feedback</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Para</label><select id="nfb-para">${opts}</select></div>
+        <div class="form-group"><label>Tipo</label>
+          <select id="nfb-tipo">
+            <option value="positivo">Positivo</option>
+            <option value="construtivo">Construtivo</option>
+            <option value="sugestao">Sugestão</option>
+          </select></div>
+      </div>
+      <div class="form-group"><label>Mensagem</label><textarea id="nfb-texto" placeholder="Escreva seu feedback..." rows="5"></textarea></div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="nfb-gestor" checked style="width:16px;height:16px;accent-color:var(--accent)"> Visível ao gestor
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveFeedback()">Enviar</button>
+    </div>
+  </div>`);
+}
+
+async function saveFeedback() {
+  const data = {
+    para_user_id:  Number(document.getElementById('nfb-para').value),
+    tipo:          document.getElementById('nfb-tipo').value,
+    texto:         document.getElementById('nfb-texto').value.trim(),
+    visivel_gestor:document.getElementById('nfb-gestor').checked,
+  };
+  if (!data.texto) return toast('Mensagem obrigatória.','err');
+  const r = await apiFetch('/api/feedbacks', {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Feedback enviado!'); loadFeedbacks(); }
+  else toast(r.error||'Erro.','err');
+}
+
+async function delFeedback(fid) {
+  if (!confirm('Excluir este feedback?')) return;
+  const r = await apiFetch(`/api/feedbacks/${fid}`, {method:'DELETE'});
+  if (r.ok) { toast('Excluído.'); loadFeedbacks(); }
+}
+
+// ── Kudos ─────────────────────────────────────────────────────────────────────
+
+async function loadKudos() {
+  const r = await apiFetch('/api/kudos/feed');
+  if (!r.ok) return;
+  const el = document.getElementById('kudos-list');
+  if (!r.data.length) { el.innerHTML = '<div class="empty" style="grid-column:1/-1">Nenhum kudos ainda. Seja o primeiro a reconhecer alguém!</div>'; return; }
+  const valorIcon = {excelencia:'🌟',inovacao:'💡',colaboracao:'🤝',lideranca:'👑'};
+  el.innerHTML = r.data.map(k => `
+    <div class="kudos-card">
+      <div class="avatar">${initials(k.de_nome)}</div>
+      <div style="flex:1">
+        <div class="kudo-valor-tag">${valorIcon[k.valor]||'🏆'} ${k.valor}</div>
+        <div style="margin-bottom:6px">
+          <strong>${k.de_nome}</strong>
+          <span style="color:var(--text-dim)"> reconheceu </span>
+          <strong>${k.para_nome}</strong>
+        </div>
+        <p style="color:var(--text);font-size:.875rem;line-height:1.5">${k.mensagem}</p>
+        <div style="color:var(--text-dim);font-size:.75rem;margin-top:8px;font-family:var(--mono)">${fmtDate(k.criado_em)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function openModalKudos() {
+  const opts = ALL_USERS.filter(u=>u.id!==ME.id).map(u=>`<option value="${u.id}">${u.nome}</option>`).join('');
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Enviar Kudos</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Para quem?</label><select id="nk-para">${opts}</select></div>
+        <div class="form-group"><label>Valor</label>
+          <select id="nk-valor">
+            <option value="colaboracao">🤝 Colaboração</option>
+            <option value="excelencia">🌟 Excelência</option>
+            <option value="inovacao">💡 Inovação</option>
+            <option value="lideranca">👑 Liderança</option>
+          </select></div>
+      </div>
+      <div class="form-group"><label>Mensagem</label><textarea id="nk-msg" placeholder="Descreva por que esta pessoa merece reconhecimento..." rows="4"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveKudos()">Enviar</button>
+    </div>
+  </div>`);
+}
+
+async function saveKudos() {
+  const data = {
+    para_user_id:Number(document.getElementById('nk-para').value),
+    valor:       document.getElementById('nk-valor').value,
+    mensagem:    document.getElementById('nk-msg').value.trim(),
+  };
+  if (!data.mensagem) return toast('Mensagem obrigatória.','err');
+  const r = await apiFetch('/api/kudos', {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Kudos enviado!'); loadKudos(); }
+  else toast(r.error||'Erro.','err');
+}
+
+// ── PDI ───────────────────────────────────────────────────────────────────────
+
+function initPDI() {
+  if (!['admin','rh'].includes(ME.role)) {
+    document.getElementById('pdi-user-select').style.display = 'none';
+  }
+  loadPDI();
+}
+
+async function loadPDI() {
+  const uid = document.getElementById('pdi-user-select').value || '';
+  const params = uid ? `?user_id=${uid}` : '';
+  const r = await apiFetch('/api/pdi' + params);
+  if (!r.ok) return;
+  const el = document.getElementById('pdi-list');
+  if (!r.data.length) { el.innerHTML = '<div class="empty">Nenhum PDI encontrado.</div>'; return; }
+  el.innerHTML = r.data.map(p => {
+    const pct = p.total_acoes ? Math.round(p.acoes_concluidas/p.total_acoes*100) : 0;
+    return `
+    <div style="padding:16px;border:1px solid var(--border);border-radius:var(--r);margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+        <div>
+          <div style="font-weight:700">${p.titulo}</div>
+          <div style="color:var(--text-dim);font-size:.8rem;margin-top:2px;font-family:var(--mono)">${p.user_nome} · ${fmtDate(p.periodo_inicio)} → ${fmtDate(p.periodo_fim)}</div>
+          ${p.objetivo?`<div style="color:var(--text);font-size:.82rem;margin-top:4px">${p.objetivo}</div>`:''}
+        </div>
+        <div style="display:flex;gap:6px;align-items:center">
+          ${badge(p.status)}
+          <button class="btn btn-secondary btn-sm" onclick="openPDIDetalhe(${p.id},'${p.titulo.replace(/'/g,"\\'")}')">Ver Ações</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="progress" style="flex:1"><div class="progress-bar" style="width:${pct}%"></div></div>
+        <span style="font-size:.78rem;color:var(--text-dim);white-space:nowrap;font-family:var(--mono)">${p.acoes_concluidas}/${p.total_acoes} (${pct}%)</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openPDIDetalhe(pid, titulo) {
+  CUR_PDI = pid;
+  document.getElementById('pdi-detalhe').style.display = 'block';
+  document.getElementById('pdi-detalhe-titulo').textContent = `PDI — ${titulo}`;
+  const r = await apiFetch(`/api/pdi/${pid}`);
+  if (!r.ok) return;
+  document.getElementById('acoes-tbody').innerHTML = r.data.acoes.map(a => `
+    <tr>
+      <td>${a.descricao}</td>
+      <td style="font-family:var(--mono);font-size:.78rem">${fmtDate(a.prazo)}</td>
+      <td>${badge(a.status)}</td>
+      <td>
+        ${a.status!=='concluido'?`<button class="btn btn-success btn-sm" onclick="concluirAcao(${a.id})">✓</button>`:'' }
+        <button class="btn-icon" onclick="delAcao(${a.id})">🗑</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="4" class="empty">Nenhuma ação cadastrada.</td></tr>';
+}
+
+function closePDIDetalhe() {
+  document.getElementById('pdi-detalhe').style.display = 'none';
+  CUR_PDI = null;
+}
+
+function openModalPDI() {
+  const userOpts = ['admin','rh'].includes(ME.role)
+    ? ALL_USERS.map(u=>`<option value="${u.id}">${u.nome}</option>`).join('')
+    : `<option value="${ME.id}">${ME.nome}</option>`;
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Novo PDI</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      ${['admin','rh'].includes(ME.role)?`<div class="form-group"><label>Colaborador</label><select id="np-user">${userOpts}</select></div>`:''}
+      <div class="form-group"><label>Título</label><input id="np-titulo" placeholder="Ex: Desenvolvimento em Liderança"></div>
+      <div class="form-group"><label>Objetivo</label><textarea id="np-obj" placeholder="Descreva o objetivo principal..."></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Início</label><input id="np-inicio" type="date"></div>
+        <div class="form-group"><label>Fim</label><input id="np-fim" type="date"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePDI()">Criar PDI</button>
+    </div>
+  </div>`);
+}
+
+async function savePDI() {
+  const uel = document.getElementById('np-user');
+  const data = {
+    user_id:       Number(uel ? uel.value : ME.id),
+    titulo:        document.getElementById('np-titulo').value.trim(),
+    objetivo:      document.getElementById('np-obj').value.trim(),
+    periodo_inicio:document.getElementById('np-inicio').value,
+    periodo_fim:   document.getElementById('np-fim').value,
+  };
+  if (!data.titulo||!data.periodo_inicio||!data.periodo_fim) return toast('Preencha os campos obrigatórios.','err');
+  const r = await apiFetch('/api/pdi', {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('PDI criado!'); loadPDI(); }
+  else toast(r.error||'Erro.','err');
+}
+
+function openModalAcao() {
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Nova Ação do PDI</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Descrição</label><input id="na-desc" placeholder="Ex: Concluir curso de liderança"></div>
+      <div class="form-group"><label>Prazo</label><input id="na-prazo" type="date"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAcao()">Adicionar</button>
+    </div>
+  </div>`);
+}
+
+async function saveAcao() {
+  const data = {
+    pdi_id:   CUR_PDI,
+    descricao:document.getElementById('na-desc').value.trim(),
+    prazo:    document.getElementById('na-prazo').value,
+  };
+  if (!data.descricao||!data.prazo) return toast('Preencha todos os campos.','err');
+  const r = await apiFetch(`/api/pdi/${CUR_PDI}/acoes`, {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Ação adicionada!'); openPDIDetalhe(CUR_PDI, ''); }
+  else toast(r.error||'Erro.','err');
+}
+
+async function concluirAcao(aid) {
+  const r = await apiFetch(`/api/pdi/acoes/${aid}`, {method:'PUT', body:JSON.stringify({status:'concluido'})});
+  if (r.ok) { toast('Ação concluída!'); openPDIDetalhe(CUR_PDI, ''); }
+}
+
+async function delAcao(aid) {
+  if (!confirm('Remover esta ação?')) return;
+  const r = await apiFetch(`/api/pdi/acoes/${aid}`, {method:'DELETE'});
+  if (r.ok) { toast('Removido.'); openPDIDetalhe(CUR_PDI, ''); }
+}
+
+// ── Treinamentos ──────────────────────────────────────────────────────────────
+
+let TREI_TAB = 'catalogo';
+
+async function loadTreinamentos() {
+  document.getElementById('btn-new-trei').style.display = ['admin','rh'].includes(ME.role)?'inline-flex':'none';
+  if (TREI_TAB === 'catalogo') await loadCatalogo();
+  else await loadMeusTreinamentos();
+}
+
+function switchTreiTab(tab, el) {
+  TREI_TAB = tab;
+  document.querySelectorAll('#sec-treinamentos .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('trei-catalogo').style.display = tab==='catalogo' ? 'block' : 'none';
+  document.getElementById('trei-meus').style.display     = tab==='meus'     ? 'block' : 'none';
+  loadTreinamentos();
+}
+
+async function loadCatalogo() {
+  const r = await apiFetch('/api/treinamentos');
+  if (!r.ok) return;
+  document.getElementById('trei-tbody').innerHTML = r.data.map(t => `
+    <tr>
+      <td><strong>${t.titulo}</strong><div style="color:var(--text-dim);font-size:.78rem">${t.descricao}</div></td>
+      <td>${badge(t.modalidade)}</td>
+      <td style="font-family:var(--mono)">${t.carga_horaria?t.carga_horaria+'h':'—'}</td>
+      <td style="font-family:var(--mono)">${t.total_inscritos}</td>
+      <td style="font-family:var(--mono)">${t.total_concluidos}</td>
+      <td>
+        <button class="btn btn-success btn-sm" onclick="inscreverTreinamento(${t.id})">Inscrever-se</button>
+        ${['admin','rh'].includes(ME.role)?`<button class="btn btn-danger btn-sm" onclick="delTreinamento(${t.id})">🗑</button>`:''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty">Nenhum treinamento.</td></tr>';
+}
+
+async function loadMeusTreinamentos() {
+  const r = await apiFetch('/api/meus-treinamentos');
+  if (!r.ok) return;
+  document.getElementById('meus-trei-tbody').innerHTML = r.data.map(i => `
+    <tr>
+      <td>${i.treinamento_titulo}</td>
+      <td>${badge(i.status)}</td>
+      <td style="font-family:var(--mono)">${i.nota!=null?i.nota:'—'}</td>
+      <td style="font-family:var(--mono);font-size:.78rem">${fmtDate(i.concluido_em)}</td>
+      <td>
+        ${i.status!=='concluido'?`<button class="btn btn-success btn-sm" onclick="concluirTreinamento(${i.treinamento_id})">Concluir</button>`:''}
+      </td>
+    </tr>`).join('') || '<tr><td colspan="5" class="empty">Você não está inscrito em nenhum treinamento.</td></tr>';
+}
+
+function openModalTreinamento() {
+  showModal(`<div class="modal">
+    <div class="modal-header"><h3>Novo Treinamento</h3><button class="btn-icon" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Título</label><input id="nt-titulo" placeholder="Ex: Liderança Ágil"></div>
+      <div class="form-group"><label>Descrição</label><textarea id="nt-desc"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label>Modalidade</label>
+          <select id="nt-modal">
+            <option value="online">Online</option>
+            <option value="presencial">Presencial</option>
+            <option value="hibrido">Híbrido</option>
+          </select></div>
+        <div class="form-group"><label>Carga Horária (h)</label><input id="nt-ch" type="number" min="0" value="0"></div>
+      </div>
+      <div class="form-group"><label>Link (opcional)</label><input id="nt-link" placeholder="https://..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTreinamento()">Criar</button>
+    </div>
+  </div>`);
+}
+
+async function saveTreinamento() {
+  const data = {
+    titulo:        document.getElementById('nt-titulo').value.trim(),
+    descricao:     document.getElementById('nt-desc').value.trim(),
+    modalidade:    document.getElementById('nt-modal').value,
+    carga_horaria: Number(document.getElementById('nt-ch').value)||0,
+    link:          document.getElementById('nt-link').value.trim(),
+  };
+  if (!data.titulo) return toast('Título obrigatório.','err');
+  const r = await apiFetch('/api/treinamentos', {method:'POST', body:JSON.stringify(data)});
+  if (r.ok) { closeModal(); toast('Treinamento criado!'); loadCatalogo(); }
+  else toast(r.error||'Erro.','err');
+}
+
+async function inscreverTreinamento(tid) {
+  const r = await apiFetch(`/api/treinamentos/${tid}/inscrever`, {method:'POST', body:JSON.stringify({})});
+  if (r.ok) toast('Inscrição realizada!');
+  else toast(r.error||'Erro.','err');
+}
+
+async function concluirTreinamento(tid) {
+  const nota = prompt('Nota de conclusão (0-10, opcional):');
+  const data = {status:'concluido'};
+  if (nota) data.nota = parseFloat(nota);
+  const r = await apiFetch(`/api/treinamentos/${tid}/inscricoes/${ME.id}`, {method:'PUT', body:JSON.stringify(data)});
+  if (r.ok) { toast('Treinamento concluído!'); loadMeusTreinamentos(); }
+  else toast(r.error||'Erro.','err');
+}
+
+async function delTreinamento(tid) {
+  if (!confirm('Excluir este treinamento?')) return;
+  const r = await apiFetch(`/api/treinamentos/${tid}`, {method:'DELETE'});
+  if (r.ok) { toast('Excluído.'); loadCatalogo(); }
+}
+
+// ── Relatórios ────────────────────────────────────────────────────────────────
+
+async function loadRelatorios() {
+  const [depts, ferias] = await Promise.all([
+    apiFetch('/api/departments'),
+    apiFetch('/api/ferias?status=pendente')
+  ]);
+  const d = depts.data || [];
+  document.getElementById('rel-dept').innerHTML = d.map(dep => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-weight:600">${dep.nome}</span>
+      <span class="badge badge-pink">${dep.total_colaboradores} colaboradores</span>
+    </div>`).join('') || '<div class="empty">Sem dados.</div>';
+
+  const f = ferias.data || [];
+  document.getElementById('rel-ferias').innerHTML = f.map(fv => `
+    <div style="padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-weight:600">${fv.user_nome}</div>
+      <div style="color:var(--text-dim);font-size:.8rem;font-family:var(--mono)">${fmtDate(fv.data_inicio)} → ${fmtDate(fv.data_fim)} (${fv.dias} dias)</div>
+    </div>`).join('') || '<div class="empty">Nenhuma férias pendente.</div>';
+}
+
+// ── Sync ─────────────────────────────────────────────────────────────────────
+
+async function doSync() {
+  const email = document.getElementById('sync-email').value.trim();
+  const senha = document.getElementById('sync-senha').value;
+  const errEl = document.getElementById('sync-err');
+  const okEl  = document.getElementById('sync-ok');
+  errEl.style.display = okEl.style.display = 'none';
+  if (!email||!senha) { errEl.textContent='Preencha e-mail e senha.'; errEl.style.display='block'; return; }
+  const r = await apiFetch('/api/atlas/sync', {method:'POST', body:JSON.stringify({email,senha})});
+  if (r.ok) {
+    okEl.textContent = `Sincronizado: ${r.data.departamentos} departamentos, ${r.data.colaboradores} colaboradores.`;
+    okEl.style.display = 'block';
+    await loadGlobals();
+  } else {
+    errEl.textContent = r.error || 'Erro na sincronização.';
+    errEl.style.display = 'block';
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  // Apply saved theme
+  const savedTheme = localStorage.getItem('theme');
+  const isDark = savedTheme === 'dark';
+  if (isDark) {
+    document.body.classList.add('dark-mode');
+    updateThemeIcons(true);
+  }
+
+  // GSAP Animations for blobs
+  if (window.gsap) {
+    gsap.to('.blob-1', { x: -100, y: 100, duration: 20, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    gsap.to('.blob-2', { x: 100, y: -100, duration: 25, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    gsap.to('.blob-3', { x: 50, scale: 1.2, duration: 15, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    gsap.to('.blob-4', { y: -50, scale: 0.8, duration: 18, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+  }
+
+  await boot();
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

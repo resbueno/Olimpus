@@ -1,0 +1,142 @@
+Iris – Criador e Gerenciador de Formulários e Ordens de Serviço
+Proposta Completa
+Descrição
+Iris é um app web de Form Builder + Workflow Engine completo, focado em Ordens de Serviço (OS), solicitações internas, aprovações e processos operacionais.
+Você cria formulários personalizados com drag-and-drop, define o fluxo completo de tramitação (do solicitante até a conclusão) e o sistema acompanha tudo automaticamente com status, notificações, aprovações e relatórios.
+Ideal para manutenção, facilities, TI, RH, jurídico ou qualquer área que precise de ordens de serviço digitalizadas.
+Objetivos Principais
+
+Acabar com formulários em papel ou Word/Excel
+Automatizar a tramitação do início ao fim
+Ter visibilidade total em tempo real de todas as ordens em andamento
+Reduzir tempo de aprovação em mais de 70%
+
+Funcionalidades Principais
+
+Form Builder drag-and-drop (campos de texto, número, data, checkbox, anexo, assinatura digital, etc.)
+Templates prontos de Ordem de Serviço (Manutenção, TI, Limpeza, Compras, etc.)
+Workflow Engine visual (arraste etapas: Solicitação → Aprovação Gerente → Execução → Validação → Conclusão)
+Tramitação automática com notificações por e-mail e push
+Status em tempo real + Kanban + Timeline
+Assinatura digital nas etapas críticas
+Anexos e histórico completo de alterações
+Relatórios e dashboards (OS abertas, tempo médio de execução, gargalos)
+Integração com Ploutos (financeiro), Têmis (contratos) ou Tiresias (OCR)
+Modo mobile completo para equipes de campo
+
+Telas Sugeridas (principais)
+
+Dashboard Geral (Kanban + métricas)
+Form Builder (editor visual)
+Minhas Ordens de Serviço
+Fluxo da OS (timeline detalhada)
+Templates
+Relatórios e Analytics
+Admin (gestão de usuários e permissões)
+
+User Flow Principal (exemplo de Ordem de Serviço)
+
+Técnico ou colaborador cria nova OS preenchendo o formulário
+Sistema envia automaticamente para aprovação do gerente
+Gerente aprova → vai para execução
+Executor marca como “em andamento” e anexa comprovantes
+Validador finaliza → OS é arquivada automaticamente
+Todos os envolvidos recebem notificação em cada etapa
+
+Stack Tecnológica Sugerida
+
+Frontend: Next.js 15 (App Router) + Tailwind + shadcn/ui + React Flow (para workflow visual)
+Form Builder: React Hook Form + Zod ou @formily/core
+Workflow: XState ou n8n (embutido)
+Backend: NestJS ou Supabase
+Banco: PostgreSQL
+Autenticação: Clerk ou NextAuth
+Notificações: Resend (e-mail) + WebSockets
+Hospedagem: Vercel + Railway / Supabase
+
+
+Documentação para Documentation-Driven Development (DDD)
+1. Visão Geral do Produto
+Iris é um SaaS web de criação e tramitação completa de formulários e Ordens de Serviço. Inspirado na deusa mensageira Iris, o sistema “entrega” informações e aprovações de forma rápida, clara e conectada entre todos os envolvidos.
+2. Requisitos Funcionais (User Stories)
+Como usuário solicitante
+
+Quero criar uma Ordem de Serviço a partir de template ou form builder
+Quero anexar fotos/documentos no formulário
+
+Como gestor
+
+Quero aprovar ou rejeitar OS com comentário obrigatório
+Quero ver todas as OS da minha equipe em Kanban
+
+Como executor
+
+Quero receber notificação automática quando uma OS for atribuída a mim
+Quero marcar etapas como concluídas e anexar evidências
+
+Como administrador
+
+Quero criar e editar templates de formulários
+Quero definir fluxos de aprovação (até 5 níveis)
+Quero gerar relatórios de produtividade
+
+3. Requisitos Não-Funcionais
+
+Tempo de carregamento de formulário < 1 segundo
+99,9% uptime
+Totalmente responsivo (mobile-first para equipes de campo)
+LGPD compliant (consentimentos e auditoria)
+Multi-tenant (suporte a múltiplas empresas)
+Histórico imutável de todas as alterações
+
+4. Arquitetura de Alto Nível
+
+Frontend: Next.js (Server Components + Client para drag-and-drop)
+Backend: API REST + WebSockets para notificações em tempo real
+Banco de dados: PostgreSQL com Row Level Security
+Workflow: Máquina de estados (XState) + tabela workflow_steps
+Armazenamento de anexos: Supabase Storage ou AWS S3
+
+5. Modelo de Dados Principais
+
+forms (id, name, fields JSON)
+form_templates
+service_orders (id, form_id, status, current_step)
+workflow_steps (order_id, step_name, assigned_to, status, approved_by)
+attachments
+audit_log
+
+6. API Endpoints (principais)
+
+POST /api/forms → criar formulário
+POST /api/service-orders → nova OS
+GET /api/service-orders/:id/timeline
+POST /api/service-orders/:id/approve
+POST /api/service-orders/:id/complete
+
+7. Configuração de Workflow (exemplo em JSON)
+JSON{
+  "steps": [
+    { "name": "Solicitação", "role": "solicitante" },
+    { "name": "Aprovação Gerente", "role": "manager" },
+    { "name": "Execução", "role": "executor" },
+    { "name": "Validação Final", "role": "validator" },
+    { "name": "Concluído", "role": "system" }
+  ]
+}
+8. Roadmap de Desenvolvimento (MVP)
+Fase 1 (2 semanas)
+
+Form Builder básico + Templates
+Criação e listagem de OS
+
+Fase 2 (2 semanas)
+
+Workflow Engine simples (3 etapas)
+Notificações por e-mail
+
+Fase 3 (3 semanas)
+
+Kanban + Timeline
+Assinatura digital + Anexos
+Relatórios e integração com Tiresias (OCR para preencher OS automaticamente)

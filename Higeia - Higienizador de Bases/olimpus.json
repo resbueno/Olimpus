@@ -1,0 +1,9 @@
+{
+  "name": "Higeia",
+  "myth": "purifica, remove excessos e devolve as bases prontas para uso",
+  "cat": "Higienização de Bases",
+  "desc": "Higienizador de dados CSV e Excel com suporte a arquivos pesados. Limpeza de textos, CPF/CNPJ/telefones, deduplicação, filtros e exportação em um clique.",
+  "color": "#7c3aed",
+  "icon": "sparkles",
+  "port": 8501
+}

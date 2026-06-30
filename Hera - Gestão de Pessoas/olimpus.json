@@ -1,0 +1,9 @@
+{
+  "name": "Hera",
+  "myth": "governa talentos, cuida das pessoas e tece o destino das equipes",
+  "cat": "Gestão de Pessoas",
+  "desc": "RH completo e acolhedor: onboarding gamificado, folha de pagamento, avaliação 360°, feedback contínuo, PDI, ponto eletrônico e gestão de férias em um único painel.",
+  "color": "#db2777",
+  "icon": "users",
+  "port": 5041
+}

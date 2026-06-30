@@ -1,0 +1,34 @@
+Hera – App Web de RH / Gestão de Pessoas
+Proposta Completa
+Descrição Hera transforma a gestão de pessoas em um “lar olímpico”: onboarding acolhedor, desenvolvimento contínuo e cultura forte.
+Features Principais
+•	Onboarding gamificado
+•	Folha de pagamento + benefícios
+•	Avaliação de desempenho 360°
+•	Feedback contínuo e pulse surveys
+•	Gestão de férias e ponto eletrônico
+•	Desenvolvimento (PDI + treinamentos)
+•	Diretório de talentos + organograma
+•	Cultura & engajamento (kudos, metas OKR)
+Telas Sugeridas
+1.	Home do Colaborador (feed + tarefas)
+2.	Meu Perfil & Benefícios
+3.	Equipe (organograma)
+4.	Avaliações & Feedback
+5.	Relatórios de RH
+User Flow Novo colaborador → Onboarding → Meta trimestral → Feedback 360° → Promoção → PDI.
+Stack Tecnológica
+•	Next.js + Tailwind
+•	Backend: NestJS ou Supabase
+•	Autenticação: Clerk
+•	Banco: PostgreSQL
+•	Integrações: Folha (eSocial) + Gupy + Totvs
+
+Documentação DDD – Hera
+User Stories
+•	Como RH, quero fazer onboarding completo em < 7 dias
+•	Como colaborador, quero dar feedback anônimo
+•	Como gestor, quero ver engajamento da equipe
+Requisitos Não-Funcionais
+•	LGPD total (consentimento explícito)
+•	Suporte a 10.000 colaboradores

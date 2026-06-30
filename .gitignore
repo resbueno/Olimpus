@@ -1,0 +1,42 @@
+# Chaves e arquivos sensíveis
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Logs
+*.log
+
+# Backups automáticos
+*.bak-*
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDs temporários
+medusa_ids.txt
+
+# Dados de teste / seed
+test_results.txt
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

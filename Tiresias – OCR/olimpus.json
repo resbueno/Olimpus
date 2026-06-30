@@ -1,0 +1,9 @@
+{
+  "name": "Tiresias",
+  "myth": "cego aos olhos, lê documentos que os humanos demorariam horas para decifrar",
+  "cat": "OCR & Documentos",
+  "desc": "OCR 100% local e sem nuvem: extrai texto de notas fiscais, contratos e recibos, valida CPF/CNPJ/valores, classifica documentos e alimenta planilhas ou banco de dados automaticamente.",
+  "color": "#0f766e",
+  "icon": "eye",
+  "port": 5090
+}

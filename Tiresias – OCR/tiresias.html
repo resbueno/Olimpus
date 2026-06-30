@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TIRESIAS — OCR &amp; Documentos</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230f766e'/><path d='M9 8h10l4 4v12H9z' fill='none' stroke='white' stroke-width='1.8' stroke-linejoin='round'/><line x1='12' y1='14' x2='20' y2='14' stroke='white' stroke-width='1.4'/><line x1='12' y1='17' x2='20' y2='17' stroke='white' stroke-width='1.4'/><line x1='12' y1='20' x2='16' y2='20' stroke='white' stroke-width='1.4'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#ffffff;--bg3:#f8f9fa;--bg-alt:#f8f9fa;
+  --glass:rgba(255,255,255,0.7);
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+  --accent:#0f766e;--accent2:#0d9488;--accent-bg:rgba(15,118,110,0.08);
+  --success:#16a34a;--success-bg:rgba(22,163,74,0.07);
+  --danger:#dc2626;--danger-bg:rgba(220,38,38,0.07);
+  --warn:#d97706;--warn-bg:rgba(217,119,6,0.07);
+  --text:#1f1f1f;--text-mid:#5f6368;--text-dim:#9ca3af;
+  --sans:'Outfit',sans-serif;--display:'Space Grotesk',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --r:12px;--r2:20px;--radius:20px;
+  --sh:0 4px 20px rgba(0,0,0,0.06);
+}
+
+body.dark-mode{
+  --bg:#0b0f1a;--bg2:#1f2937;--bg3:#111827;--bg-alt:#111827;
+  --glass:rgba(17,24,39,0.7);
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+  --text:#f3f4f6;--text-mid:#9ca3af;--text-dim:#6b7280;
+  --sh:0 4px 20px rgba(0,0,0,0.3);
+}
+body.dark-mode .card,body.dark-mode .modal,body.dark-mode .topbar,
+body.dark-mode .sidebar,body.dark-mode .stat-card,
+body.dark-mode .login-card,body.dark-mode .login-box{background:#1f2937}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background-color .4s,color .4s}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:20px}
+
+/* LOGIN */
+#ls{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+#ls.hidden{display:none}
+.lbg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 40%,#0f766e0c 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 60%,#16a34a08 0%,transparent 70%)}
+.lp{position:relative;width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--sh);overflow:hidden}
+.lt{background:linear-gradient(135deg,#0f766e0c,#f0fdfa);border-bottom:1px solid var(--border);padding:32px 36px 28px;text-align:center}
+.llo{display:inline-flex;align-items:center;gap:14px;margin-bottom:8px}
+.lico{width:44px;height:44px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:10px;display:grid;place-items:center}
+.lico svg{width:22px;height:22px;stroke:var(--accent);fill:none}
+.lbrand{font-size:1.8rem;font-weight:700;letter-spacing:.06em;color:var(--text)}
+.lsub{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.14em;margin-top:4px;text-transform:uppercase}
+.lf{padding:28px 36px 32px;display:flex;flex-direction:column;gap:16px}
+.lerr{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:8px 12px;font-size:.8rem;color:var(--danger);display:none}
+.lerr.show{display:block}
+.lfg{display:flex;flex-direction:column;gap:5px}
+.flab{font-size:.72rem;font-weight:500;color:var(--text-mid);letter-spacing:.05em;text-transform:uppercase}
+.fi{background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.85rem;padding:10px 14px;border-radius:var(--r);outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:.88rem;font-weight:600;padding:11px;border-radius:var(--r);cursor:pointer;transition:background .15s;letter-spacing:.04em;width:100%}
+.btn-login:hover{background:var(--accent2)}
+.lhint{font-size:.7rem;color:var(--text-dim);text-align:center;font-family:var(--mono)}
+
+/* APP */
+#app{display:none;flex-direction:column;flex:1;min-height:0}
+
+/* TOPBAR */
+.topbar{height:56px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tbl{display:flex;align-items:center;gap:16px}
+.bicon{width:32px;height:32px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:6px;display:grid;place-items:center}
+.bicon svg{width:17px;height:17px;stroke:var(--accent);fill:none}
+.bname{font-size:1.05rem;font-weight:700;letter-spacing:.08em}
+.bsep{width:1px;height:20px;background:var(--border)}
+.bmod{font-family:var(--mono);font-size:.7rem;color:var(--text-dim);letter-spacing:.1em}
+.tbr{display:flex;align-items:center;gap:10px}
+.wstatus{display:flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-family:var(--mono);font-size:.65rem;letter-spacing:.08em}
+.wstatus.ok{background:var(--success-bg);border:1px solid var(--success);color:var(--success)}
+.wstatus.warn{background:var(--warn-bg);border:1px solid var(--warn);color:var(--warn)}
+.wstatus.err{background:var(--danger-bg);border:1px solid var(--danger);color:var(--danger)}
+.wdot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.wstatus.ok .wdot{background:var(--success);animation:blink 2s ease-in-out infinite}
+.wstatus.warn .wdot{background:var(--warn)}
+.wstatus.err .wdot{background:var(--danger)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.tclock{font-family:var(--mono);font-size:.78rem;color:var(--text-mid)}
+.btic{width:32px;height:32px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--text-mid);cursor:pointer;display:grid;place-items:center;transition:all .15s;font-size:.9rem}
+.btic:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
+.btic-txt{width:auto;padding:0 10px;font-size:.7rem;font-family:var(--mono);letter-spacing:.04em}
+
+/* KPI */
+.kpi{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--border);background:var(--bg2)}
+.kc{padding:12px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:3px}
+.kc:last-child{border-right:none}
+.klb{font-size:.68rem;font-weight:500;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase}
+.kv{font-family:var(--mono);font-size:1.4rem;font-weight:600;line-height:1;color:var(--text)}
+.kv.blue{color:var(--accent2)}.kv.green{color:var(--success)}.kv.red{color:var(--danger)}.kv.warn{color:var(--warn)}
+
+/* BODY */
+.bwrap{display:flex;flex:1;overflow:hidden;flex:1;overflow:hidden}
+.sidebar{width:256px;min-width:256px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sbhd{padding:12px 14px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.sbttl{font-size:.7rem;font-weight:600;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase}
+.btn-new{background:var(--accent);border:none;color:#fff;font-size:.7rem;font-weight:600;padding:4px 10px;border-radius:var(--r);cursor:pointer;transition:background .15s}
+.btn-new:hover{background:var(--accent2)}
+.sb-filter{padding:8px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:6px}
+.sfinp{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.76rem;padding:6px 10px;border-radius:var(--r);outline:none;width:100%}
+.sfinp:focus{border-color:var(--accent)}
+.sblist{flex:1;overflow-y:auto}
+.si{padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;display:flex;align-items:center;gap:10px}
+.si:hover{background:var(--bg3)}
+.si.sel{background:var(--accent-bg);border-left:3px solid var(--accent);padding-left:11px}
+.ss{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ss.ok{background:var(--success);box-shadow:0 0 5px var(--success)}
+.ss.fail{background:var(--danger);box-shadow:0 0 5px var(--danger)}
+.ss.pend{background:var(--warn)}
+.ss.off{background:var(--text-dim)}
+.ss.proc{background:var(--accent);animation:blink 1s ease-in-out infinite}
+.si-info{flex:1;min-width:0}
+.si-name{font-size:.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-meta{font-family:var(--mono);font-size:.63rem;color:var(--text-dim);margin-top:2px;display:flex;align-items:center;gap:6px}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+
+/* EMPTY + DROP ZONE */
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:60px 20px;text-align:center}
+.drop-zone{width:100%;max-width:440px;border:2px dashed var(--border2);border-radius:var(--r2);padding:40px 32px;cursor:pointer;transition:all .2s;text-align:center;background:var(--bg2)}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--accent-bg)}
+.dz-ico{font-size:2.2rem;margin-bottom:10px;opacity:.5}
+.dz-txt{font-size:.88rem;color:var(--text-mid);font-weight:500}
+.dz-hint{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);margin-top:6px}
+.dz-name{font-family:var(--mono);font-size:.76rem;color:var(--accent);margin-top:8px;font-weight:500}
+
+/* PAGE HEAD */
+.phd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.pey{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.ptit{font-size:1.3rem;font-weight:700;letter-spacing:.02em;word-break:break-all}
+.arow{display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0}
+
+/* BUTTONS */
+.btn{font-family:var(--sans);font-size:.78rem;font-weight:500;padding:7px 14px;border-radius:var(--r);border:1px solid;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;letter-spacing:.02em}
+.bp{background:var(--accent);border-color:var(--accent);color:#fff}.bp:hover{background:var(--accent2);border-color:var(--accent2)}
+.bo{background:transparent;border-color:var(--border2);color:var(--text-mid)}.bo:hover{border-color:var(--text-mid);color:var(--text);background:var(--bg3)}
+.bd{background:transparent;border-color:var(--border);color:var(--text-mid)}.bd:hover{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+.bw{background:transparent;border-color:var(--border);color:var(--text-mid)}.bw:hover{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.bsuc{background:transparent;border-color:var(--border);color:var(--text-mid)}.bsuc:hover{background:var(--success-bg);border-color:var(--success);color:var(--success)}
+.btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+
+/* METRIC GRID */
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.mlb{font-size:.7rem;font-weight:500;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase}
+.mv{font-family:var(--mono);font-size:1.1rem;font-weight:600}
+.mv.blue{color:var(--accent2)}.mv.green{color:var(--success)}.mv.red{color:var(--danger)}.mv.warn{color:var(--warn)}
+
+/* CARD */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden}
+.chd{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.cttl{font-size:.78rem;font-weight:600;letter-spacing:.04em}
+.chint{font-family:var(--mono);font-size:.65rem;color:var(--text-dim)}
+.cbdy{padding:18px}
+
+/* BADGES */
+.bdg{display:inline-flex;align-items:center;font-family:var(--mono);font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:3px;letter-spacing:.06em;white-space:nowrap}
+.bdg-teal{background:var(--accent-bg);color:var(--accent);border:1px solid #0f766e33}
+.bdg-blue{background:#eff6ff;color:#1d4ed8;border:1px solid #1d4ed833}
+.bdg-purple{background:#faf5ff;color:#7e22ce;border:1px solid #7e22ce33}
+.bdg-orange{background:#fff7ed;color:#c2410c;border:1px solid #c2410c33}
+.bdg-red{background:var(--danger-bg);color:var(--danger);border:1px solid #dc262633}
+.bdg-green{background:var(--success-bg);color:var(--success);border:1px solid #16a34a33}
+.bdg-yellow{background:var(--warn-bg);color:var(--warn);border:1px solid #d9770633}
+.bdg-gray{background:var(--bg3);color:var(--text-mid);border:1px solid var(--border)}
+
+/* FIELDS TABLE */
+.fields-table{width:100%;border-collapse:collapse}
+.fields-table th{font-size:.65rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;padding:7px 12px;text-align:left;background:var(--bg-alt);border-bottom:1px solid var(--border)}
+.fields-table td{padding:8px 12px;border-bottom:1px solid var(--border);font-size:.8rem;vertical-align:top}
+.fields-table tr:last-child td{border-bottom:none}
+.fields-table .mono{font-family:var(--mono);font-size:.78rem}
+
+/* VALIDATIONS */
+.val-item{display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:var(--r);border:1px solid var(--border);margin-bottom:6px}
+.val-item.ok{border-color:#16a34a33;background:var(--success-bg)}
+.val-item.fail{border-color:#dc262633;background:var(--danger-bg)}
+.val-ico{font-size:1rem;flex-shrink:0}
+.val-info{flex:1}
+.val-label{font-size:.8rem;font-weight:500}
+.val-value{font-family:var(--mono);font-size:.72rem;color:var(--text-mid);margin-top:2px}
+.val-msg{font-size:.72rem;margin-top:2px}
+.val-item.ok .val-msg{color:var(--success)}
+.val-item.fail .val-msg{color:var(--danger)}
+
+/* TABLE */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.68rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:9px 14px;background:var(--bg-alt);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:.8rem}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.mcell{font-family:var(--mono);font-size:.76rem}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:#00000088;backdrop-filter:blur(3px);z-index:500;display:none;align-items:center;justify-content:center}
+.ov.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--sh);animation:mup .18s ease}
+@keyframes mup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.mhd{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mttl{font-size:.88rem;font-weight:600}
+.mcls{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.1rem;transition:color .12s}
+.mcls:hover{color:var(--danger)}
+.mbdy{padding:22px;display:flex;flex-direction:column;gap:14px}
+.mft{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.frow{display:flex;gap:14px}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1}
+.fl{font-size:.72rem;font-weight:500;color:var(--text-mid)}
+.finp{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.82rem;padding:9px 12px;border-radius:var(--r);outline:none;width:100%;transition:border-color .14s,box-shadow .14s}
+.finp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.finp::placeholder{color:var(--text-dim)}
+select.finp{cursor:pointer}
+.fhint{font-size:.68rem;color:var(--text-dim);font-family:var(--mono)}
+.fck{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-mid);cursor:pointer}
+.fck input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+.ssttl{font-size:.72rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:4px}
+
+/* OCR TEXT */
+.ocr-pre{white-space:pre-wrap;font-family:var(--mono);font-size:.78rem;color:var(--text);line-height:1.7;background:var(--bg3);padding:14px;border-radius:var(--r);border:1px solid var(--border);max-height:300px;overflow-y:auto}
+.ocr-empty{font-family:var(--mono);font-size:.78rem;color:var(--text-dim);padding:20px;text-align:center}
+
+/* FILA DE UPLOAD */
+.uq-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);font-size:.8rem}
+.uq-item:last-child{border-bottom:none}
+.uq-ico{font-size:1rem;flex-shrink:0;width:18px;text-align:center}
+.uq-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.uq-size{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);flex-shrink:0}
+.uq-badge{font-family:var(--mono);font-size:.62rem;font-weight:600;padding:2px 7px;border-radius:3px;flex-shrink:0;white-space:nowrap}
+.uq-dup{background:#fff7ed;color:#c2410c;border:1px solid #c2410c33;cursor:pointer}
+.uq-dup:hover{background:#fde8d8}
+.uq-ok{background:var(--success-bg);color:var(--success);border:1px solid #16a34a33}
+.uq-err{background:var(--danger-bg);color:var(--danger);border:1px solid #dc262633}
+.uq-chk{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+
+/* TOAST */
+.ta{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{font-size:.78rem;padding:10px 16px;border-radius:var(--r);border:1px solid;min-width:200px;display:flex;align-items:center;gap:8px;animation:tin .18s ease;box-shadow:0 2px 8px #00000030}
+@keyframes tin{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.tok{background:var(--success-bg);border-color:#16a34a60;color:var(--success)}
+.terr{background:var(--danger-bg);border-color:#dc262660;color:var(--danger)}
+.tinf{background:var(--accent-bg);border-color:#0f766e60;color:var(--accent)}
+.twarn{background:var(--warn-bg);border-color:#d9770660;color:var(--warn)}
+
+/* ── OLIMPUS LAYOUT ─────────────────────────────────────── */
+body{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.dashboard-layout{padding:20px;height:100vh;overflow:hidden;display:flex;justify-content:center;align-items:stretch}
+.main-area{width:100%;max-width:1500px;display:flex;flex-direction:column;background:var(--bg-alt);border-radius:var(--radius);overflow:hidden;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.main-area::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 120px 60px var(--bg);pointer-events:none;z-index:0}
+.topbar{position:relative;z-index:10;background:transparent;border-bottom:1px solid var(--border)}
+.bwrap,.content-area{position:relative;z-index:1}
+.sidebar{background:transparent;border-right:1px solid var(--border)}
+
+/* ── LOGIN ESTILO OLIMPUS ───────────────────────────────── */
+#login-screen,#ls{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .4s,visibility .4s}
+#login-screen.hidden,#ls.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.login-card,.login-box,.lp{width:420px;text-align:center;padding:0}
+.login-card .login-top,.login-box .lt,.lp .lt{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 6%,transparent),transparent);border-bottom:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:36px 40px 28px}
+.login-card,.login-box,.lp{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.08)}
+.login-brand,.lbrand{font-family:var(--display);font-size:1.8rem;font-weight:700;letter-spacing:.06em;color:var(--text)}
+.login-sub,.lsub{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+.login-form,.lf{padding:28px 40px 36px;display:flex;flex-direction:column;gap:14px}
+.login-err,.lerr{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:9px 12px;font-size:.8rem;color:var(--danger);display:none}
+.login-err.show,.lerr.show{display:block}
+.fi{background:var(--bg-alt);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:.92rem;padding:13px 16px;outline:none;width:100%;transition:border-color .15s,box-shadow .15s}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--display);font-size:.95rem;font-weight:600;padding:13px;border-radius:var(--r);cursor:pointer;transition:background .15s,transform .1s;width:100%;margin-top:4px}
+.btn-login:hover{background:var(--accent2);transform:translateY(-1px)}
+
+/* ── TOAST ──────────────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--text);color:#fff;border-radius:var(--r);padding:10px 20px;font-size:.82rem;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:340px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{background:var(--success)}
+#toast.err{background:var(--danger)}
+
+/* ── THEME TOGGLE ───────────────────────────────────────── */
+.theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.theme-toggle:hover{border-color:var(--accent);transform:scale(1.05)}
+body.dark-mode .theme-toggle{background:var(--bg2)}
+
+
+/* main-area height fix */
+.dashboard-layout{display:flex;align-items:stretch}
+.main-area{display:flex;flex-direction:column;flex:1;height:100%}
+.main-area #app{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="ls">
+  <div class="lbg"></div>
+  <div class="lp">
+    <div class="lt">
+      <div class="llo">
+        <div class="lico">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="17" x2="13" y2="17"/>
+          </svg>
+        </div>
+        <span class="lbrand">TIRESIAS</span>
+      </div>
+      <div class="lsub">OCR &amp; Documentos · Olimpus</div>
+    </div>
+    <div class="lf">
+      <div class="lerr" id="lerr">E-mail ou senha inválidos.</div>
+      <div class="lfg"><label class="flab">E-mail</label><input class="fi" id="liu" type="email" placeholder="seu@email.com" autocomplete="email"></div>
+      <div class="lfg"><label class="flab">Senha</label><input class="fi" id="lip" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn-login" onclick="doLogin()">Entrar via Atlas</button>
+      <div class="lhint">Acesso gerenciado pelo Atlas · porta 5010</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tbl">
+      <div class="bicon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="9" y1="14" x2="15" y2="14"/><line x1="9" y1="17" x2="13" y2="17"/>
+        </svg>
+      </div>
+      <span class="bname">TIRESIAS</span>
+      <div class="bsep"></div>
+      <div class="bmod">OCR · GESTÃO DE DOCUMENTOS</div>
+    </div>
+    <div class="tbr">
+      <div class="wstatus warn" id="wstatus"><div class="wdot"></div><span id="wlabel">VERIFICANDO</span></div>
+      <div class="tclock" id="clk">--:--:--</div>
+      <button class="btic" onclick="openModal('hov');loadHistorico()" title="Histórico completo">&#9776;</button>
+      <button class="btic" onclick="openModal('rov');loadRegras()" title="Regras de classificação">&#9783;</button>
+      <button class="btic" onclick="openSettings()" title="Configurações">&#9881;</button>
+      <button class="btic btic-txt" id="btn-sair" onclick="doLogout()" title="Sair">Sair</button>
+    </div>
+  </div>
+
+  <div class="kpi">
+    <div class="kc"><div class="klb">Hoje</div><div class="kv blue" id="k0">-</div></div>
+    <div class="kc"><div class="klb">Em Fila</div><div class="kv warn" id="k1">-</div></div>
+    <div class="kc"><div class="klb">Concluídos</div><div class="kv green" id="k2">-</div></div>
+    <div class="kc"><div class="klb">Erros</div><div class="kv red" id="k3">-</div></div>
+    <div class="kc"><div class="klb">Taxa de Sucesso</div><div class="kv green" id="k4">-</div></div>
+    <div class="kc"><div class="klb">OCR Engine</div><div class="kv" id="k5">-</div></div>
+  </div>
+
+  <div id="tess-alert" style="display:none;margin:0 24px 14px;padding:10px 16px;background:var(--warn-bg);border:1px solid var(--warn);border-radius:var(--r);font-size:.8rem;color:var(--warn);align-items:center;gap:14px;flex-wrap:wrap">
+    <span><strong>Tesseract-OCR não encontrado.</strong> O motor de OCR não está instalado no sistema.</span>
+    <button id="tess-install-btn" onclick="installTesseract()" style="white-space:nowrap;padding:5px 14px;background:var(--warn);color:#fff;border:none;border-radius:var(--r);font-size:.78rem;font-weight:600;cursor:pointer">⬇ Instalar Tesseract</button>
+    <span id="tess-install-msg" style="font-size:.76rem;font-family:var(--mono);color:var(--text-mid)"></span>
+  </div>
+
+  <div class="bwrap">
+    <aside class="sidebar">
+      <div class="sbhd">
+        <span class="sbttl">Documentos</span>
+        <button class="btn-new" onclick="openModal('uov')">+ Upload</button>
+      </div>
+      <div class="sb-filter">
+        <select class="sfinp" id="f-status" onchange="loadDocs()">
+          <option value="">Todos os status</option>
+          <option value="pendente">Pendente</option>
+          <option value="processando">Processando</option>
+          <option value="concluido">Concluído</option>
+          <option value="erro">Com erro</option>
+        </select>
+        <select class="sfinp" id="f-tipo" onchange="loadDocs()">
+          <option value="">Todos os tipos</option>
+          <option value="nf">Nota Fiscal</option>
+          <option value="contrato">Contrato</option>
+          <option value="holerite">Holerite</option>
+          <option value="cnh">CNH</option>
+          <option value="recibo">Recibo</option>
+          <option value="generico">Genérico</option>
+        </select>
+      </div>
+      <div class="sblist" id="sbl"></div>
+    </aside>
+
+    <div class="main" id="mn">
+      <!-- Estado vazio -->
+      <div id="emp" style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:20px;padding:60px 24px;text-align:center">
+        <div class="drop-zone" id="main-drop" onclick="openModal('uov')">
+          <div class="dz-ico">📄</div>
+          <div class="dz-txt">Arraste um documento aqui ou clique para fazer upload</div>
+          <div class="dz-hint">PDF · PNG · JPG · TIFF &nbsp;·&nbsp; até 50 MB</div>
+        </div>
+        <p style="font-size:.82rem;color:var(--text-dim)">Selecione um documento na lista ou envie um novo arquivo para OCR.</p>
+      </div>
+
+      <!-- Detalhe do documento -->
+      <div id="det" style="display:none;flex-direction:column;gap:20px">
+        <div class="phd">
+          <div style="min-width:0;flex:1">
+            <div class="pey" id="d-path"></div>
+            <div class="ptit" id="d-name"></div>
+          </div>
+          <div class="arow">
+            <button class="btn bp" id="btn-retry" onclick="retryDoc()">&#8635; Re-processar</button>
+            <button class="btn bd" onclick="deleteDoc()">&#10005; Remover</button>
+          </div>
+        </div>
+
+        <div class="mgrid">
+          <div class="mc"><div class="mlb">Status</div><div class="mv" id="ms0">-</div></div>
+          <div class="mc"><div class="mlb">Tipo detectado</div><div class="mv blue" id="ms1">-</div></div>
+          <div class="mc"><div class="mlb">Caracteres OCR</div><div class="mv" id="ms2">-</div></div>
+          <div class="mc"><div class="mlb">Campos extraídos</div><div class="mv green" id="ms3">-</div></div>
+          <div class="mc"><div class="mlb">Validações OK</div><div class="mv green" id="ms4">-</div></div>
+          <div class="mc"><div class="mlb">Processado em</div><div class="mv" id="ms5" style="font-size:.78rem">-</div></div>
+        </div>
+
+        <div class="card">
+          <div class="chd"><span class="cttl">Texto Extraído (OCR)</span><span class="chint" id="d-obs"></span></div>
+          <div class="cbdy"><div id="ocr-text" class="ocr-pre ocr-empty">—</div></div>
+        </div>
+
+        <div class="card">
+          <div class="chd"><span class="cttl">Campos Estruturados</span></div>
+          <div class="cbdy" id="campos-wrap"></div>
+        </div>
+
+        <div class="card">
+          <div class="chd"><span class="cttl">Validações</span></div>
+          <div class="cbdy" id="val-wrap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL UPLOAD -->
+<div class="ov" id="uov" onclick="cov('uov',event)">
+  <div class="modal" style="width:560px">
+    <div class="mhd"><span class="mttl">Enviar Documentos para OCR</span><button class="mcls" onclick="cl('uov')">&#10005;</button></div>
+    <div class="mbdy">
+      <div class="drop-zone" id="modal-drop" style="padding:24px" onclick="document.getElementById('file-inp').click()">
+        <div class="dz-ico">📎</div>
+        <div class="dz-txt">Clique ou arraste arquivos aqui</div>
+        <div class="dz-hint">PDF, PNG, JPG, TIFF · vários arquivos · máx. 50 MB cada</div>
+        <input type="file" id="file-inp" accept=".pdf,.png,.jpg,.jpeg,.tiff,.tif" style="display:none" multiple onchange="onFilesSelected(this)">
+      </div>
+      <!-- Fila de arquivos -->
+      <div id="upl-queue" style="display:none;max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);background:var(--bg3)"></div>
+      <div class="fg">
+        <label class="fl">Tipo do documento (aplica a todos)</label>
+        <select class="finp" id="upl-tipo">
+          <option value="">Detectar automaticamente</option>
+          <option value="nf">Nota Fiscal</option>
+          <option value="contrato">Contrato</option>
+          <option value="holerite">Holerite / Contracheque</option>
+          <option value="cnh">CNH</option>
+          <option value="recibo">Recibo</option>
+          <option value="generico">Genérico</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Observação (opcional)</label>
+        <input class="finp" id="upl-obs" placeholder="ex: NF fornecedor XPTO — abril/2026">
+      </div>
+      <label class="fck" id="upl-dup-row" style="display:none">
+        <input type="checkbox" id="upl-ignorar-dup">
+        Enviar mesmo se for duplicata de arquivo já processado
+      </label>
+    </div>
+    <div class="mft" style="justify-content:space-between;align-items:center">
+      <span id="upl-count" style="font-family:var(--mono);font-size:.72rem;color:var(--text-dim)"></span>
+      <div style="display:flex;gap:8px">
+        <button class="btn bo" onclick="resetUpload();cl('uov')">Cancelar</button>
+        <button class="btn bp" id="btn-upl" onclick="doUpload()" disabled>&#9654; Processar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTÓRICO -->
+<div class="ov" id="hov" onclick="cov('hov',event)">
+  <div class="modal" style="width:820px">
+    <div class="mhd"><span class="mttl">Histórico Completo</span><button class="mcls" onclick="cl('hov')">&#10005;</button></div>
+    <div class="mbdy">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input class="finp" id="h-q" placeholder="Buscar por nome..." style="flex:1;min-width:160px" oninput="loadHistorico()">
+        <select class="finp" id="h-status" style="width:150px" onchange="loadHistorico()">
+          <option value="">Todos</option>
+          <option value="pendente">Pendente</option>
+          <option value="processando">Processando</option>
+          <option value="concluido">Concluído</option>
+          <option value="erro">Erro</option>
+        </select>
+        <select class="finp" id="h-tipo" style="width:140px" onchange="loadHistorico()">
+          <option value="">Todos os tipos</option>
+          <option value="nf">Nota Fiscal</option>
+          <option value="contrato">Contrato</option>
+          <option value="holerite">Holerite</option>
+          <option value="cnh">CNH</option>
+          <option value="recibo">Recibo</option>
+          <option value="generico">Genérico</option>
+        </select>
+      </div>
+      <div class="twrap">
+        <table>
+          <thead><tr><th>Documento</th><th>Tipo</th><th>Status</th><th>Campos</th><th>Processado</th><th></th></tr></thead>
+          <tbody id="h-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mft"><button class="btn bo" onclick="cl('hov')">Fechar</button></div>
+  </div>
+</div>
+
+<!-- MODAL REGRAS -->
+<div class="ov" id="rov" onclick="cov('rov',event)">
+  <div class="modal" style="width:680px">
+    <div class="mhd"><span class="mttl">Regras de Classificação</span><button class="mcls" onclick="cl('rov')">&#10005;</button></div>
+    <div class="mbdy">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <p style="font-size:.8rem;color:var(--text-dim)">Defina como cada tipo de documento deve ser organizado após o OCR.</p>
+        <button class="btn bp" onclick="openRuleForm()">+ Nova Regra</button>
+      </div>
+      <div class="twrap">
+        <table>
+          <thead><tr><th>Nome</th><th>Tipo</th><th>Pasta destino</th><th>Ativo</th><th></th></tr></thead>
+          <tbody id="r-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mft"><button class="btn bo" onclick="cl('rov')">Fechar</button></div>
+  </div>
+</div>
+
+<!-- MODAL NOVA REGRA -->
+<div class="ov" id="rfov" onclick="cov('rfov',event)">
+  <div class="modal" style="width:520px">
+    <div class="mhd"><span class="mttl" id="rf-ttl">Nova Regra</span><button class="mcls" onclick="cl('rfov')">&#10005;</button></div>
+    <div class="mbdy">
+      <input type="hidden" id="rf-id">
+      <div class="fg"><label class="fl">Nome da regra *</label><input class="finp" id="rf-nome" placeholder="ex: Notas Fiscais de Fornecedores"></div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">Tipo de documento</label>
+          <select class="finp" id="rf-tipo">
+            <option value="generico">Genérico (todos)</option>
+            <option value="nf">Nota Fiscal</option>
+            <option value="contrato">Contrato</option>
+            <option value="holerite">Holerite</option>
+            <option value="cnh">CNH</option>
+            <option value="recibo">Recibo</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Palavras-chave (opcional)</label>
+        <input class="finp" id="rf-kw" placeholder="fornecedor, prefeitura, saúde (vírgula)">
+        <div class="fhint">O texto OCR deve conter pelo menos uma dessas palavras para que a regra seja aplicada.</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Pasta de destino</label>
+        <input class="finp" id="rf-pasta" placeholder="C:\Documentos\Financeiro\NF">
+        <div class="fhint">Se preenchido, o arquivo será movido para esta pasta após o OCR.</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Prefixo do nome final</label>
+        <input class="finp" id="rf-pfx" placeholder="NF_">
+        <div class="fhint">Resultado: NF_2026-04-19_arquivo.pdf</div>
+      </div>
+      <label class="fck"><input type="checkbox" id="rf-sq">Salvar campos extraídos em tiresias.db</label>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="cl('rfov')">Cancelar</button>
+      <button class="btn bp" onclick="saveRule()">Salvar Regra</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIG -->
+<div class="ov" id="sov" onclick="cov('sov',event)">
+  <div class="modal" style="width:500px">
+    <div class="mhd"><span class="mttl">Configurações</span><button class="mcls" onclick="cl('sov')">&#10005;</button></div>
+    <div class="mbdy">
+      <div class="ssttl">Pastas</div>
+      <div class="fg">
+        <label class="fl">Pasta de Entrada (monitorada pelo watchdog)</label>
+        <input class="finp" id="cfg-entrada" placeholder="C:\Documentos\Entrada">
+        <div class="fhint">Arquivos colocados aqui são processados automaticamente (se habilitado abaixo).</div>
+      </div>
+      <div class="fg">
+        <label class="fl">Pasta de Saída padrão</label>
+        <input class="finp" id="cfg-saida" placeholder="C:\Documentos\Processados">
+      </div>
+      <div class="ssttl" style="margin-top:4px">OCR</div>
+      <div class="frow">
+        <div class="fg">
+          <label class="fl">Engine</label>
+          <select class="finp" id="cfg-engine">
+            <option value="tesseract">Tesseract (recomendado)</option>
+            <option value="easyocr">EasyOCR</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">Idioma</label>
+          <select class="finp" id="cfg-lang">
+            <option value="por">Português (por)</option>
+            <option value="por+eng">PT + EN</option>
+          </select>
+        </div>
+      </div>
+      <div class="ssttl" style="margin-top:4px">Comportamento</div>
+      <label class="fck"><input type="checkbox" id="cfg-monitor">Monitorar pasta de entrada automaticamente</label>
+      <label class="fck" style="margin-top:8px"><input type="checkbox" id="cfg-rename">Renomear arquivos ao processar</label>
+      <label class="fck" style="margin-top:8px"><input type="checkbox" id="cfg-valid">Validar CPF/CNPJ automaticamente</label>
+      <div class="ssttl" style="margin-top:4px">Identidade</div>
+      <div style="font-size:.8rem;color:var(--text-mid);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;line-height:1.7">
+        Usuários e senhas são gerenciados centralmente pelo <strong>Atlas</strong>.<br>
+        Para alterar seus dados acesse: <a href="http://localhost:5010" target="_blank" style="color:var(--accent);font-family:var(--mono);font-size:.78rem">http://localhost:5010</a>
+      </div>
+    </div>
+    <div class="mft">
+      <button class="btn bo" onclick="cl('sov')">Cancelar</button>
+      <button class="btn bp" onclick="saveConfig()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="ta" id="ta"></div>
+
+<script>
+'use strict';
+let docs=[], selId=null;
+
+// ── Utils ─────────────────────────────────────────────────────────────────────
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fdt=s=>s?new Date(s).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'-';
+function frelt(s){
+  if(!s)return'-';
+  const d=new Date(s),df=Date.now()-d.getTime();
+  if(df<60000)return'há '+Math.floor(df/1000)+'s';
+  if(df<3600000)return'há '+Math.floor(df/60000)+'min';
+  if(df<86400000)return'hoje '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+}
+function toast(m,t='ok'){
+  const c=document.getElementById('ta');
+  const el=document.createElement('div');
+  el.className='toast t'+t;
+  const ic={ok:'✓',err:'✕',inf:'ℹ',warn:'⚠'};
+  el.innerHTML=`<span>${ic[t]||'·'}</span><span>${m}</span>`;
+  c.appendChild(el);
+  setTimeout(()=>el.style.opacity='0',2800);
+  setTimeout(()=>el.remove(),3200);
+}
+async function api(p,o={}){
+  const r=await fetch(p,{headers:{'Content-Type':'application/json'},credentials:'same-origin',...o});
+  return r.json();
+}
+const cl=id=>document.getElementById(id).classList.remove('open');
+function openModal(id){document.getElementById(id).classList.add('open');}
+function cov(id,e){if(e.target===document.getElementById(id))cl(id);}
+
+// ── Badges ────────────────────────────────────────────────────────────────────
+const TIPO_LABEL={'nf':'NOTA FISCAL','contrato':'CONTRATO','holerite':'HOLERITE','cnh':'CNH','recibo':'RECIBO','generico':'GENÉRICO','desconhecido':'DESCONHECIDO'};
+const TIPO_CLS  ={'nf':'bdg-teal','contrato':'bdg-blue','holerite':'bdg-orange','cnh':'bdg-purple','recibo':'bdg-green','generico':'bdg-gray','desconhecido':'bdg-gray'};
+const ST_LABEL  ={'pendente':'PENDENTE','processando':'PROCESSANDO','concluido':'CONCLUÍDO','erro':'ERRO'};
+const ST_CLS    ={'pendente':'bdg-yellow','processando':'bdg-blue','concluido':'bdg-green','erro':'bdg-red'};
+const SS_CLS    ={'pendente':'pend','processando':'proc','concluido':'ok','erro':'fail'};
+function tipoBdg(t){return`<span class="bdg ${TIPO_CLS[t]||'bdg-gray'}">${TIPO_LABEL[t]||t.toUpperCase()}</span>`;}
+function stBdg(s){return`<span class="bdg ${ST_CLS[s]||'bdg-gray'}">${ST_LABEL[s]||s.toUpperCase()}</span>`;}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+function showApp(){
+  document.getElementById('ls').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+}
+function showLogin(){
+  document.getElementById('ls').classList.remove('hidden');
+  document.getElementById('app').style.display='none';
+}
+async function doLogin(){
+  const u=document.getElementById('liu').value.trim(),p=document.getElementById('lip').value;
+  const err=document.getElementById('lerr');
+  if(!u||!p){err.classList.add('show');err.textContent='Preencha e-mail e senha.';return;}
+  const r=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:u,password:p})});
+  if(r.ok){err.classList.remove('show');showApp();startClock();await loadStats();await loadDocs();startPolling();toast('Bem-vindo, '+(r.data?.nome||'usuário')+'!','ok');}
+  else{err.classList.add('show');err.textContent=r.error||'E-mail ou senha inválidos.';}
+}
+async function doLogout(){
+  await api('/api/auth/logout',{method:'POST'});
+  showLogin();
+  document.getElementById('lip').value='';
+  toast('Sessão encerrada.','inf');
+}
+document.getElementById('lip').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('liu').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('lip').focus();});
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function startClock(){
+  const e=document.getElementById('clk');
+  setInterval(()=>e.textContent=new Date().toLocaleTimeString('pt-BR'),1000);
+}
+
+// ── Instalação Tesseract ──────────────────────────────────────────────────────
+async function installTesseract(){
+  const btn=document.getElementById('tess-install-btn');
+  const msg=document.getElementById('tess-install-msg');
+  btn.disabled=true;
+  btn.textContent='⏳ Instalando...';
+  msg.textContent='Aguarde — pode levar alguns minutos...';
+  try{
+    const r=await api('/api/install/tesseract',{method:'POST'});
+    if(r.ok){
+      const terminal=r.message&&r.message.includes('Terminal');
+      btn.disabled=!terminal;
+      btn.textContent=terminal?'↺ Verificar status':'✓ Instalado';
+      if(terminal)btn.onclick=()=>{loadStats();};
+      msg.textContent=r.message||'Concluído.';
+      if(!terminal)setTimeout(loadStats,1500);
+    }else{
+      btn.disabled=false;
+      btn.textContent='⬇ Instalar Tesseract';
+      msg.textContent='✗ '+(r.error||'Erro desconhecido.');
+    }
+  }catch(e){
+    btn.disabled=false;
+    btn.textContent='⬇ Instalar Tesseract';
+    msg.textContent='✗ Erro de rede: '+e.message;
+  }
+}
+
+// ── Stats ─────────────────────────────────────────────────────────────────────
+async function loadStats(){
+  const r=await api('/api/stats');
+  if(!r.ok)return;
+  const d=r.data;
+  document.getElementById('k0').textContent=d.hoje??'-';
+  document.getElementById('k1').textContent=d.em_fila??'-';
+  document.getElementById('k2').textContent=d.concluidos??'-';
+  document.getElementById('k3').textContent=d.erros??'-';
+  document.getElementById('k4').textContent=d.taxa_sucesso!=null?d.taxa_sucesso+'%':'-';
+  document.getElementById('k5').textContent=(d.ocr_status||'-').toUpperCase();
+  const ws=document.getElementById('wstatus'),wl=document.getElementById('wlabel');
+  const ocr=d.ocr_status||'';
+  const tessAlert=document.getElementById('tess-alert');
+  if(ocr==='ok'){ws.className='wstatus ok';wl.textContent='OCR ATIVO';tessAlert.style.display='none';}
+  else if(ocr.includes('tesseract')){ws.className='wstatus warn';wl.textContent='SEM TESSERACT';tessAlert.style.display='flex';}
+  else{ws.className='wstatus err';wl.textContent='OCR OFFLINE';tessAlert.style.display='none';}
+}
+
+// ── Docs ──────────────────────────────────────────────────────────────────────
+async function loadDocs(){
+  const status=document.getElementById('f-status').value;
+  const tipo=document.getElementById('f-tipo').value;
+  const r=await api(`/api/docs?status=${status}&tipo=${tipo}&limit=100`);
+  if(!r.ok)return;
+  docs=r.data;
+  renderSidebar();
+  if(selId){const d=docs.find(x=>x.id===selId);if(d)renderDetail(d);}
+}
+
+function renderSidebar(){
+  const e=document.getElementById('sbl');
+  if(!docs.length){e.innerHTML='<div style="padding:18px 14px;font-size:.75rem;color:var(--text-dim);font-family:var(--mono)">Nenhum documento.</div>';return;}
+  e.innerHTML=docs.map(d=>{
+    const sc=SS_CLS[d.status]||'off';
+    const sel=selId===d.id?' sel':'';
+    return`<div class="si${sel}" onclick="selectDoc(${d.id})">
+      <div class="ss ${sc}"></div>
+      <div class="si-info">
+        <div class="si-name" title="${esc(d.nome_original)}">${esc(d.nome_original)}</div>
+        <div class="si-meta">${tipoBdg(d.tipo)}<span>${frelt(d.criado_em)}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function selectDoc(id){
+  selId=id;
+  document.getElementById('emp').style.display='none';
+  document.getElementById('det').style.display='flex';
+  renderSidebar();
+  const r=await api(`/api/docs/${id}`);
+  if(r.ok)renderDetail(r.data);
+}
+
+function renderDetail(d){
+  document.getElementById('d-path').textContent=d.caminho_final||d.caminho_entrada||'';
+  const nameEl=document.getElementById('d-name');
+  nameEl.textContent=d.nome_original;
+  // remove badge anterior se houver
+  const prevDup=nameEl.parentElement.querySelector('.dup-badge');
+  if(prevDup)prevDup.remove();
+  if(d.duplicata_de){
+    nameEl.insertAdjacentHTML('afterend',
+      `<div class="dup-badge" style="margin-top:4px"><span class="bdg bdg-orange" style="cursor:pointer" onclick="selectDoc(${d.duplicata_de})" title="Ver original">⚠ DUPLICATA de #${d.duplicata_de}</span></div>`);
+  }
+  document.getElementById('d-obs').textContent=d.observacao||'';
+
+  let campos={},validacoes=[];
+  try{campos=JSON.parse(d.campos||'{}')}catch(e){}
+  try{validacoes=JSON.parse(d.validacoes||'[]')}catch(e){}
+  const nCampos=Object.values(campos).reduce((a,v)=>a+(Array.isArray(v)?v.length:1),0);
+  const nOk=validacoes.filter(v=>v.valido).length;
+
+  document.getElementById('ms0').innerHTML=stBdg(d.status);
+  document.getElementById('ms1').innerHTML=tipoBdg(d.tipo);
+  document.getElementById('ms2').textContent=d.ocr_texto?(d.ocr_texto.length.toLocaleString('pt-BR')+' car.'):'-';
+  document.getElementById('ms3').textContent=nCampos||'-';
+  document.getElementById('ms4').textContent=validacoes.length?`${nOk}/${validacoes.length}`:'-';
+  document.getElementById('ms5').textContent=fdt(d.processado_em);
+
+  const ocrEl=document.getElementById('ocr-text');
+  if(d.ocr_texto&&d.ocr_texto.trim()){
+    ocrEl.className='ocr-pre';
+    ocrEl.textContent=d.ocr_texto;
+  }else{
+    ocrEl.className='ocr-pre ocr-empty';
+    ocrEl.textContent=d.status==='pendente'?'Aguardando processamento...'
+      :d.status==='processando'?'Processando documento...'
+      :d.status==='erro'?`Erro: ${d.observacao||'erro desconhecido'}`
+      :'Nenhum texto extraído.';
+  }
+
+  renderCampos(campos);
+  renderValidacoes(validacoes);
+
+  const btnR=document.getElementById('btn-retry');
+  btnR.disabled=d.status==='processando';
+}
+
+function renderCampos(campos){
+  const w=document.getElementById('campos-wrap');
+  const entries=Object.entries(campos);
+  if(!entries.length){w.innerHTML='<p style="font-size:.8rem;color:var(--text-dim);font-family:var(--mono)">Nenhum campo estruturado extraído.</p>';return;}
+  const LABEL={'cpf':'CPF','cnpj':'CNPJ','datas':'Datas','valores':'Valores (R$)','numero_nf':'Número NF'};
+  let html='<table class="fields-table"><thead><tr><th>Campo</th><th>Valor(es)</th></tr></thead><tbody>';
+  for(const [k,v] of entries){
+    const vals=Array.isArray(v)?v:[v];
+    html+=`<tr><td>${LABEL[k]||k}</td><td class="mono">${vals.map(esc).join('<br>')}</td></tr>`;
+  }
+  html+='</tbody></table>';
+  w.innerHTML=html;
+}
+
+function renderValidacoes(vals){
+  const w=document.getElementById('val-wrap');
+  if(!vals.length){w.innerHTML='<p style="font-size:.8rem;color:var(--text-dim);font-family:var(--mono)">Nenhuma validação realizada.</p>';return;}
+  w.innerHTML=vals.map(v=>`
+    <div class="val-item ${v.valido?'ok':'fail'}">
+      <div class="val-ico">${v.valido?'✓':'✕'}</div>
+      <div class="val-info">
+        <div class="val-label">${esc(v.campo)}</div>
+        <div class="val-value">${esc(v.valor)}</div>
+        <div class="val-msg">${esc(v.msg)}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Ações de documento ────────────────────────────────────────────────────────
+async function retryDoc(){
+  if(!selId)return;
+  const r=await api(`/api/docs/${selId}/retry`,{method:'POST'});
+  if(r.ok){toast(r.message,'ok');loadDocs();}
+  else toast(r.error||'Erro','err');
+}
+
+async function deleteDoc(){
+  if(!selId||!confirm('Remover este documento do histórico?'))return;
+  const r=await api(`/api/docs/${selId}`,{method:'DELETE'});
+  if(r.ok){
+    toast(r.message,'ok');selId=null;
+    document.getElementById('det').style.display='none';
+    document.getElementById('emp').style.display='flex';
+    loadDocs();
+  }else toast(r.error||'Erro','err');
+}
+
+// ── Upload ────────────────────────────────────────────────────────────────────
+// Fila de arquivos: [{file, hash, dupOf, dupNome, skip}]
+let uploadQueue = [];
+
+function fmtBytes(b){
+  if(b<1024)return b+'B';
+  if(b<1048576)return(b/1024).toFixed(0)+'KB';
+  return(b/1048576).toFixed(1)+'MB';
+}
+
+async function sha256File(file){
+  const buf=await file.arrayBuffer();
+  const digest=await crypto.subtle.digest('SHA-256',buf);
+  return Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function renderQueue(){
+  const qEl=document.getElementById('upl-queue');
+  const countEl=document.getElementById('upl-count');
+  const btn=document.getElementById('btn-upl');
+  const dupRow=document.getElementById('upl-dup-row');
+  if(!uploadQueue.length){qEl.style.display='none';countEl.textContent='';btn.disabled=true;dupRow.style.display='none';return;}
+  qEl.style.display='block';
+  const hasDups=uploadQueue.some(i=>i.dupOf&&!i.skip);
+  dupRow.style.display=hasDups?'flex':'none';
+  const total=uploadQueue.length;
+  const dups=uploadQueue.filter(i=>i.dupOf).length;
+  countEl.textContent=total+' arquivo(s)'+(dups?' · '+dups+' duplicata(s)':'');
+  btn.disabled=false;
+  qEl.innerHTML=uploadQueue.map((item,idx)=>{
+    let badge='';
+    if(item.dupOf){
+      badge=`<span class="uq-badge uq-dup" title="Duplicata de: ${esc(item.dupNome||'')} (ID ${item.dupOf})\nClique para ver" onclick="cl('uov');selectDoc(${item.dupOf})">DUP #${item.dupOf}</span>`;
+    }
+    const icon=item.dupOf?'⚠️':'📄';
+    return`<div class="uq-item">
+      <input type="checkbox" class="uq-chk" checked title="Incluir este arquivo" onchange="toggleQueueItem(${idx},this.checked)">
+      <span class="uq-ico">${icon}</span>
+      <span class="uq-name" title="${esc(item.file.name)}">${esc(item.file.name)}</span>
+      <span class="uq-size">${fmtBytes(item.file.size)}</span>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+function toggleQueueItem(idx,checked){
+  if(uploadQueue[idx])uploadQueue[idx].skip=!checked;
+  renderQueue();
+}
+
+async function addFilesToQueue(files){
+  const EXTS=new Set(['.pdf','.png','.jpg','.jpeg','.tiff','.tif']);
+  for(const f of files){
+    const ext=f.name.slice(f.name.lastIndexOf('.')).toLowerCase();
+    if(!EXTS.has(ext)){toast(`Extensão não suportada: ${f.name}`,'err');continue;}
+    const hash=await sha256File(f);
+    // Verifica duplicata via API
+    let dupOf=null,dupNome=null;
+    try{
+      const r=await api('/api/docs/check-hash',{method:'POST',body:JSON.stringify({hash})});
+      if(r.ok&&r.data?.duplicate){dupOf=r.data.doc_id;dupNome=r.data.nome;}
+    }catch(_){}
+    uploadQueue.push({file:f,hash,dupOf,dupNome,skip:false});
+  }
+  renderQueue();
+}
+
+function onFilesSelected(input){
+  if(input.files.length)addFilesToQueue(Array.from(input.files));
+  input.value=''; // permite re-selecionar o mesmo arquivo
+}
+
+function setupDropZone(el,onFiles){
+  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag');});
+  el.addEventListener('dragleave',()=>el.classList.remove('drag'));
+  el.addEventListener('drop',e=>{
+    e.preventDefault();el.classList.remove('drag');
+    const fs=Array.from(e.dataTransfer?.files||[]);
+    if(fs.length)onFiles(fs);
+  });
+}
+
+function resetUpload(){
+  uploadQueue=[];
+  document.getElementById('upl-obs').value='';
+  document.getElementById('upl-tipo').value='';
+  document.getElementById('upl-ignorar-dup').checked=false;
+  renderQueue();
+}
+
+async function doUpload(){
+  const toSend=uploadQueue.filter(i=>!i.skip);
+  if(!toSend.length){toast('Nenhum arquivo selecionado na fila.','err');return;}
+  const tipo=document.getElementById('upl-tipo').value;
+  const obs=document.getElementById('upl-obs').value;
+  const ignorarDup=document.getElementById('upl-ignorar-dup').checked;
+  const btn=document.getElementById('btn-upl');
+  btn.disabled=true;btn.textContent='Enviando...';
+  const fd=new FormData();
+  for(const item of toSend)fd.append('file',item.file);
+  if(tipo)fd.append('tipo',tipo);
+  if(obs)fd.append('observacao',obs);
+  if(ignorarDup)fd.append('ignorar_duplicata','1');
+  try{
+    const resp=await fetch('/api/docs/upload',{method:'POST',credentials:'same-origin',body:fd});
+    const r=await resp.json();
+    if(r.ok){
+      cl('uov');
+      const env=r.data?.enviados??0, rej=r.data?.rejeitados??0;
+      if(env>0)toast(`${env} arquivo(s) enviado(s) para processamento.`,'ok');
+      if(rej>0)toast(`${rej} arquivo(s) ignorado(s) por duplicata.`,'warn');
+      resetUpload();
+      loadDocs();
+      const results=r.data?.results||[];
+      const first=results.find(x=>x.ok&&x.doc_id);
+      if(first)setTimeout(()=>selectDoc(first.doc_id),500);
+    }else{toast(r.error||'Erro ao enviar.','err');}
+  }catch(e){toast('Erro de rede: '+e.message,'err');}
+  finally{btn.disabled=false;btn.textContent='▶ Processar';}
+}
+
+// ── Histórico modal ───────────────────────────────────────────────────────────
+async function loadHistorico(){
+  const q=document.getElementById('h-q').value;
+  const status=document.getElementById('h-status').value;
+  const tipo=document.getElementById('h-tipo').value;
+  const r=await api(`/api/docs?q=${encodeURIComponent(q)}&status=${status}&tipo=${tipo}&limit=200`);
+  if(!r.ok)return;
+  const tb=document.getElementById('h-tbody');
+  if(!r.data.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-dim);padding:24px;font-family:var(--mono);font-size:.78rem">Nenhum documento encontrado.</td></tr>';return;}
+  let campos_count=n=>{try{const c=JSON.parse(n||'{}');return Object.values(c).reduce((a,v)=>a+(Array.isArray(v)?v.length:1),0);}catch(e){return 0;}};
+  tb.innerHTML=r.data.map(d=>`
+    <tr>
+      <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(d.nome_original)}">${esc(d.nome_original)}</td>
+      <td>${tipoBdg(d.tipo)}</td>
+      <td>${stBdg(d.status)}${d.duplicata_de?` <span class="bdg bdg-orange" style="cursor:pointer" onclick="cl('hov');selectDoc(${d.duplicata_de})" title="Ver original">DUP</span>`:''}</td>
+      <td class="mcell">${campos_count(d.campos)||'-'}</td>
+      <td class="mcell" style="white-space:nowrap">${fdt(d.processado_em)}</td>
+      <td><button class="btn bo" style="font-size:.7rem;padding:3px 9px" onclick="cl('hov');selectDoc(${d.id})">Ver</button></td>
+    </tr>`).join('');
+}
+
+// ── Regras ────────────────────────────────────────────────────────────────────
+async function loadRegras(){
+  const r=await api('/api/regras');
+  if(!r.ok)return;
+  const tb=document.getElementById('r-tbody');
+  if(!r.data.length){tb.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-dim);padding:24px;font-family:var(--mono);font-size:.78rem">Nenhuma regra cadastrada.</td></tr>';return;}
+  tb.innerHTML=r.data.map(rg=>`
+    <tr>
+      <td style="font-weight:500">${esc(rg.nome)}</td>
+      <td>${tipoBdg(rg.tipo_doc)}</td>
+      <td class="mcell" style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${esc(rg.pasta_destino||'')}">${esc(rg.pasta_destino||'—')}</td>
+      <td>${rg.ativo?'<span class="bdg bdg-green">SIM</span>':'<span class="bdg bdg-gray">NÃO</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn bo" style="font-size:.7rem;padding:3px 9px;margin-right:4px" onclick="openRuleForm(${rg.id})">Editar</button>
+        <button class="btn bd" style="font-size:.7rem;padding:3px 9px" onclick="deleteRule(${rg.id})">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openRuleForm(id){
+  document.getElementById('rf-id').value=id||'';
+  document.getElementById('rf-ttl').textContent=id?'Editar Regra':'Nova Regra';
+  document.getElementById('rf-nome').value='';
+  document.getElementById('rf-tipo').value='generico';
+  document.getElementById('rf-kw').value='';
+  document.getElementById('rf-pasta').value='';
+  document.getElementById('rf-pfx').value='';
+  document.getElementById('rf-sq').checked=false;
+  if(id){
+    api('/api/regras').then(r=>{
+      if(!r.ok)return;
+      const rg=r.data.find(x=>x.id===id);
+      if(!rg)return;
+      document.getElementById('rf-nome').value=rg.nome||'';
+      document.getElementById('rf-tipo').value=rg.tipo_doc||'generico';
+      try{document.getElementById('rf-kw').value=(JSON.parse(rg.palavras_chave||'[]')).join(', ');}catch(e){}
+      document.getElementById('rf-pasta').value=rg.pasta_destino||'';
+      document.getElementById('rf-pfx').value=rg.prefixo_nome||'';
+      document.getElementById('rf-sq').checked=!!rg.exportar_sqlite;
+    });
+  }
+  openModal('rfov');
+}
+
+async function saveRule(){
+  const id=document.getElementById('rf-id').value;
+  const nome=document.getElementById('rf-nome').value.trim();
+  if(!nome){toast('Nome é obrigatório.','err');return;}
+  const kwStr=document.getElementById('rf-kw').value;
+  const kws=kwStr.split(',').map(s=>s.trim()).filter(Boolean);
+  const body={
+    nome,tipo_doc:document.getElementById('rf-tipo').value,
+    palavras_chave:kws,
+    pasta_destino:document.getElementById('rf-pasta').value.trim(),
+    prefixo_nome:document.getElementById('rf-pfx').value.trim(),
+    exportar_sqlite:document.getElementById('rf-sq').checked,
+  };
+  const r=id?await api(`/api/regras/${id}`,{method:'PUT',body:JSON.stringify(body)})
+            :await api('/api/regras',{method:'POST',body:JSON.stringify(body)});
+  if(r.ok){cl('rfov');toast(r.message,'ok');loadRegras();}
+  else toast(r.error||'Erro','err');
+}
+
+async function deleteRule(id){
+  if(!confirm('Remover esta regra?'))return;
+  const r=await api(`/api/regras/${id}`,{method:'DELETE'});
+  if(r.ok){toast(r.message,'ok');loadRegras();}
+  else toast(r.error||'Erro','err');
+}
+
+// ── Config ────────────────────────────────────────────────────────────────────
+async function openSettings(){
+  const r=await api('/api/config');
+  if(!r.ok){toast('Erro ao carregar configurações.','err');return;}
+  const c=r.data;
+  document.getElementById('cfg-entrada').value=c.pasta_entrada||'';
+  document.getElementById('cfg-saida').value=c.pasta_saida||'';
+  document.getElementById('cfg-engine').value=c.ocr_engine||'tesseract';
+  document.getElementById('cfg-lang').value=c.idioma_ocr||'por';
+  document.getElementById('cfg-monitor').checked=c.monitorar_pasta==='1';
+  document.getElementById('cfg-rename').checked=c.renomear_arquivos==='1';
+  document.getElementById('cfg-valid').checked=c.validar_cpf_cnpj==='1';
+  openModal('sov');
+}
+
+async function saveConfig(){
+  const body={
+    pasta_entrada:document.getElementById('cfg-entrada').value.trim(),
+    pasta_saida:document.getElementById('cfg-saida').value.trim(),
+    ocr_engine:document.getElementById('cfg-engine').value,
+    idioma_ocr:document.getElementById('cfg-lang').value,
+    monitorar_pasta:document.getElementById('cfg-monitor').checked?'1':'0',
+    renomear_arquivos:document.getElementById('cfg-rename').checked?'1':'0',
+    validar_cpf_cnpj:document.getElementById('cfg-valid').checked?'1':'0',
+  };
+  const r=await api('/api/config',{method:'POST',body:JSON.stringify(body)});
+  if(r.ok){cl('sov');toast(r.message,'ok');}
+  else toast(r.error||'Erro','err');
+}
+
+// ── Polling ───────────────────────────────────────────────────────────────────
+function startPolling(){
+  setInterval(loadStats,30000);
+  setInterval(()=>{loadDocs();if(selId){api(`/api/docs/${selId}`).then(r=>{if(r.ok)renderDetail(r.data);});}},8000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+async function init(){
+  // Drop zone no modal
+  setupDropZone(document.getElementById('modal-drop'),fs=>addFilesToQueue(fs));
+  // Drop global no empty state
+  setupDropZone(document.getElementById('main-drop'),fs=>{addFilesToQueue(fs);openModal('uov');});
+
+  // Check SSO token
+  const params=new URLSearchParams(location.search);
+  const token=params.get('atlas_token');
+  const r=await api('/api/auth/status');
+  if(r.ok&&r.data.authenticated){
+    if(token)history.replaceState({},'','/');
+    showApp();startClock();loadStats();loadDocs();startPolling();
+  }else{
+    showLogin();
+  }
+}
+
+init();
+
+// Dark mode
+function toggleDark(){
+  document.body.classList.toggle('dark-mode');
+  try{localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light');}catch(e){}
+}
+(function(){
+  try{if(localStorage.getItem('theme')==='dark')document.body.classList.add('dark-mode');}catch(e){}
+})();
+</script>
+</body>
+</html>

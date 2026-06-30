@@ -1,0 +1,9 @@
+{
+  "name": "Héstia",
+  "myth": "o coração acolhedor — guardiã do lar digital",
+  "cat": "Intranet",
+  "desc": "Intranet corporativa: feed de notícias, documentos, diretório de pessoas, comunidades, eventos e muito mais.",
+  "color": "#059669",
+  "icon": "home",
+  "port": 5020
+}

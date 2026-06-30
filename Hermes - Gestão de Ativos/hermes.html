@@ -1,0 +1,1853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>HERMES — Gestão de Ativos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --bg-alt: #f8f9fa;
+      --glass: rgba(255, 255, 255, 0.7);
+      --border: rgba(0, 0, 0, 0.08);
+      --accent: #b45309; /* Hermes keeping its bronze/orange accent */
+      --accent-soft: rgba(180, 83, 9, 0.1);
+      --text: #1f1f1f;
+      --text-mid: #5f6368;
+      --text-dim: #70757a;
+      --success: #0f9d58;
+      --danger: #d93025;
+      --warn: #f4b400;
+      --sans: 'Outfit', sans-serif;
+      --display: 'Space Grotesk', sans-serif;
+      --radius: 24px;
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      
+      /* Legacy aliases for compatibility */
+      --bg2: #ffffff;
+      --bg3: #f1f5f9;
+      --r: 12px;
+      --r2: 24px;
+      --sh: var(--shadow);
+      --accent-bg: var(--accent-soft);
+      --success-bg: rgba(15, 157, 88, 0.1);
+      --danger-bg: rgba(217, 48, 37, 0.1);
+      --warn-bg: rgba(244, 180, 0, 0.1);
+    }
+
+    body.dark-mode {
+      --bg: #0b0f1a;
+      --bg-alt: #111827;
+      --glass: rgba(17, 24, 39, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --text: #f3f4f6;
+      --text-mid: #9ca3af;
+      --text-dim: #6b7280;
+      --shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+      --bg2: #1f2937;
+      --bg3: #374151;
+    }
+
+    body.dark-mode .card, body.dark-mode #sidebar, body.dark-mode .kpi, body.dark-mode .user-chip, body.dark-mode .theme-toggle {
+      background: #1f2937;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0; -webkit-font-smoothing: antialiased;}
+    html{scroll-behavior:smooth}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5; overflow: hidden; transition: background-color 0.4s, color 0.4s;}
+    a { color: inherit; text-decoration: none; }
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:rgba(0, 0, 0, 0.08);border-radius:20px}
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.15); }
+    body.dark-mode ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); }
+
+    button {
+      font-family: var(--sans);
+      cursor: pointer
+    }
+
+    input,
+    select,
+    textarea {
+      font-family: var(--sans)
+    }
+
+    /* Layout */
+    .dashboard-layout { padding: 24px; height: 100vh; overflow: hidden; display: flex; justify-content: center; }
+    .main-area { width: 100%; max-width: 1400px; display: flex; flex-direction: column; background: var(--bg-alt); border-radius: var(--radius); border: none; overflow: hidden; position: relative; }
+    .main-area::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 150px 80px var(--bg); pointer-events: none; z-index: 1; }
+    .hero-blob { position: absolute; width: 800px; height: 800px; border-radius: 50%; filter: blur(160px); z-index: 0; opacity: 0.15; pointer-events: none; }
+    .blob-1 { top: -200px; right: -200px; background: radial-gradient(circle, var(--accent), transparent); }
+    .blob-2 { bottom: -100px; left: -100px; background: radial-gradient(circle, #92400e, transparent); }
+    .blob-3 { top: 20%; left: 10%; background: radial-gradient(circle, #ea4335, transparent); width: 400px; height: 400px; }
+    .blob-4 { bottom: 20%; right: 10%; background: radial-gradient(circle, #fbbc05, transparent); width: 300px; height: 300px; }
+
+    .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg2); color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: center; margin-right: 12px; transition: all 0.3s; }
+    .theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
+
+    /* ── LOGIN ── */
+    #login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+    .login-card{width:440px;padding:48px;text-align:center}
+    .login-top{margin-bottom:40px}
+    .l-logo{display:flex;align-items:center;gap:16px;justify-content:center;margin-bottom:8px}
+    .l-icon{width:48px;height:48px;background:var(--accent);border-radius:12px;display:grid;place-items:center;box-shadow: 0 8px 24px var(--accent-bg);}
+    .l-icon svg{width:24px;height:24px;stroke:white; fill: none;}
+    .l-brand{font-family:var(--display);font-size:2rem;font-weight:700;letter-spacing:-0.01em;color:var(--text)}
+    .l-sub{font-size:.85rem;color:var(--text-dim);margin-top:4px}
+    .login-body{display:flex;flex-direction:column;gap:16px}
+    #login-err{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:12px;font-size:.8rem;color:var(--danger);display:none}
+    .btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:1rem;font-weight:600;padding:16px;border-radius:16px;cursor:pointer;transition:all 0.3s;letter-spacing:.02em;width:100%}
+    .btn-login:hover{background: #92400e; transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-bg);}
+
+    /* ── APP SHELL ── */
+    #app{display:none;flex-direction:column;height:100%; position:relative; z-index:2;}
+
+    /* ── TOPBAR ── */
+    .topbar{height:80px;background:transparent;display:flex;align-items:center;padding:0 24px;position:sticky;top:0;z-index:100;flex-shrink:0}
+    .tb-logo{width:36px;height:36px;background:var(--accent);border-radius:10px;display:grid;place-items:center;flex-shrink:0; box-shadow: 0 4px 12px var(--accent-bg);}
+    .tb-logo svg{width:20px;height:20px;color:white;stroke:white; fill: none;}
+    .tb-app-name{font-family: var(--display); font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em; margin-left: 12px}
+    .tb-sep{width:1px;height:20px;background:var(--border);margin:0 12px}
+    .tb-page-title{font-size: 1rem; color: var(--text-dim); font-weight: 400; opacity: 0.6;}
+    .tbr{margin-left:auto;display:flex;align-items:center;gap:12px}
+    .user-chip{position:relative;display:flex;align-items:center;gap:8px;padding:8px 16px;border:1px solid var(--border);border-radius:40px;background: var(--bg2); cursor:pointer;transition:all .3s; box-shadow: 0 4px 12px rgba(0,0,0,0.03);}
+    .user-chip:hover{border-color:var(--accent); transform: translateY(-1px);}
+    .uc-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent);display:grid;place-items:center;font-size:.75rem;font-weight:700;color:#fff;flex-shrink:0;font-family:var(--mono)}
+    .uc-info{display:flex;flex-direction:column;gap:1px}
+    .uc-name{font-size:.85rem;font-weight:600}
+    .uc-role{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);text-transform:capitalize}
+    .uc-menu{position:absolute;top:calc(100% + 10px);right:0;background:var(--bg2);border:1px solid var(--border);border-radius:20px;box-shadow:0 4px 16px rgba(0,0,0,.1);min-width:160px;display:none;z-index:200; overflow: hidden;}
+    .user-chip.open .uc-menu{display:block}
+    .uc-menu button{display:flex; align-items: center; gap: 8px; width:100%;text-align:left;padding:12px 16px;font-size:.82rem;background:none;border:none;color:var(--text-mid);cursor:pointer;transition:background .1s}
+    .uc-menu button:hover{background:var(--bg3);color:var(--text)}
+    .uc-menu button.danger:hover{background:var(--danger-bg);color:var(--danger)}
+
+    /* ── BODY WRAP ── */
+    .bwrap{display:flex;flex:1;overflow:hidden; height: calc(100% - 80px);}
+
+    /* ── SIDEBAR ── */
+    #sidebar{width:240px;min-width:240px;background:var(--glass); backdrop-filter: blur(8px); border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+
+    .sb-section {
+      padding: 4px 0
+    }
+
+    .sb-section+.sb-section {
+      border-top: 1px solid var(--border)
+    }
+
+    .sb-label {
+      font-size: .62rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 10px 12px 4px
+    }
+
+    .sb-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 16px;
+      margin: 2px 12px;
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      user-select: none;
+      position: relative;
+    }
+    .sb-item:hover { background: var(--accent-soft); color: var(--accent) }
+    .sb-item svg { flex-shrink: 0; fill: none; stroke: var(--text-dim); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: .2s; opacity: .7 }
+    .sb-item:hover svg { stroke: var(--accent); opacity: 1; }
+    .sb-item.active { background: var(--bg2); border: 1px solid var(--border); box-shadow: var(--shadow); color: var(--accent); font-weight: 600 }
+    .sb-item.active svg { stroke: var(--accent); opacity: 1 }
+
+    /* ── MAIN ── */
+    #main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px
+    }
+
+    /* ── PAGES ── */
+    .page {
+      display: none
+    }
+
+    .page.active {
+      display: flex;
+      flex-direction: column;
+      gap: 16px
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .page-header h1 {
+      font-size: 1.4rem;
+      font-weight: 700
+    }
+
+    .spacer {
+      flex: 1
+    }
+
+    /* ── KPI ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px
+    }
+
+    .kpi {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: var(--shadow);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .kpi:hover { transform: translateY(-5px) scale(1.02); border-color: var(--accent); }
+    .kpi-label {
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: .08em;
+      text-transform: uppercase
+    }
+    .kpi-val {
+      font-family: var(--display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .kpi-sub {
+      font-size: .67rem;
+      color: var(--text-dim)
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* ── TABLE ── */
+    .tbl-wrap {
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .83rem
+    }
+
+    th {
+      font-size: .67rem;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 8px 14px;
+      border-bottom: 2px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+      background: var(--bg3)
+    }
+
+    td {
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-mid);
+      vertical-align: middle
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    tr:hover td {
+      background: var(--bg3);
+      color: var(--text)
+    }
+
+    .text-right {
+      text-align: right
+    }
+
+    .text-center {
+      text-align: center
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: var(--sans);
+      font-size: .78rem;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: var(--r);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      letter-spacing: .02em
+    }
+
+    .btn-primary,
+    .bp {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff
+    }
+
+    .btn-primary:hover,
+    .bp:hover {
+      background: var(--accent2);
+      border-color: var(--accent2)
+    }
+
+    .btn-secondary,
+    .bo {
+      background: transparent;
+      border-color: var(--border2);
+      color: var(--text-mid)
+    }
+
+    .btn-secondary:hover,
+    .bo:hover {
+      border-color: var(--text-mid);
+      color: var(--text);
+      background: var(--bg3)
+    }
+
+    .btn-danger,
+    .bd {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-mid)
+    }
+
+    .btn-danger:hover,
+    .bd:hover {
+      background: var(--danger-bg);
+      border-color: var(--danger);
+      color: var(--danger)
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-mid)
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg3)
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: .72rem
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed
+    }
+
+    /* ── BADGE ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--mono);
+      font-size: .62rem;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 3px;
+      letter-spacing: .05em;
+      white-space: nowrap
+    }
+
+    .badge-green,
+    .b-enviado,
+    .status-ativo {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #16a34a33
+    }
+
+    .badge-red,
+    .b-erro,
+    .status-descartado {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: 1px solid #dc262633
+    }
+
+    .badge-yellow,
+    .b-pendente {
+      background: var(--warn-bg);
+      color: var(--warn);
+      border: 1px solid #d9770633
+    }
+
+    .badge-gray,
+    .status-inativo {
+      background: var(--bg3);
+      color: var(--text-mid);
+      border: 1px solid var(--border)
+    }
+
+    .badge-blue {
+      background: #f0f9ff;
+      color: #0369a1;
+      border: 1px solid #0369a133
+    }
+
+    .badge-orange,
+    .status-em_manutencao {
+      background: #fff7ed;
+      color: #c2410c;
+      border: 1px solid #c2410c33
+    }
+
+    /* ── FILTER BAR ── */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center
+    }
+
+    .filters input,
+    .filters select {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: .76rem;
+      padding: 6px 10px;
+      border-radius: var(--r);
+      outline: none;
+      cursor: pointer;
+      transition: border-color .15s
+    }
+
+    .filters input:focus,
+    .filters select:focus {
+      border-color: var(--accent)
+    }
+
+    .filters input {
+      min-width: 180px
+    }
+
+    .filters input::placeholder {
+      color: var(--text-dim)
+    }
+
+    /* ── FORM ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .form-group.full {
+      grid-column: 1/-1
+    }
+
+    .form-group label {
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--text-mid);
+      letter-spacing: .05em
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: .85rem;
+      padding: 9px 12px;
+      border-radius: var(--r);
+      outline: none;
+      transition: border-color .15s;
+      width: 100%
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-bg)
+    }
+
+    .form-group input::placeholder {
+      color: var(--text-dim)
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 72px;
+      font-family: var(--sans)
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 8px
+    }
+
+    /* ── MODAL ── */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, .4);
+      z-index: 600;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px)
+    }
+
+    .modal-bg.open {
+      display: flex
+    }
+
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      width: 600px;
+      max-width: 96vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .15)
+    }
+
+    .modal-sm {
+      width: 420px
+    }
+
+    .modal-head {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .modal-head h3 {
+      font-size: .95rem;
+      font-weight: 700
+    }
+
+    .modal-close {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      background: transparent;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      color: var(--text-dim);
+      transition: all .15s;
+      font-size: 1.1rem
+    }
+
+    .modal-close:hover {
+      border-color: var(--border2);
+      color: var(--text);
+      background: var(--bg3)
+    }
+
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    /* ── DEPRECIATION ── */
+    .dep-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: .82rem
+    }
+
+    .dep-bar-wrap {
+      flex: 1;
+      height: 10px;
+      background: var(--bg3);
+      border-radius: 5px;
+      overflow: hidden
+    }
+
+    .dep-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 5px;
+      transition: width .4s
+    }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--text);
+      color: #fff;
+      border-radius: var(--r);
+      padding: 10px 18px;
+      font-size: .8rem;
+      font-family: var(--mono);
+      letter-spacing: .03em;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .22);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .2s, transform .2s;
+      pointer-events: none;
+      z-index: 9999;
+      max-width: 340px
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateY(0)
+    }
+
+    #toast.ok {
+      background: var(--success)
+    }
+
+    #toast.err {
+      background: var(--danger)
+    }
+
+    #toast.warn {
+      background: var(--warn)
+    }
+
+    /* ── EMPTY ── */
+  </style>
+</head>
+
+<body>
+
+  <!-- Login -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-top">
+        <div class="l-logo">
+          <div class="l-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <span class="l-brand">HERMES</span>
+        </div>
+        <div class="l-sub">Gestão de Ativos · Olimpus</div>
+      </div>
+      <div class="login-body">
+        <div id="login-err"></div>
+        <input class="form-input" id="li-email" type="email" placeholder="E-mail" autocomplete="username">
+        <input class="form-input" id="li-senha" type="password" placeholder="Senha" autocomplete="current-password">
+        <button class="btn-login" onclick="doLogin()">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div class="dashboard-layout">
+    <main class="main-area">
+      <div class="hero-blob blob-1"></div>
+      <div class="hero-blob blob-2"></div>
+      <div class="hero-blob blob-3"></div>
+      <div class="hero-blob blob-4"></div>
+
+      <div id="app">
+        <!-- Topbar -->
+        <div class="topbar">
+          <div class="tb-logo">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          </div>
+          <span class="tb-app-name">HERMES</span>
+          <div class="tb-sep"></div>
+          <span class="tb-page-title" id="tb-page-title">Dashboard</span>
+
+          <div class="tbr">
+            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+              <svg id="sun-icon" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <svg id="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <div class="user-chip" id="user-chip" onclick="this.classList.toggle('open')">
+              <div class="uc-avatar" id="uc-avatar">?</div>
+              <div class="uc-info">
+                <div class="uc-name" id="uc-name">—</div>
+                <div class="uc-role" id="uc-role">—</div>
+              </div>
+              <div class="uc-menu">
+                <button class="danger" onclick="doLogout()">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Sair
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Body Wrap -->
+        <div class="bwrap">
+          <div id="sidebar">
+            <div class="sb-section">
+              <div class="sb-label">Ativos</div>
+              <div class="sb-item active" onclick="nav('dashboard')" data-page="dashboard">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                Dashboard
+              </div>
+              <div class="sb-item" onclick="nav('ativos')" data-page="ativos">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                Ativos
+              </div>
+              <div class="sb-item" onclick="nav('movimentacoes')" data-page="movimentacoes">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Movimentações
+              </div>
+              <div class="sb-item" onclick="nav('manutencoes')" data-page="manutencoes">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                Manutenção
+              </div>
+            </div>
+            <div class="sb-section">
+              <div class="sb-label">Cadastros</div>
+              <div class="sb-item" onclick="nav('categorias')" data-page="categorias">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                Categorias
+              </div>
+              <div class="sb-item" onclick="nav('localizacoes')" data-page="localizacoes">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Localizações
+              </div>
+              <div class="sb-item sb-admin" onclick="nav('configuracoes')" data-page="configuracoes">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Configurações
+              </div>
+            </div>
+          </div>
+
+          <div id="main">
+            <!-- Pages -->
+            <div id="page-dashboard" class="page active">
+              <div class="page-header">
+                <h1>Dashboard</h1>
+              </div>
+              <div class="kpi-grid">
+                <div class="kpi">
+                  <div class="kpi-label">Total de Ativos</div>
+                  <div class="kpi-val" id="kpi-total" style="color:var(--accent)">—</div>
+                  <div class="kpi-sub">excluindo descartados</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Valor Patrimonial</div>
+                  <div class="kpi-val" id="kpi-valor" style="color:var(--text);font-size:20px">—</div>
+                  <div class="kpi-sub">custo de aquisição</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Em Manutenção</div>
+                  <div class="kpi-val" id="kpi-manut" style="color:#c2410c">—</div>
+                  <div class="kpi-sub">ativos parados</div>
+                </div>
+                <div class="kpi">
+                  <div class="kpi-label">Manutenções Abertas</div>
+                  <div class="kpi-val" id="kpi-manut-ab" style="color:var(--text)">—</div>
+                  <div class="kpi-sub">solicitadas + em andamento</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+                <div class="card">
+                  <div class="card-title">Por Categoria</div>
+                  <div id="dash-cats"></div>
+                </div>
+                <div class="card">
+                  <div class="card-title">Últimas Movimentações</div>
+                  <div id="dash-movs"></div>
+                </div>
+              </div>
+            </div>
+
+            <div id="page-ativos" class="page">
+              <div class="page-header">
+                <h1>Ativos</h1>
+                <div class="spacer"></div>
+                <button class="btn btn-primary sb-gestor" onclick="openAtivoModal()">+ Novo Ativo</button>
+              </div>
+              <div class="filters">
+                <input type="text" id="f-q" placeholder="Buscar nome, patrimônio, série…" oninput="debounceAtivos()" />
+                <select id="f-status" onchange="loadAtivos()">
+                  <option value="">Todos os status</option>
+                  <option value="ativo">Ativo</option>
+                  <option value="inativo">Inativo</option>
+                  <option value="em_manutencao">Em manutenção</option>
+                  <option value="descartado">Descartado</option>
+                </select>
+                <select id="f-cat" onchange="loadAtivos()">
+                  <option value="">Todas as categorias</option>
+                </select>
+                <select id="f-loc" onchange="loadAtivos()">
+                  <option value="">Todas as localizações</option>
+                </select>
+              </div>
+              <div class="card" style="padding:0">
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Patrimônio</th>
+                        <th>Nome</th>
+                        <th>Categoria</th>
+                        <th>Localização</th>
+                        <th>Responsável</th>
+                        <th>Status</th>
+                        <th class="text-right">Valor</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-ativos"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="page-movimentacoes" class="page">
+              <div class="page-header">
+                <h1>Movimentações</h1>
+                <div class="spacer"></div>
+                <button class="btn btn-primary sb-gestor" onclick="openMovModal()">+ Registrar Movimentação</button>
+              </div>
+              <div class="card" style="padding:0">
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Ativo</th>
+                        <th>Patrimônio</th>
+                        <th>De</th>
+                        <th>Para</th>
+                        <th>Responsável</th>
+                        <th>Motivo</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-movs"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="page-manutencoes" class="page">
+              <div class="page-header">
+                <h1>Manutenção</h1>
+                <div class="spacer"></div>
+                <button class="btn btn-primary" onclick="openManutModal()">+ Abrir Chamado</button>
+                <select id="f-manut-status" onchange="loadManutencoes()"
+                  style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--r);font-size:13px;background:var(--bg2);color:var(--text)">
+                  <option value="">Todos</option>
+                  <option value="solicitada">Solicitadas</option>
+                  <option value="em_andamento">Em andamento</option>
+                  <option value="concluida">Concluídas</option>
+                  <option value="cancelada">Canceladas</option>
+                </select>
+              </div>
+              <div class="card" style="padding:0">
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Data</th>
+                        <th>Ativo</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        <th>Técnico</th>
+                        <th>Status</th>
+                        <th class="text-right">Custo</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-manut"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="page-categorias" class="page">
+              <div class="page-header">
+                <h1>Categorias</h1>
+                <div class="spacer"></div>
+                <button class="btn btn-primary sb-gestor" onclick="openCatModal()">+ Nova Categoria</button>
+              </div>
+              <div class="card" style="padding:0">
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Vida Útil</th>
+                        <th>Taxa Depreciação</th>
+                        <th>Ativo</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-cats"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="page-localizacoes" class="page">
+              <div class="page-header">
+                <h1>Localizações</h1>
+                <div class="spacer"></div>
+                <button class="btn btn-primary sb-gestor" onclick="openLocModal()">+ Nova Localização</button>
+              </div>
+              <div class="card" style="padding:0">
+                <div class="tbl-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>Departamento</th>
+                        <th>Ativo</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-locs"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div id="page-configuracoes" class="page">
+              <div class="page-header">
+                <h1>Configurações</h1>
+              </div>
+              <div class="card">
+                <div class="card-title">Sincronizar com Atlas</div>
+                <p style="color:var(--text-mid);font-size:13px;margin-bottom:16px">Importa empresas como departamentos e
+                  pessoas como usuários do Hermes.</p>
+                <div class="form-grid" style="max-width:500px">
+                  <div class="form-group"><label>E-mail Atlas</label><input id="sync-email" type="email"
+                      placeholder="admin@empresa.com" /></div>
+                  <div class="form-group"><label>Senha Atlas</label><input id="sync-senha" type="password"
+                      placeholder="••••••••" /></div>
+                </div>
+                <button class="btn btn-primary" onclick="doSync()">Sincronizar Agora</button>
+                <div id="sync-result" style="margin-top:12px;font-size:13px;color:var(--text-mid)"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Ativo -->
+  <div class="modal-bg" id="modal-ativo">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modal-ativo-title">Novo Ativo</h3><button class="modal-close"
+          onclick="closeModal('modal-ativo')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="ativo-id" />
+        <div class="form-grid">
+          <div class="form-group full"><label>Nome *</label><input id="ativo-nome" type="text"
+              placeholder="Ex: Notebook Dell Latitude" /></div>
+          <div class="form-group"><label>Nº Patrimônio</label><input id="ativo-pat" type="text"
+              placeholder="PAT-0001" /></div>
+          <div class="form-group"><label>Nº Série</label><input id="ativo-serie" type="text" placeholder="SN123456" />
+          </div>
+          <div class="form-group"><label>Categoria</label><select id="ativo-cat">
+              <option value="">— Nenhuma —</option>
+            </select></div>
+          <div class="form-group"><label>Localização</label><select id="ativo-loc">
+              <option value="">— Nenhuma —</option>
+            </select></div>
+          <div class="form-group"><label>Responsável</label><select id="ativo-resp">
+              <option value="">— Nenhum —</option>
+            </select></div>
+          <div class="form-group"><label>Status</label>
+            <select id="ativo-status">
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+              <option value="em_manutencao">Em manutenção</option>
+              <option value="descartado">Descartado</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Valor de Aquisição</label><input id="ativo-valor" type="number" step="0.01"
+              min="0" placeholder="0,00" /></div>
+          <div class="form-group"><label>Data de Aquisição</label><input id="ativo-data" type="date" /></div>
+          <div class="form-group"><label>Fornecedor</label><input id="ativo-forn" type="text"
+              placeholder="Nome do fornecedor" /></div>
+          <div class="form-group full"><label>Descrição</label><textarea id="ativo-desc" rows="2"
+              placeholder="Observações adicionais…"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="closeModal('modal-ativo')">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveAtivo()">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Movimentação -->
+  <div class="modal-bg" id="modal-mov">
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <h3>Registrar Movimentação</h3><button class="modal-close" onclick="closeModal('modal-mov')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="form-group full"><label>Ativo *</label><select id="mov-ativo">
+              <option value="">— Selecione —</option>
+            </select></div>
+          <div class="form-group full"><label>Nova Localização</label><select id="mov-loc">
+              <option value="">— Manter atual —</option>
+            </select></div>
+          <div class="form-group full"><label>Novo Responsável</label><select id="mov-resp">
+              <option value="">— Manter atual —</option>
+            </select></div>
+          <div class="form-group"><label>Data *</label><input id="mov-data" type="date" /></div>
+          <div class="form-group full"><label>Motivo</label><textarea id="mov-motivo" rows="2"
+              placeholder="Motivo da movimentação…"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="closeModal('modal-mov')">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveMov()">Registrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Manutenção -->
+  <div class="modal-bg" id="modal-manut">
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <h3 id="modal-manut-title">Abrir Chamado de Manutenção</h3><button class="modal-close"
+          onclick="closeModal('modal-manut')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="manut-id" />
+        <div class="form-grid">
+          <div class="form-group full"><label>Ativo *</label><select id="manut-ativo">
+              <option value="">— Selecione —</option>
+            </select></div>
+          <div class="form-group"><label>Tipo</label>
+            <select id="manut-tipo">
+              <option value="corretiva">Corretiva</option>
+              <option value="preventiva">Preventiva</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Status</label>
+            <select id="manut-status">
+              <option value="solicitada">Solicitada</option>
+              <option value="em_andamento">Em andamento</option>
+              <option value="concluida">Concluída</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Data Solicitação</label><input id="manut-data" type="date" /></div>
+          <div class="form-group"><label>Data Conclusão</label><input id="manut-conclusao" type="date" /></div>
+          <div class="form-group full"><label>Técnico</label><input id="manut-tecnico" type="text"
+              placeholder="Nome do técnico" /></div>
+          <div class="form-group"><label>Custo (R$)</label><input id="manut-custo" type="number" step="0.01" min="0"
+              placeholder="0,00" /></div>
+          <div class="form-group full"><label>Descrição</label><textarea id="manut-desc" rows="2"
+              placeholder="Descrição do problema / serviço…"></textarea></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="closeModal('modal-manut')">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveManut()">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Categoria -->
+  <div class="modal-bg" id="modal-cat">
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <h3 id="modal-cat-title">Nova Categoria</h3><button class="modal-close"
+          onclick="closeModal('modal-cat')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cat-id" />
+        <div class="form-grid">
+          <div class="form-group full"><label>Nome *</label><input id="cat-nome" type="text"
+              placeholder="Ex: Equipamentos de TI" /></div>
+          <div class="form-group"><label>Vida Útil (anos)</label><input id="cat-vida" type="number" min="1" max="99"
+              value="5" /></div>
+          <div class="form-group"><label>Taxa Depreciação (%/ano)</label><input id="cat-taxa" type="number" step="0.1"
+              min="0" max="100" value="20" /></div>
+          <div class="form-group full"><label>Descrição</label><textarea id="cat-desc" rows="2"></textarea></div>
+          <div class="form-group"><label>Ativo</label><select id="cat-ativo">
+              <option value="1">Sim</option>
+              <option value="0">Não</option>
+            </select></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="closeModal('modal-cat')">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveCat()">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Localização -->
+  <div class="modal-bg" id="modal-loc">
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <h3 id="modal-loc-title">Nova Localização</h3><button class="modal-close"
+          onclick="closeModal('modal-loc')">×</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="loc-id" />
+        <div class="form-grid">
+          <div class="form-group full"><label>Nome *</label><input id="loc-nome" type="text"
+              placeholder="Ex: Sala de TI — 2º andar" /></div>
+          <div class="form-group full"><label>Descrição</label><textarea id="loc-desc" rows="2"></textarea></div>
+          <div class="form-group"><label>Ativo</label><select id="loc-ativo">
+              <option value="1">Sim</option>
+              <option value="0">Não</option>
+            </select></div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="closeModal('modal-loc')">Cancelar</button>
+          <button class="btn btn-primary" onclick="saveLoc()">Salvar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Depreciação -->
+  <div class="modal-bg" id="modal-dep">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modal-dep-title">Depreciação</h3><button class="modal-close"
+          onclick="closeModal('modal-dep')">×</button>
+      </div>
+      <div class="modal-body" id="modal-dep-body"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <script>
+    const API = '';
+    let ME = null;
+    let CATS = [], LOCS = [], USERS = [];
+    const TODAY = new Date().toISOString().slice(0, 10);
+
+    function fmt(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0); }
+    function fmtDate(d) { if (!d) return '—'; const [y, m, dd] = d.slice(0, 10).split('-'); return `${dd}/${m}/${y}`; }
+    function initials(n) { return n?.split(' ').filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('') || '?'; }
+    function toast(msg, type = 'ok') {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = 'show ' + type;
+      clearTimeout(t._t); t._t = setTimeout(() => t.className = '', 2800);
+    }
+    async function api(path, opts = {}) {
+      const r = await fetch(API + path, { credentials: 'include', headers: { 'Content-Type': 'application/json' }, ...opts });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || r.statusText);
+      return j;
+    }
+    function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+    function openModal(id) { document.getElementById(id).classList.add('open'); }
+
+    function statusBadge(s) {
+      const map = { ativo: 'badge-green', inativo: 'badge-gray', em_manutencao: 'badge-orange', descartado: 'badge-red' };
+      const lbl = { ativo: 'Ativo', inativo: 'Inativo', em_manutencao: 'Em manutenção', descartado: 'Descartado' };
+      return `<span class="badge ${map[s] || 'badge-gray'}">${lbl[s] || s}</span>`;
+    }
+    function manutStatusBadge(s) {
+      const map = { solicitada: 'badge-yellow', em_andamento: 'badge-orange', concluida: 'badge-green', cancelada: 'badge-gray' };
+      return `<span class="badge ${map[s] || 'badge-gray'}">${s.replace('_', ' ')}</span>`;
+    }
+
+    // ── Auth ──────────────────────────────────────────────────────────────────────
+    async function doLogin() {
+      const email = document.getElementById('li-email').value.trim();
+      const senha = document.getElementById('li-senha').value;
+      document.getElementById('login-err').textContent = '';
+      try {
+        const r = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, senha }) });
+        ME = r.data; startApp();
+      } catch (e) { document.getElementById('login-err').textContent = e.message; }
+    }
+    document.getElementById('li-senha').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+    async function doLogout() { await api('/api/auth/logout', { method: 'POST' }).catch(() => { }); location.reload(); }
+
+    async function startApp() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('uc-avatar').textContent = initials(ME.nome);
+      document.getElementById('uc-name').textContent = ME.nome || '—';
+      document.getElementById('uc-role').textContent = ME.role || '—';
+      if (!['admin', 'gestor'].includes(ME.role)) {
+        document.querySelectorAll('.sb-gestor').forEach(el => el.style.display = 'none');
+      }
+      if (ME.role !== 'admin') {
+        document.querySelectorAll('.sb-admin').forEach(el => el.style.display = 'none');
+      }
+      await loadShared();
+      nav('dashboard');
+    }
+
+    async function checkSession() {
+      const savedTheme = localStorage.getItem('theme');
+      const isDark = savedTheme === 'dark';
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        updateThemeIcons(true);
+      }
+      initAnimations();
+
+      try { const r = await api('/api/auth/me'); ME = r.data; startApp(); }
+      catch (_) { document.getElementById('login-screen').style.display = 'flex'; }
+    }
+    document.addEventListener('click', e => {
+      const chip = document.getElementById('user-chip');
+      if (chip && !chip.contains(e.target)) chip.classList.remove('open');
+    });
+
+    // ── Navigation ────────────────────────────────────────────────────────────────
+    const TITLES = {
+      dashboard: 'Dashboard', ativos: 'Ativos', movimentacoes: 'Movimentações',
+      manutencoes: 'Manutenção', categorias: 'Categorias',
+      localizacoes: 'Localizações', configuracoes: 'Configurações'
+    };
+    const PAGE_LOADERS = {
+      dashboard: loadDashboard, ativos: loadAtivos, movimentacoes: loadMovimentacoes,
+      manutencoes: loadManutencoes, categorias: loadCategorias, localizacoes: loadLocalizacoes
+    };
+    function nav(page) {
+      const sections = document.querySelectorAll('.page');
+      sections.forEach(p => p.classList.remove('active'));
+      
+      const target = document.getElementById('page-' + page);
+      if (target) {
+        target.classList.add('active');
+        if (window.gsap) {
+          gsap.fromTo(target, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
+        }
+      }
+
+      document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+      const link = document.querySelector(`.sb-item[data-page="${page}"]`);
+      if (link) link.classList.add('active');
+      
+      const titleEl = document.getElementById('tb-page-title');
+      if (titleEl) titleEl.textContent = TITLES[page] || page;
+
+      if (PAGE_LOADERS[page]) PAGE_LOADERS[page]();
+    }
+
+    function toggleTheme() {
+      const isDark = document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      updateThemeIcons(isDark);
+    }
+
+    function updateThemeIcons(isDark) {
+      const sun = document.getElementById('sun-icon');
+      const moon = document.getElementById('moon-icon');
+      if (sun) sun.style.display = isDark ? 'block' : 'none';
+      if (moon) moon.style.display = isDark ? 'none' : 'block';
+    }
+
+    function initAnimations() {
+      if (window.gsap) {
+        gsap.to('.blob-1', { x: -100, y: 100, duration: 20, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+        gsap.to('.blob-2', { x: 100, y: -100, duration: 25, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+        gsap.to('.blob-3', { x: 50, scale: 1.2, duration: 15, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+        gsap.to('.blob-4', { y: -50, scale: 0.8, duration: 18, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      }
+    }
+
+    // ── Shared ────────────────────────────────────────────────────────────────────
+    async function loadShared() {
+      const [catR, locR, usrR] = await Promise.all([
+        api('/api/categorias').catch(() => ({ data: [] })),
+        api('/api/localizacoes').catch(() => ({ data: [] })),
+        api('/api/users').catch(() => ({ data: [] })),
+      ]);
+      CATS = catR.data || [];
+      LOCS = locR.data || [];
+      USERS = usrR.data || [];
+      populateFilterSelects();
+    }
+    function populateFilterSelects() {
+      // Filter dropdowns
+      const fCat = document.getElementById('f-cat');
+      const fLoc = document.getElementById('f-loc');
+      fCat.innerHTML = '<option value="">Todas as categorias</option>';
+      fLoc.innerHTML = '<option value="">Todas as localizações</option>';
+      CATS.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nome; fCat.appendChild(o); });
+      LOCS.forEach(l => { const o = document.createElement('option'); o.value = l.id; o.textContent = l.nome; fLoc.appendChild(o); });
+
+      // Modal selects
+      ['ativo-cat', 'manut-ativo-cat'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = '<option value="">— Nenhuma —</option>';
+        CATS.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nome; el.appendChild(o); });
+      });
+      const ativoCat = document.getElementById('ativo-cat');
+      ativoCat.innerHTML = '<option value="">— Nenhuma —</option>';
+      CATS.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nome; ativoCat.appendChild(o); });
+
+      ['ativo-loc', 'mov-loc'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = id.startsWith('mov') ? '<option value="">— Manter atual —</option>' : '<option value="">— Nenhuma —</option>';
+        LOCS.forEach(l => { const o = document.createElement('option'); o.value = l.id; o.textContent = l.nome; el.appendChild(o); });
+      });
+      ['ativo-resp', 'mov-resp'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = id.startsWith('mov') ? '<option value="">— Manter atual —</option>' : '<option value="">— Nenhum —</option>';
+        USERS.forEach(u => { const o = document.createElement('option'); o.value = u.id; o.textContent = u.nome; el.appendChild(o); });
+      });
+
+      // Ativo select for movimentação and manutenção
+      ['mov-ativo', 'manut-ativo'].forEach(async id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        // Will be populated on modal open
+      });
+    }
+
+    async function populateAtivoSelect(selectId, onlyAtivos = false) {
+      const el = document.getElementById(selectId);
+      el.innerHTML = '<option value="">— Selecione —</option>';
+      try {
+        const r = await api('/api/ativos?limit=500' + (onlyAtivos ? '&status=ativo' : ''));
+        (r.data || []).forEach(a => {
+          const o = document.createElement('option');
+          o.value = a.id;
+          o.textContent = `${a.nome}${a.numero_patrimonio ? ' (' + a.numero_patrimonio + ')' : ''}`;
+          el.appendChild(o);
+        });
+      } catch (_) { }
+    }
+
+    // ── Dashboard ─────────────────────────────────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const r = await api('/api/dashboard');
+        const d = r.data;
+        document.getElementById('kpi-total').textContent = d.total_ativos;
+        document.getElementById('kpi-valor').textContent = fmt(d.valor_total);
+        document.getElementById('kpi-manut').textContent = d.em_manutencao;
+        document.getElementById('kpi-manut-ab').textContent = d.manut_abertas;
+
+        // Por categoria
+        const maxQ = Math.max(1, ...d.por_categoria.map(c => c.qtd));
+        document.getElementById('dash-cats').innerHTML = d.por_categoria.length
+          ? d.por_categoria.map(c => `
+        <div class="dep-row">
+          <span style="min-width:140px;font-size:12px;color:var(--text-mid)">${c.nome || 'Sem categoria'}</span>
+          <div class="dep-bar-wrap"><div class="dep-bar" style="width:${Math.round(c.qtd / maxQ * 100)}%"></div></div>
+          <span style="font-family:var(--mono);font-size:12px;min-width:30px;text-align:right">${c.qtd}</span>
+        </div>`).join('')
+          : '<p style="color:var(--text-dim);font-size:13px">Nenhum ativo cadastrado</p>';
+
+        // Últimas movimentações
+        document.getElementById('dash-movs').innerHTML = d.movs_recentes.length
+          ? d.movs_recentes.map(m => `
+        <div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px">
+          <div style="font-weight:500">${m.ativo_nome || '—'}${m.numero_patrimonio ? ' <span style="color:var(--text-dim);font-size:11px">(' + m.numero_patrimonio + ')</span>' : ''}</div>
+          <div style="color:var(--text-mid);font-size:12px;margin-top:2px">
+            ${m.para_local || '—'} · ${m.para_resp || '—'} · ${fmtDate(m.data_movimentacao)}
+          </div>
+        </div>`).join('')
+          : '<p style="color:var(--text-dim);font-size:13px">Nenhuma movimentação registrada</p>';
+      } catch (e) { toast('Erro ao carregar dashboard: ' + e.message, 'err'); }
+    }
+
+    // ── Ativos ────────────────────────────────────────────────────────────────────
+    let _debounceT = null;
+    function debounceAtivos() { clearTimeout(_debounceT); _debounceT = setTimeout(loadAtivos, 300); }
+
+    async function loadAtivos() {
+      const q = document.getElementById('f-q')?.value.trim() || '';
+      const stat = document.getElementById('f-status')?.value || '';
+      const cat = document.getElementById('f-cat')?.value || '';
+      const loc = document.getElementById('f-loc')?.value || '';
+      let url = '/api/ativos?limit=300';
+      if (q) url += `&q=${encodeURIComponent(q)}`;
+      if (stat) url += `&status=${stat}`;
+      if (cat) url += `&categoria_id=${cat}`;
+      if (loc) url += `&localizacao_id=${loc}`;
+      try {
+        const r = await api(url);
+        const list = r.data || [];
+        const canEdit = ['admin', 'gestor'].includes(ME?.role);
+        const tbody = document.getElementById('tbl-ativos');
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-dim)">Nenhum ativo encontrado</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(a => `<tr>
+      <td style="font-family:var(--mono);font-size:12px">${a.numero_patrimonio || '—'}</td>
+      <td style="font-weight:500">${a.nome}</td>
+      <td>${a.categoria_nome || '—'}</td>
+      <td>${a.localizacao_nome || '—'}</td>
+      <td>${a.responsavel_nome || '—'}</td>
+      <td>${statusBadge(a.status)}</td>
+      <td class="text-right" style="font-family:var(--mono)">${a.valor_aquisicao ? fmt(a.valor_aquisicao) : '—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-sm btn-ghost" onclick="showDepreciacao(${a.id},'${a.nome.replace(/'/g, "\\'")}')">Dep.</button>
+        ${canEdit ? `<button class="btn btn-sm btn-ghost" onclick="editAtivo(${a.id})">Editar</button>` : ''}
+        ${canEdit && ME?.role === 'admin' ? `<button class="btn btn-sm btn-danger" onclick="deleteAtivo(${a.id})">✕</button>` : ''}
+      </td>
+    </tr>`).join('');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    function openAtivoModal() {
+      document.getElementById('ativo-id').value = '';
+      document.getElementById('modal-ativo-title').textContent = 'Novo Ativo';
+      ['ativo-nome', 'ativo-pat', 'ativo-serie', 'ativo-forn', 'ativo-desc'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('ativo-status').value = 'ativo';
+      document.getElementById('ativo-valor').value = '';
+      document.getElementById('ativo-data').value = '';
+      document.getElementById('ativo-cat').value = '';
+      document.getElementById('ativo-loc').value = '';
+      document.getElementById('ativo-resp').value = '';
+      openModal('modal-ativo');
+    }
+
+    async function editAtivo(id) {
+      try {
+        const r = await api(`/api/ativos/${id}`);
+        const a = r.data;
+        document.getElementById('ativo-id').value = a.id;
+        document.getElementById('modal-ativo-title').textContent = 'Editar Ativo';
+        document.getElementById('ativo-nome').value = a.nome || '';
+        document.getElementById('ativo-pat').value = a.numero_patrimonio || '';
+        document.getElementById('ativo-serie').value = a.numero_serie || '';
+        document.getElementById('ativo-forn').value = a.fornecedor || '';
+        document.getElementById('ativo-desc').value = a.descricao || '';
+        document.getElementById('ativo-status').value = a.status || 'ativo';
+        document.getElementById('ativo-valor').value = a.valor_aquisicao || '';
+        document.getElementById('ativo-data').value = a.data_aquisicao?.slice(0, 10) || '';
+        document.getElementById('ativo-cat').value = a.categoria_id || '';
+        document.getElementById('ativo-loc').value = a.localizacao_id || '';
+        document.getElementById('ativo-resp').value = a.responsavel_id || '';
+        openModal('modal-ativo');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    async function saveAtivo() {
+      const id = document.getElementById('ativo-id').value;
+      const nome = document.getElementById('ativo-nome').value.trim();
+      if (!nome) { toast('Nome é obrigatório.', 'warn'); return; }
+      const body = {
+        nome,
+        numero_patrimonio: document.getElementById('ativo-pat').value.trim() || null,
+        numero_serie: document.getElementById('ativo-serie').value.trim(),
+        fornecedor: document.getElementById('ativo-forn').value.trim(),
+        descricao: document.getElementById('ativo-desc').value.trim(),
+        status: document.getElementById('ativo-status').value,
+        valor_aquisicao: parseFloat(document.getElementById('ativo-valor').value) || 0,
+        data_aquisicao: document.getElementById('ativo-data').value || null,
+        categoria_id: document.getElementById('ativo-cat').value ? parseInt(document.getElementById('ativo-cat').value) : null,
+        localizacao_id: document.getElementById('ativo-loc').value ? parseInt(document.getElementById('ativo-loc').value) : null,
+        responsavel_id: document.getElementById('ativo-resp').value ? parseInt(document.getElementById('ativo-resp').value) : null,
+      };
+      try {
+        if (id) { await api(`/api/ativos/${id}`, { method: 'PUT', body: JSON.stringify(body) }); toast('Ativo atualizado.'); }
+        else { await api('/api/ativos', { method: 'POST', body: JSON.stringify(body) }); toast('Ativo cadastrado.', 'ok'); }
+        closeModal('modal-ativo');
+        loadAtivos();
+        loadDashboard();
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    async function deleteAtivo(id) {
+      if (!confirm('Excluir este ativo?')) return;
+      try { await api(`/api/ativos/${id}`, { method: 'DELETE' }); toast('Ativo excluído.'); loadAtivos(); loadDashboard(); }
+      catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    // ── Depreciação ───────────────────────────────────────────────────────────────
+    async function showDepreciacao(id, nome) {
+      document.getElementById('modal-dep-title').textContent = `Depreciação — ${nome}`;
+      document.getElementById('modal-dep-body').innerHTML = '<p style="color:var(--text-dim)">Calculando…</p>';
+      openModal('modal-dep');
+      try {
+        const r = await api(`/api/ativos/${id}/depreciacao`);
+        const rows = r.data || [];
+        if (!rows.length) {
+          document.getElementById('modal-dep-body').innerHTML = '<p style="color:var(--text-dim)">Sem dados de depreciação (verifique valor e data de aquisição).</p>';
+          return;
+        }
+        const valorInicial = rows[0].valor_depreciado + rows[0].valor_residual;
+        document.getElementById('modal-dep-body').innerHTML = `
+      <table style="width:100%;margin-bottom:16px">
+        <thead><tr><th>Ano</th><th class="text-right">Depreciação</th><th class="text-right">Valor Residual</th><th>%</th></tr></thead>
+        <tbody>${rows.map(row => {
+          const pct = Math.round((row.valor_residual / valorInicial) * 100);
+          return `<tr>
+            <td style="font-family:var(--mono)">${row.ano}</td>
+            <td class="text-right" style="font-family:var(--mono);color:#dc2626">−${fmt(row.valor_depreciado)}</td>
+            <td class="text-right" style="font-family:var(--mono)">${fmt(row.valor_residual)}</td>
+            <td>
+              <div class="dep-bar-wrap" style="width:80px">
+                <div class="dep-bar" style="width:${pct}%"></div>
+              </div>
+              <span style="font-size:11px;color:var(--text-dim);margin-left:6px">${pct}%</span>
+            </td>
+          </tr>`;
+        }).join('')}</tbody>
+      </table>
+      ${['admin', 'gestor'].includes(ME?.role) ? `<button class="btn btn-ghost btn-sm" onclick="recalcDep(${id})">Recalcular</button>` : ''}`;
+      } catch (e) { document.getElementById('modal-dep-body').innerHTML = `<p style="color:#dc2626">${e.message}</p>`; }
+    }
+
+    async function recalcDep(id) {
+      try {
+        await api(`/api/ativos/${id}/depreciacao/recalcular`, { method: 'POST' });
+        showDepreciacao(id, document.getElementById('modal-dep-title').textContent.replace('Depreciação — ', ''));
+        toast('Depreciação recalculada.', 'ok');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    // ── Movimentações ─────────────────────────────────────────────────────────────
+    async function loadMovimentacoes() {
+      try {
+        const r = await api('/api/movimentacoes?limit=200');
+        const list = r.data || [];
+        const tbody = document.getElementById('tbl-movs');
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text-dim)">Nenhuma movimentação registrada</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(m => `<tr>
+      <td>${fmtDate(m.data_movimentacao)}</td>
+      <td style="font-weight:500">${m.ativo_nome || '—'}</td>
+      <td style="font-family:var(--mono);font-size:12px">${m.numero_patrimonio || '—'}</td>
+      <td style="color:var(--text-mid)">${m.de_local || '—'}</td>
+      <td style="font-weight:500">${m.para_local || '—'}</td>
+      <td>${m.para_resp || '—'}</td>
+      <td style="color:var(--text-dim)">${m.motivo || '—'}</td>
+    </tr>`).join('');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    async function openMovModal() {
+      await populateAtivoSelect('mov-ativo');
+      document.getElementById('mov-data').value = TODAY;
+      document.getElementById('mov-motivo').value = '';
+      document.getElementById('mov-loc').value = '';
+      document.getElementById('mov-resp').value = '';
+      openModal('modal-mov');
+    }
+
+    async function saveMov() {
+      const ativo_id = parseInt(document.getElementById('mov-ativo').value);
+      const loc = document.getElementById('mov-loc').value;
+      const resp = document.getElementById('mov-resp').value;
+      const data = document.getElementById('mov-data').value;
+      if (!ativo_id) { toast('Selecione um ativo.', 'warn'); return; }
+      if (!loc && !resp) { toast('Informe nova localização ou responsável.', 'warn'); return; }
+      const body = {
+        ativo_id,
+        data_movimentacao: data,
+        motivo: document.getElementById('mov-motivo').value.trim(),
+        para_localizacao_id: loc ? parseInt(loc) : null,
+        para_responsavel_id: resp ? parseInt(resp) : null,
+      };
+      try {
+        await api('/api/movimentacoes', { method: 'POST', body: JSON.stringify(body) });
+        toast('Movimentação registrada.', 'ok');
+        closeModal('modal-mov');
+        loadMovimentacoes();
+        loadAtivos();
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    // ── Manutenções ───────────────────────────────────────────────────────────────
+    async function loadManutencoes() {
+      const status = document.getElementById('f-manut-status')?.value || '';
+      try {
+        const r = await api('/api/manutencoes?limit=200' + (status ? `&status=${status}` : ''));
+        const list = r.data || [];
+        const canEdit = ['admin', 'gestor'].includes(ME?.role);
+        const tbody = document.getElementById('tbl-manut');
+        if (!list.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--text-dim)">Nenhuma manutenção encontrada</td></tr>';
+          return;
+        }
+        tbody.innerHTML = list.map(m => `<tr>
+      <td>${fmtDate(m.data_solicitacao)}</td>
+      <td style="font-weight:500">${m.ativo_nome || '—'}</td>
+      <td><span class="badge ${m.tipo === 'preventiva' ? 'badge-blue' : 'badge-orange'}">${m.tipo}</span></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.descricao || '—'}</td>
+      <td>${m.tecnico || '—'}</td>
+      <td>${manutStatusBadge(m.status)}</td>
+      <td class="text-right" style="font-family:var(--mono)">${m.custo ? fmt(m.custo) : '—'}</td>
+      <td>${canEdit ? `<button class="btn btn-sm btn-ghost" onclick="editManut(${m.id})">Editar</button>` : ''}
+      </td>
+    </tr>`).join('');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    async function openManutModal() {
+      await populateAtivoSelect('manut-ativo');
+      document.getElementById('manut-id').value = '';
+      document.getElementById('modal-manut-title').textContent = 'Abrir Chamado de Manutenção';
+      document.getElementById('manut-tipo').value = 'corretiva';
+      document.getElementById('manut-status').value = 'solicitada';
+      document.getElementById('manut-data').value = TODAY;
+      document.getElementById('manut-conclusao').value = '';
+      document.getElementById('manut-tecnico').value = '';
+      document.getElementById('manut-custo').value = '';
+      document.getElementById('manut-desc').value = '';
+      openModal('modal-manut');
+    }
+
+    async function editManut(id) {
+      try {
+        const r = await api('/api/manutencoes?limit=1');
+        const all = await api('/api/manutencoes');
+        const m = (all.data || []).find(x => x.id === id);
+        if (!m) return;
+        await populateAtivoSelect('manut-ativo');
+        document.getElementById('manut-id').value = m.id;
+        document.getElementById('modal-manut-title').textContent = 'Editar Manutenção';
+        document.getElementById('manut-ativo').value = m.ativo_id;
+        document.getElementById('manut-tipo').value = m.tipo;
+        document.getElementById('manut-status').value = m.status;
+        document.getElementById('manut-data').value = m.data_solicitacao?.slice(0, 10) || '';
+        document.getElementById('manut-conclusao').value = m.data_conclusao?.slice(0, 10) || '';
+        document.getElementById('manut-tecnico').value = m.tecnico || '';
+        document.getElementById('manut-custo').value = m.custo || '';
+        document.getElementById('manut-desc').value = m.descricao || '';
+        openModal('modal-manut');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    async function saveManut() {
+      const id = document.getElementById('manut-id').value;
+      const ativo_id = parseInt(document.getElementById('manut-ativo').value);
+      if (!ativo_id) { toast('Selecione um ativo.', 'warn'); return; }
+      const body = {
+        ativo_id,
+        tipo: document.getElementById('manut-tipo').value,
+        status: document.getElementById('manut-status').value,
+        data_solicitacao: document.getElementById('manut-data').value,
+        data_conclusao: document.getElementById('manut-conclusao').value || null,
+        tecnico: document.getElementById('manut-tecnico').value.trim(),
+        custo: parseFloat(document.getElementById('manut-custo').value) || 0,
+        descricao: document.getElementById('manut-desc').value.trim(),
+      };
+      try {
+        if (id) { await api(`/api/manutencoes/${id}`, { method: 'PUT', body: JSON.stringify(body) }); toast('Manutenção atualizada.'); }
+        else { await api('/api/manutencoes', { method: 'POST', body: JSON.stringify(body) }); toast('Chamado aberto.', 'ok'); }
+        closeModal('modal-manut');
+        loadManutencoes();
+        loadDashboard();
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    // ── Categorias ────────────────────────────────────────────────────────────────
+    async function loadCategorias() {
+      try {
+        const r = await api('/api/categorias?ativo_only=false');
+        const list = r.data || [];
+        const canEdit = ['admin', 'gestor'].includes(ME?.role);
+        document.getElementById('tbl-cats').innerHTML = list.map(c => `<tr>
+      <td style="font-weight:500">${c.nome}</td>
+      <td>${c.vida_util_anos} anos</td>
+      <td style="font-family:var(--mono)">${c.taxa_depreciacao}%/ano</td>
+      <td>${c.ativo ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
+      <td>${canEdit ? `<button class="btn btn-sm btn-ghost" onclick="editCat(${c.id})">Editar</button>` : ''}
+      </td>
+    </tr>`).join('');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    function openCatModal() {
+      document.getElementById('cat-id').value = '';
+      document.getElementById('modal-cat-title').textContent = 'Nova Categoria';
+      document.getElementById('cat-nome').value = '';
+      document.getElementById('cat-vida').value = '5';
+      document.getElementById('cat-taxa').value = '20';
+      document.getElementById('cat-desc').value = '';
+      document.getElementById('cat-ativo').value = '1';
+      openModal('modal-cat');
+    }
+
+    async function editCat(id) {
+      const c = CATS.find(x => x.id === id) || (await api('/api/categorias')).data.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('cat-id').value = c.id;
+      document.getElementById('modal-cat-title').textContent = 'Editar Categoria';
+      document.getElementById('cat-nome').value = c.nome;
+      document.getElementById('cat-vida').value = c.vida_util_anos;
+      document.getElementById('cat-taxa').value = c.taxa_depreciacao;
+      document.getElementById('cat-desc').value = c.descricao || '';
+      document.getElementById('cat-ativo').value = c.ativo ? '1' : '0';
+      openModal('modal-cat');
+    }
+
+    async function saveCat() {
+      const id = document.getElementById('cat-id').value;
+      const nome = document.getElementById('cat-nome').value.trim();
+      if (!nome) { toast('Nome é obrigatório.', 'warn'); return; }
+      const body = {
+        nome, descricao: document.getElementById('cat-desc').value.trim(),
+        vida_util_anos: parseInt(document.getElementById('cat-vida').value) || 5,
+        taxa_depreciacao: parseFloat(document.getElementById('cat-taxa').value) || 20,
+        ativo: parseInt(document.getElementById('cat-ativo').value),
+      };
+      try {
+        if (id) { await api(`/api/categorias/${id}`, { method: 'PUT', body: JSON.stringify(body) }); toast('Categoria atualizada.'); }
+        else { await api('/api/categorias', { method: 'POST', body: JSON.stringify(body) }); toast('Categoria criada.', 'ok'); }
+        closeModal('modal-cat');
+        await loadShared();
+        loadCategorias();
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    // ── Localizações ──────────────────────────────────────────────────────────────
+    async function loadLocalizacoes() {
+      try {
+        const r = await api('/api/localizacoes?ativo_only=false');
+        const list = r.data || [];
+        const canEdit = ['admin', 'gestor'].includes(ME?.role);
+        document.getElementById('tbl-locs').innerHTML = list.map(l => `<tr>
+      <td style="font-weight:500">${l.nome}</td>
+      <td style="color:var(--text-mid)">${l.descricao || '—'}</td>
+      <td>${l.departamento_nome || '—'}</td>
+      <td>${l.ativo ? '<span class="badge badge-green">Sim</span>' : '<span class="badge badge-gray">Não</span>'}</td>
+      <td>${canEdit ? `<button class="btn btn-sm btn-ghost" onclick="editLoc(${l.id})">Editar</button>` : ''}
+      </td>
+    </tr>`).join('');
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    function openLocModal() {
+      document.getElementById('loc-id').value = '';
+      document.getElementById('modal-loc-title').textContent = 'Nova Localização';
+      document.getElementById('loc-nome').value = '';
+      document.getElementById('loc-desc').value = '';
+      document.getElementById('loc-ativo').value = '1';
+      openModal('modal-loc');
+    }
+
+    async function editLoc(id) {
+      const l = LOCS.find(x => x.id === id) || (await api('/api/localizacoes')).data.find(x => x.id === id);
+      if (!l) return;
+      document.getElementById('loc-id').value = l.id;
+      document.getElementById('modal-loc-title').textContent = 'Editar Localização';
+      document.getElementById('loc-nome').value = l.nome;
+      document.getElementById('loc-desc').value = l.descricao || '';
+      document.getElementById('loc-ativo').value = l.ativo ? '1' : '0';
+      openModal('modal-loc');
+    }
+
+    async function saveLoc() {
+      const id = document.getElementById('loc-id').value;
+      const nome = document.getElementById('loc-nome').value.trim();
+      if (!nome) { toast('Nome é obrigatório.', 'warn'); return; }
+      const body = {
+        nome, descricao: document.getElementById('loc-desc').value.trim(),
+        ativo: parseInt(document.getElementById('loc-ativo').value)
+      };
+      try {
+        if (id) { await api(`/api/localizacoes/${id}`, { method: 'PUT', body: JSON.stringify(body) }); toast('Localização atualizada.'); }
+        else { await api('/api/localizacoes', { method: 'POST', body: JSON.stringify(body) }); toast('Localização criada.', 'ok'); }
+        closeModal('modal-loc');
+        await loadShared();
+        loadLocalizacoes();
+      } catch (e) { toast('Erro: ' + e.message, 'err'); }
+    }
+
+    // ── Sync ──────────────────────────────────────────────────────────────────────
+    async function doSync() {
+      const email = document.getElementById('sync-email').value.trim();
+      const senha = document.getElementById('sync-senha').value;
+      if (!email || !senha) { toast('Informe e-mail e senha.', 'warn'); return; }
+      document.getElementById('sync-result').textContent = 'Sincronizando…';
+      try {
+        const r = await api('/api/atlas/sync', { method: 'POST', body: JSON.stringify({ email, senha }) });
+        const d = r.data;
+        document.getElementById('sync-result').textContent =
+          `Concluído: ${d.departamentos} empresas, ${d.colaboradores} usuários importados.` +
+          (d.erros?.length ? ` Erros: ${d.erros.join('; ')}` : '');
+        toast('Sincronização concluída.', 'ok');
+      } catch (e) {
+        document.getElementById('sync-result').textContent = 'Erro: ' + e.message;
+        toast('Erro na sincronização.', 'err');
+      }
+    }
+
+    // ── Init ─────────────────────────────────────────────────────────────────────
+    checkSession();
+  </script>
+</body>
+
+</html>

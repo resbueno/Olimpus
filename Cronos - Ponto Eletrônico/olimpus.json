@@ -1,0 +1,9 @@
+{
+  "name": "Cronos",
+  "myth": "devora o tempo e o devolve em horas, extras e banco",
+  "cat": "Ponto Eletrônico",
+  "desc": "Controle de ponto e jornada de trabalho: registro via web, cálculo automático de horas extras e adicionais noturnos, banco de horas, aprovação por gestor e fechamento mensal para folha.",
+  "color": "#0369a1",
+  "icon": "chart",
+  "port": 5025
+}

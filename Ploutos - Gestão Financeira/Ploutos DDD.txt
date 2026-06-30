@@ -1,0 +1,51 @@
+Ploutos – App Web de Gestão Financeira
+Proposta Completa
+Descrição Ploutos é o app web de gestão financeira completa para PMEs e scale-ups. Interface “dourada” que transforma controle financeiro em algo intuitivo, preditivo e colaborativo.
+Objetivos
+•	Eliminar planilhas manuais
+•	Prever fluxo de caixa com 30–60 dias de antecedência
+•	Garantir compliance fiscal automático (Brasil)
+Features Principais
+•	Dashboard financeiro em tempo real
+•	Controle de contas a pagar/receber com aprovação multi-nível
+•	Previsão de caixa com IA
+•	Conciliação bancária automática (Open Banking)
+•	Relatórios fiscais (SPED, DCTF, EFD)
+•	Orçamento x Realizado com variance analysis
+•	Multi-moeda e multi-empresa
+•	Integração com Pix, boletos e cartões
+Telas Sugeridas (principais)
+1.	Dashboard Home (gráficos + KPIs)
+2.	Fluxo de Caixa (timeline interativa)
+3.	Contas a Pagar / Receber
+4.	Orçamentos
+5.	Relatórios & Impostos
+6.	Configurações / Integrações
+User Flow Principal CEO → Dashboard → Previsão de Caixa → Aprova pagamento → Contador → Gera SPED → Arquiva automaticamente.
+Stack Tecnológica Sugerida
+•	Frontend: Next.js 15 (App Router) + Tailwind + shadcn/ui + Recharts
+•	Backend: NestJS ou Laravel
+•	Banco: PostgreSQL + Prisma
+•	Autenticação: Clerk ou NextAuth
+•	IA: OpenAI + LangChain (previsões)
+•	Hospedagem: Vercel + Supabase ou Railway
+
+Documentação para Documentation-Driven Development (DDD)
+1. Visão Geral do Produto Ploutos é um SaaS de gestão financeira com foco em PMEs brasileiras.
+2. Requisitos Funcionais (User Stories)
+•	Como usuário financeiro, quero visualizar fluxo de caixa em tempo real
+•	Como gestor, quero aprovar pagamentos com 2 fatores
+•	Como contador, quero gerar SPED automaticamente
+3. Requisitos Não-Funcionais
+•	Tempo de resposta < 800ms
+•	99,9% uptime
+•	LGPD compliant
+•	Multi-tenant (isolamento de dados)
+4. Arquitetura de Alto Nível
+•	Monolito modular com possibilidade de micro-frontends
+•	Event-driven (Kafka ou Redis Streams para conciliação)
+•	Banco: PostgreSQL com Row Level Security
+5. Modelo de Dados (resumo)
+•	companies, users, transactions, budgets, invoices, tax_reports
+6. API Endpoints (exemplo) GET /api/v1/cashflow/forecast POST /api/v1/payments/approve
+7. Roadmap Inicial (MVP) Mês 1: Dashboard + Contas a Pagar/Receber Mês 2: Previsão de Caixa + Open Banking Mês 3: Relatórios fiscais + Multi-empresa

@@ -1,0 +1,9 @@
+flask>=3.0
+flask-cors>=4.0
+pytesseract>=0.3.10
+Pillow>=10.0
+watchdog>=4.0
+# Opcionais — instale conforme necessidade:
+# pymupdf>=1.24.0           (suporte a PDF)
+# opencv-python-headless>=4.9.0  (pré-processamento de imagem)
+# validate-docbr>=1.9.0     (validação rigorosa de CPF/CNPJ)

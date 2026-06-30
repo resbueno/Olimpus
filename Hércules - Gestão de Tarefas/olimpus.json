@@ -1,0 +1,9 @@
+{
+  "name": "Hércules",
+  "myth": "enfrenta tarefas e projetos como os doze trabalhos — um por um",
+  "cat": "Gestão de Tarefas",
+  "desc": "Sistema de gestão de tarefas e projetos internos. Acompanhe demandas, prazos e equipes em um único painel.",
+  "color": "#d97706",
+  "icon": "tasks",
+  "port": 5001
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Medusa",
+  "myth": "paralisa qualquer API com um olhar — constrói, dispara e analisa requisições sem escrever uma linha de código",
+  "cat": "API Client",
+  "desc": "Construtor visual de requisições HTTP. Cole cURL/fetch, faça upload de arquivos .har, monte headers, parâmetros e payload — e dispare contra qualquer API em segundos.",
+  "color": "#10b981",
+  "icon": "globe",
+  "port": 5060
+}

@@ -1,0 +1,228 @@
+📄 DOCUMENTO DE PRODUTO — CRONOS
+1. VISÃO
+
+O Cronos (referência a Cronos) é um web app corporativo para:
+
+Registro de ponto eletrônico
+Gestão de jornada de trabalho
+Controle de horas extras e adicionais
+Conformidade com legislação trabalhista
+Geração de relatórios e fechamento de folha
+
+👉 Objetivo: controle preciso de tempo + redução de passivo trabalhista
+
+2. OBJETIVOS DE NEGÓCIO
+Garantir conformidade legal (CLT / acordos coletivos)
+Automatizar cálculo de horas
+Reduzir erros manuais
+Dar transparência para colaborador e gestor
+3. PERSONAS / PAPÉIS
+👷 Colaborador
+Registra ponto
+Consulta saldo de horas
+👨‍💼 Gestor
+Acompanha equipe
+Aprova horas extras
+🧑‍💼 RH
+Define regras
+Fecha folha
+🛠️ Administrador
+Configura sistema
+4. ESCOPO FUNCIONAL
+Módulos principais:
+Registro de ponto
+Gestão de jornada
+Motor de regras (horas extras, adicionais)
+Banco de horas
+Aprovação de ponto
+Relatórios e fechamento
+Administração
+🧩 EPICS E CASOS DE USO
+⏱️ EPIC 1 — REGISTRO DE PONTO
+Descrição
+
+Captura de marcações de entrada/saída
+
+Casos de uso
+UC1.1 — Registrar ponto
+Ator: Colaborador
+Tipos:
+Entrada
+Saída
+Intervalo
+UC1.2 — Registro alternativo
+Web
+Mobile
+QR Code (opcional)
+Geolocalização (opcional)
+UC1.3 — Ajustar ponto
+Ator: Colaborador
+Requer aprovação do gestor
+📅 EPIC 2 — GESTÃO DE JORNADA
+Descrição
+
+Definição de escalas e horários
+
+Casos de uso
+UC2.1 — Definir jornada
+Ator: RH
+Tipos:
+Fixo (ex: 08h–17h)
+Flexível
+Turno
+UC2.2 — Associar jornada ao colaborador
+UC2.3 — Configurar intervalos
+Obrigatórios (ex: almoço)
+⚙️ EPIC 3 — MOTOR DE REGRAS
+Descrição
+
+Cálculo automático de horas trabalhadas
+
+Regras suportadas
+Horas extras
+50% (dias úteis)
+100% (feriados/finais de semana)
+Adicional noturno
+Horário configurável (ex: 22h–05h)
+Percentual (ex: 20%)
+Tolerâncias
+Entrada/saída (ex: 5–10 min)
+Banco de horas
+Acúmulo
+Compensação
+Casos de uso
+UC3.1 — Configurar regra de hora extra
+Ator: RH
+Parâmetros:
+Percentual
+Condição
+UC3.2 — Configurar adicional noturno
+Faixa de horário
+Percentual
+UC3.3 — Aplicar regras automaticamente
+Ator: Sistema
+🏦 EPIC 4 — BANCO DE HORAS
+Descrição
+
+Controle de saldo de horas
+
+Casos de uso
+UC4.1 — Acumular horas
+Baseado em horas extras
+UC4.2 — Compensar horas
+Folgas
+Redução de jornada
+UC4.3 — Consultar saldo
+Ator: Colaborador / Gestor
+✅ EPIC 5 — APROVAÇÃO DE PONTO
+Descrição
+
+Validação de registros
+
+Casos de uso
+UC5.1 — Aprovar ajustes
+Ator: Gestor
+UC5.2 — Aprovar horas extras
+UC5.3 — Reprovar com justificativa
+📊 EPIC 6 — RELATÓRIOS E FECHAMENTO
+Descrição
+
+Consolidação para folha de pagamento
+
+Casos de uso
+UC6.1 — Gerar espelho de ponto
+UC6.2 — Fechar período
+Mensal
+UC6.3 — Exportar dados
+CSV / integração com folha
+🖥️ EPIC 7 — DASHBOARD
+Descrição
+
+Visão consolidada
+
+Casos de uso
+UC7.1 — Colaborador
+Horas trabalhadas
+Saldo
+UC7.2 — Gestor
+Equipe
+Alertas
+UC7.3 — RH
+Indicadores globais
+⚙️ EPIC 8 — ADMINISTRAÇÃO
+Descrição
+
+Configuração geral
+
+Casos de uso
+UC8.1 — Gerenciar usuários
+UC8.2 — Definir feriados
+Nacionais / regionais
+UC8.3 — Configurar políticas
+Jornada
+Regras
+🧱 ARQUITETURA LÓGICA
+Componentes
+Frontend (React)
+Backend (Node.js / Python)
+Motor de regras
+Banco de dados
+API de autenticação
+🗃️ MODELO DE DADOS (alto nível)
+users
+id
+name
+role
+department
+time_entries
+id
+user_id
+timestamp
+type (entrada/saída)
+work_schedules
+id
+type
+start_time
+end_time
+rules
+id
+type (extra/noturno)
+parameters
+balances
+user_id
+hours_balance
+📊 REGRAS DE NEGÓCIO
+Ponto deve respeitar jornada definida
+Horas extras só contam após jornada
+Adicional noturno aplica-se por faixa
+Ajustes exigem aprovação
+Fechamento bloqueia edição
+🚀 MVP (PRIMEIRA ENTREGA)
+Registro de ponto (web)
+Jornada fixa
+Cálculo simples de horas extras
+Dashboard básico
+Relatório mensal
+📌 ROADMAP
+Banco de horas
+Adicional noturno
+Aprovação avançada
+Integração com folha
+Mobile + biometria
+⚠️ RISCOS
+Não conformidade legal
+Regras mal configuradas
+Resistência do usuário
+🧠 DIFERENCIAL
+
+Se fizer direito:
+
+👉 Motor de regras flexível (configurável)
+👉 Transparência total
+👉 Integração com outros sistemas (ex: Oráculo)
+
+📌 POSICIONAMENTO FINAL
+
+Você não está criando só um ponto eletrônico.
+
+👉 Está criando um sistema de controle de tempo corporativo confiável

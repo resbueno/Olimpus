@@ -1,0 +1,9 @@
+{
+  "name": "Têmis",
+  "myth": "pesa cada contrato na balança da lei, cláusula por cláusula",
+  "cat": "Gestão de Contratos",
+  "desc": "Plataforma completa de ciclo de vida de contratos. Criação via upload, assinatura digital, versionamento, workflow de aprovação e alertas automáticos de vencimento.",
+  "color": "#7c3aed",
+  "icon": "folder",
+  "port": 5020
+}

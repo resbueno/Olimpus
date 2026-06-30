@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HÉSTIA — Intranet Corporativa</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231e40af'/><path d='M8 10h16v2H8zm0 5h16v2H8zm0 5h10v2H8z' fill='white'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#ffffff;--bg3:#f8f9fa;--bg-alt:#f8f9fa;
+  --glass:rgba(255,255,255,0.7);
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+  --accent:#059669;--accent2:#047857;--accent-bg:rgba(5,150,105,0.08);
+  --success:#16a34a;--success-bg:rgba(22,163,74,0.07);
+  --danger:#dc2626;--danger-bg:rgba(220,38,38,0.07);
+  --warn:#d97706;--warn-bg:rgba(217,119,6,0.07);
+  --text:#1f1f1f;--text-mid:#5f6368;--text-dim:#9ca3af;
+  --sans:'Outfit',sans-serif;--display:'Space Grotesk',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --r:12px;--r2:20px;--radius:20px;
+  --sh:0 4px 20px rgba(0,0,0,0.06);
+}
+
+body.dark-mode{
+  --bg:#0b0f1a;--bg2:#1f2937;--bg3:#111827;--bg-alt:#111827;
+  --glass:rgba(17,24,39,0.7);
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+  --text:#f3f4f6;--text-mid:#9ca3af;--text-dim:#6b7280;
+  --sh:0 4px 20px rgba(0,0,0,0.3);
+}
+body.dark-mode .card,body.dark-mode .modal,body.dark-mode .topbar,
+body.dark-mode .sidebar,body.dark-mode .stat-card,
+body.dark-mode .login-card,body.dark-mode .login-box{background:#1f2937}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:20px}
+
+/* ── LOGIN ───────────────────────────────────────────────── */
+#login-screen{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .3s,visibility .3s}
+#login-screen.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.login-box{width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 12px 48px rgba(0,0,0,.1)}
+.login-top{background:linear-gradient(135deg,#1e40af0d,#16a34a08);border-bottom:1px solid var(--border);padding:32px 36px 28px;text-align:center}
+.login-logo{display:inline-flex;align-items:center;gap:14px;margin-bottom:8px}
+.login-icon{width:46px;height:46px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:12px;display:grid;place-items:center}
+.login-icon svg{width:24px;height:24px}
+.login-brand{font-size:1.8rem;font-weight:700;letter-spacing:.12em}
+.login-sub{font-family:var(--mono);font-size:.67rem;color:var(--text-dim);letter-spacing:.14em;margin-top:4px;text-transform:uppercase}
+.login-form{padding:28px 36px 32px;display:flex;flex-direction:column;gap:14px}
+.login-err{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:9px 12px;font-size:.8rem;color:var(--danger);display:none}
+.login-err.show{display:block}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:.72rem;font-weight:500;color:var(--text-mid);letter-spacing:.05em}
+.fi{background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.85rem;padding:10px 14px;border-radius:var(--r);outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:.88rem;font-weight:600;padding:11px;border-radius:var(--r);cursor:pointer;transition:background .15s;letter-spacing:.04em;margin-top:4px}
+.btn-login:hover{background:var(--accent2)}
+.login-hint{font-size:.7rem;color:var(--text-dim);text-align:center;font-family:var(--mono)}
+
+/* ── BOOT ───────────────────────────────────────────────── */
+#boot{position:fixed;inset:0;z-index:9998;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;transition:opacity .4s ease,visibility .4s ease}
+#boot.hidden{opacity:0;visibility:hidden}
+.boot-logo{display:flex;align-items:center;gap:14px}
+.boot-icon{width:52px;height:52px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:12px;display:grid;place-items:center}
+.boot-icon svg{width:28px;height:28px}
+.boot-name{font-size:1.8rem;font-weight:700;letter-spacing:.12em}
+.boot-bar{width:220px;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.boot-bar-fill{height:100%;width:0%;background:var(--accent);border-radius:2px;transition:width .35s ease}
+.boot-label{font-family:var(--mono);font-size:.7rem;color:var(--text-dim);letter-spacing:.12em}
+
+/* ── TOPBAR ──────────────────────────────────────────────── */
+.topbar{height:56px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tbl{display:flex;align-items:center;gap:16px}
+.brand-icon{width:34px;height:34px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;display:grid;place-items:center}
+.brand-icon svg{width:19px;height:19px}
+.brand-name{font-size:1.05rem;font-weight:700;letter-spacing:.12em}
+.bsep{width:1px;height:20px;background:var(--border)}
+.brand-tag{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase}
+.tbr{display:flex;align-items:center;gap:14px}
+.tclock{font-family:var(--mono);font-size:.78rem;color:var(--text-mid)}
+.live-badge{display:flex;align-items:center;gap:6px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:20px;padding:3px 12px;font-family:var(--mono);font-size:.65rem;color:var(--accent);letter-spacing:.1em}
+.ldot{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:blink 2.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* User chip */
+.user-chip{display:flex;align-items:center;gap:8px;cursor:default}
+.user-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--accent);display:grid;place-items:center;font-size:.72rem;font-weight:700;color:var(--accent);flex-shrink:0}
+.user-name{font-size:.8rem;font-weight:600;color:var(--text);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn-logout{padding:4px 12px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text-mid);font-size:.72rem;font-family:var(--sans);cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-logout:hover{background:var(--danger-bg);border-color:var(--danger);color:var(--danger)}
+
+/* ── LAYOUT SIDEBAR ─────────────────────────────────────── */
+.app-wrap{display:flex;flex:1;overflow:hidden;height:calc(100vh - 56px)}
+.sidebar{width:220px;min-width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sbhd{padding:16px;border-bottom:1px solid var(--border)}
+.sbttl{font-size:.68rem;font-weight:600;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase}
+.sblist{flex:1;overflow-y:auto;padding:8px}
+.sb-item{padding:10px 14px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:10px;font-size:.85rem;font-weight:500;color:var(--text-mid);transition:all .12s}
+.sb-item:hover{background:var(--bg3);color:var(--text)}
+.sb-item.active{background:var(--accent-bg);color:var(--accent);border-left:3px solid var(--accent)}
+.main{flex:1;overflow-y:auto;padding:28px;display:flex;flex-direction:column;gap:24px}
+
+/* ── TABS (deprecated, keep for compatibility) ─────────────────── */
+.nav-tabs{display:none}
+.tab{background:transparent;border:none;font-family:var(--sans);font-size:.85rem;font-weight:500;color:var(--text-mid);padding:14px 20px;cursor:pointer;transition:all .15s;position:relative}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent)}
+.tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent)}
+.tab-icon{width:16px;height:16px;margin-right:6px;vertical-align:middle}
+
+/* ── CONTENT ───────────────────��───────────────────────── */
+.page-body{flex:1;display:flex;flex-direction:column;gap:24px}
+.sec-label{font-size:.68rem;font-weight:600;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.section{display:none}
+.section.active{display:block}
+
+/* ── NEWS ───────────────────────────────────────────────── */
+.news-list{display:flex;flex-direction:column;gap:12px}
+.news-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;transition:border-color .18s}
+.news-item:hover{border-color:var(--accent)}
+.news-item.pinned{border-left:3px solid var(--accent)}
+.news-meta{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);margin-bottom:8px}
+.news-title{font-size:1.1rem;font-weight:600;margin-bottom:6px}
+.news-content{font-size:.9rem;color:var(--text-mid);line-height:1.65}
+.news-actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.btn-action{padding:5px 12px;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg2);color:var(--text-mid);font-size:.72rem;font-family:var(--sans);cursor:pointer;transition:all .15s}
+.btn-action:hover{border-color:var(--accent);color:var(--accent)}
+.btn-new{background:var(--accent);border:none;color:#fff;font-size:.85rem;font-weight:600;padding:10px 20px;border-radius:var(--r);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn-new:hover{background:var(--accent2)}
+
+/* ── DOCUMENTS ─────────────────────────────────────────── */
+.doc-layout{display:flex;gap:24px}
+.doc-sidebar{width:240px;flex-shrink:0}
+.doc-tree{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:12px}
+.doc-folder{font-size:.8rem;font-weight:500;padding:8px 12px;border-radius:var(--r);cursor:pointer;display:flex;align-items:center;gap:8px}
+.doc-folder:hover{background:var(--bg3)}
+.doc-folder.active{background:var(--accent-bg);color:var(--accent)}
+.doc-folder-icon{width:14px;height:14px}
+.doc-main{flex:1;display:flex;flex-direction:column;gap:12px}
+.doc-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .18s}
+.doc-card:hover{border-color:var(--accent)}
+.doc-icon{width:40px;height:40px;background:var(--bg3);border-radius:var(--r);display:grid;place-items:center}
+.doc-icon svg{width:20px;height:20px}
+.doc-info{flex:1}
+.doc-title{font-weight:600;font-size:.95rem}
+.doc-meta{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);margin-top:2px}
+
+/* ── PEOPLE ────────────────────────────────────────────── */
+.people-search{margin-bottom:20px}
+.people-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.person-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;display:flex;align-items:center;gap:14px}
+.person-avatar{width:48px;height:48px;border-radius:50%;background:var(--accent-bg);border:1px solid var(--accent);display:grid;place-items:center;font-size:1.1rem;font-weight:700;color:var(--accent);flex-shrink:0}
+.person-info{flex:1;min-width:0}
+.person-name{font-weight:600;font-size:.95rem;margin-bottom:2px}
+.person-role{font-size:.8rem;color:var(--text-mid)}
+.person-email{font-family:var(--mono);font-size:.72rem;color:var(--text-dim);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── MODAL ────────────────────────���─���─────────────────── */
+.modal{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:var(--bg2);border-radius:var(--r2);width:560px;max-width:90vw;max-height:90vh;display:flex;flex-direction:column}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:1.1rem;font-weight:600}
+.modal-close{width:28px;height:28px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;font-size:1.2rem;line-height:1}
+.modal-body{padding:24px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+textarea.fi{resize:vertical;min-height:120px}
+
+/* ── TOAST ─────────────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:#fff;border-radius:var(--r);padding:10px 18px;font-size:.8rem;font-family:var(--mono);letter-spacing:.03em;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;z-index:9999;max-width:340px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{background:var(--success)}
+#toast.err{background:var(--danger)}
+
+/* ── COMMUNITIES ───────────────────────────────────────── */
+.comm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.comm-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:20px;transition:border-color .18s}
+.comm-card:hover{border-color:var(--accent)}
+.comm-name{font-size:1rem;font-weight:600;margin-bottom:6px}
+.comm-desc{font-size:.85rem;color:var(--text-mid);margin-bottom:12px}
+.comm-members{font-family:var(--mono);font-size:.7rem;color:var(--text-dim);display:flex;align-items:center;gap:6px}
+.comm-actions{display:flex;gap:8px;margin-top:14px}
+
+/* ── EVENTS ─────────────────────────────────────────────── */
+.event-list{display:flex;flex-direction:column;gap:12px}
+.event-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 20px;display:flex;align-items:center;gap:16px}
+.event-date{width:52px;height:52px;background:var(--accent-bg);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.event-day{font-size:1.3rem;font-weight:700;color:var(--accent);line-height:1}
+.event-month{font-size:.6rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.08em}
+.event-info{flex:1}
+.event-title{font-weight:600;font-size:.95rem;margin-bottom:4px}
+.event-meta{font-family:var(--mono);font-size:.72rem;color:var(--text-dim);display:flex;gap:14px}
+.event-link{color:var(--accent);text-decoration:none}
+.event-link:hover{text-decoration:underline}
+
+/* ── KUDOS ─────────────────────────────────────────────── */
+.kudos-list{display:flex;flex-direction:column;gap:12px}
+.kudos-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px}
+.kudos-header{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.kudos-from{font-size:.8rem;font-weight:600;color:var(--accent)}
+.kudos-arrow{color:var(--text-dim)}
+.kudos-to{font-size:.8rem;font-weight:600}
+.kudos-msg{font-size:.9rem;color:var(--text-mid);line-height:1.5}
+.kudos-time{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);margin-top:10px}
+
+/* ── BIRTHDAYS ──────────────────────────────────────── */
+.birthday-list{display:flex;gap:12px;flex-wrap:wrap}
+.birthday-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 18px;display:flex;align-items:center;gap:12px;flex-direction:column;text-align:center;min-width:100px}
+.bday-avatar{width:40px;height:40px;border-radius:50%;background:var(--warn-bg);border:1px solid var(--warn);display:grid;place-items:center;font-weight:700;color:var(--warn)}
+.bday-name{font-size:.8rem;font-weight:600}
+.bday-date{font-family:var(--mono);font-size:.7rem;color:var(--warn)}
+
+/* ── GLOBAL SEARCH ──────────────────────────────────── */
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:8px 16px;flex:1;max-width:400px}
+.search-bar input{border:none;background:transparent;outline:none;font-family:var(--sans);font-size:.9rem;width:100%}
+.search-bar svg{width:18px;height:18px;color:var(--text-dim)}
+
+/* ── OLIMPUS LAYOUT ─────────────────────────────────────── */
+body{overflow:hidden}
+.dashboard-layout{padding:20px;height:100vh;overflow:hidden;display:flex;justify-content:center;align-items:stretch}
+.main-area{width:100%;max-width:1500px;display:flex;flex-direction:column;background:var(--bg-alt);border-radius:var(--radius);overflow:hidden;position:relative;box-shadow:0 8px 40px rgba(0,0,0,.08)}
+.main-area::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 120px 60px var(--bg);pointer-events:none;z-index:0}
+.topbar{position:relative;z-index:10;background:transparent;border-bottom:1px solid var(--border)}
+.bwrap,.content-area{position:relative;z-index:1}
+.sidebar{background:transparent;border-right:1px solid var(--border)}
+
+/* ── LOGIN ESTILO OLIMPUS ───────────────────────────────── */
+#login-screen,#ls{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .4s,visibility .4s}
+#login-screen.hidden,#ls.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.login-card,.login-box,.lp{width:420px;text-align:center;padding:0}
+.login-card .login-top,.login-box .lt,.lp .lt{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 6%,transparent),transparent);border-bottom:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;padding:36px 40px 28px}
+.login-card,.login-box,.lp{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,.08)}
+.login-brand,.lbrand{font-family:var(--display);font-size:1.8rem;font-weight:700;letter-spacing:.06em;color:var(--text)}
+.login-sub,.lsub{font-family:var(--mono);font-size:.65rem;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase;margin-top:6px}
+.login-form,.lf{padding:28px 40px 36px;display:flex;flex-direction:column;gap:14px}
+.login-err,.lerr{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:9px 12px;font-size:.8rem;color:var(--danger);display:none}
+.login-err.show,.lerr.show{display:block}
+.fi{background:var(--bg-alt);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--sans);font-size:.92rem;padding:13px 16px;outline:none;width:100%;transition:border-color .15s,box-shadow .15s}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--display);font-size:.95rem;font-weight:600;padding:13px;border-radius:var(--r);cursor:pointer;transition:background .15s,transform .1s;width:100%;margin-top:4px}
+.btn-login:hover{background:var(--accent2);transform:translateY(-1px)}
+
+/* ── TOAST ──────────────────────────────────────────────── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--text);color:#fff;border-radius:var(--r);padding:10px 20px;font-size:.82rem;box-shadow:0 4px 20px rgba(0,0,0,.22);opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none;max-width:340px}
+#toast.show{opacity:1;transform:translateY(0)}
+#toast.ok{background:var(--success)}
+#toast.err{background:var(--danger)}
+
+/* ── THEME TOGGLE ───────────────────────────────────────── */
+.theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.theme-toggle:hover{border-color:var(--accent);transform:scale(1.05)}
+body.dark-mode .theme-toggle{background:var(--bg2)}
+
+
+/* main-area height fix */
+.dashboard-layout{display:flex;align-items:stretch}
+.main-area{display:flex;flex-direction:column;flex:1;height:100%}
+.main-area #app{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ──────────────────────────────────────────────── -->
+<div id="login-screen">
+<div class="login-box">
+<div class="login-top">
+<div class="login-logo">
+<div class="login-icon">
+<svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+</div>
+<span class="login-brand">HÉSTIA</span>
+</div>
+<div class="login-sub">Intranet Corporativa</div>
+</div>
+<div class="login-form">
+<div class="login-err" id="login-err"></div>
+<div class="fg"><span class="fl">E-MAIL</span><input class="fi" id="login-email" type="email" placeholder="seu@email.com"></div>
+<div class="fg"><span class="fl">SENHA</span><input class="fi" id="login-senha" type="password" placeholder="••••••••"></div>
+<button class="btn-login" onclick="doLogin()">Entrar</button>
+<div class="login-hint">Integração Atlas · <a href="http://localhost:5010" target="_blank" style="color:var(--accent)">localhost:5010</a></div>
+</div>
+</div>
+</div>
+
+<!-- ── BOOT ───────────────────────────────────────────────── -->
+<div id="boot">
+<div class="boot-logo">
+<div class="boot-icon">
+<svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+</div>
+<span class="boot-name">HÉSTIA</span>
+</div>
+<div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+<div class="boot-bar"><div class="boot-bar-fill" id="boot-bar"></div></div>
+<span class="boot-label" id="boot-label">Verificando sessão...</span>
+</div>
+</div>
+
+<!-- ── TOPBAR ─────────────────────────────────────────────── -->
+<div class="topbar">
+<div class="tbl">
+<div class="brand-icon" id="header-logo-container">
+    <svg id="header-logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+    <img id="header-logo-img" style="display:none; width:100%; height:100%; object-fit:contain; border-radius:inherit">
+</div>
+<span class="brand-name" id="header-company-name">HÉSTIA</span>
+<div class="bsep"></div>
+<span class="brand-tag">Intranet Corporativa</span>
+</div>
+<div class="tbr">
+<div class="search-bar">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+<input type="text" id="global-search" placeholder="Buscar..." oninput="doGlobalSearch(this.value)">
+</div>
+<div class="live-badge"><span class="ldot"></span>ATIVO</div>
+<span class="tclock" id="clock">--:--:--</span>
+<div class="user-chip" id="user-chip" style="display:none">
+<div class="user-avatar" id="user-avatar">?</div>
+<span class="user-name" id="user-name">—</span>
+<button class="btn-logout" onclick="doLogout()">Sair</button>
+</div>
+</div>
+</div>
+
+<!-- ── SIDEBAR MENU ─────────────────────────────────────── -->
+<div class="app-wrap">
+<aside class="sidebar">
+<div class="sbhd">
+<span class="sbttl">Menu</span>
+</div>
+<div class="sblist">
+<div class="sb-item active" data-tab="news" onclick="switchTab('news')">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 11h2a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2h2"/></svg>
+Notícias
+</div>
+<div class="sb-item" data-tab="docs" onclick="switchTab('docs')">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+Documentos
+</div>
+<div class="sb-item" data-tab="people" onclick="switchTab('people')">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+Pessoas
+</div>
+<div class="sb-item" data-tab="communities" onclick="switchTab('communities')">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+Comunidades
+</div>
+<div class="sb-item" data-tab="events" onclick="switchTab('events')">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+Eventos
+</div>
+<div class="sb-item" data-tab="kudos" onclick="switchTab('kudos')">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+Kudos
+</div>
+<div class="sb-item" id="nav-branding" style="display:none" onclick="openBrandingModal()">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 11-11.31 0z"/></svg>
+Personalizar
+</div>
+</div>
+<div style="padding:16px;border-top:1px solid var(--border)">
+<button class="btn-new" onclick="openNewsModal()" id="btn-new-news" style="display:none;width:100%;margin-bottom:8px;font-size:.75rem">+ Notícia</button>
+<button class="btn-new" onclick="openDocModal()" id="btn-new-doc" style="display:none;width:100%;margin-bottom:8px;font-size:.75rem">+ Documento</button>
+<button class="btn-new" onclick="openFolderModal()" id="btn-new-folder" style="display:none;width:100%;margin-bottom:8px;font-size:.75rem">+ Pasta</button>
+<button class="btn-new" onclick="openCommModal()" id="btn-new-comm" style="display:none;width:100%;margin-bottom:8px;font-size:.75rem">+ Comunidade</button>
+<button class="btn-new" onclick="openEventModal()" id="btn-new-event" style="display:none;width:100%;font-size:.75rem">+ Evento</button>
+</div>
+</aside>
+
+<!-- ── CONTENT ──────────────────────────────────────────── -->
+<div class="main">
+
+<!-- ── NEWS SECTION ────────────────────────────────────── -->
+<div class="section active" id="sec-news">
+<div class="sec-label">Feed de Notícias</div>
+<div class="news-list" id="news-list"></div>
+</div>
+
+<!-- ── DOCUMENTS SECTION ─────────────────────────────── -->
+<div class="section" id="sec-docs">
+<div class="sec-label">Biblioteca de Documentos</div>
+<div class="doc-layout">
+<div class="doc-sidebar">
+<div class="doc-tree" id="folder-tree"></div>
+</div>
+<div class="doc-main" id="doc-list"></div>
+</div>
+</div>
+
+<!-- ── PEOPLE SECTION ──────────────────────────────────── -->
+<div class="section" id="sec-people">
+<div class="sec-label">Diretório de Pessoas</div>
+<div style="display:flex;justify-content:space-between;margin-bottom:16px">
+<div class="people-search" style="flex:1;margin-right:16px">
+<input class="fi" id="people-search" placeholder="Buscar por nome, cargo ou departamento..." oninput="searchPeople()">
+</div>
+<button class="btn-new" onclick="openSyncModal()" id="btn-sync-people" style="display:none;flex-shrink:0">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+Sincronizar
+</button>
+</div>
+<div class="people-grid" id="people-list"></div>
+</div>
+
+<!-- ── COMMUNITIES SECTION ───────────────────────────────── -->
+<div class="section" id="sec-communities">
+<div class="sec-label">Comunidades</div>
+<button class="btn-new" onclick="openCommModal()" id="btn-new-comm" style="display:none;margin-bottom:16px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Nova Comunidade
+</button>
+<div class="comm-grid" id="comm-list"></div>
+</div>
+
+<!-- ── EVENTS SECTION ────────────────────────────────────── -->
+<div class="section" id="sec-events">
+<div class="sec-label">Eventos & Calendário</div>
+<button class="btn-new" onclick="openEventModal()" id="btn-new-event" style="display:none;margin-bottom:16px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Novo Evento
+</button>
+<div class="event-list" id="event-list"></div>
+</div>
+
+<!-- ── KUDOS SECTION ─────────────────────────────────────── -->
+<div class="section" id="sec-kudos">
+<div class="sec-label">Kudos & Reconhecimento</div>
+<button class="btn-new" onclick="openKudosModal()" id="btn-new-kudos" style="display:none;margin-bottom:16px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Enviar Kudos
+</button>
+<div class="kudos-list" id="kudos-list"></div>
+</div>
+
+</div><!-- fim .main -->
+</div><!-- fim .app-wrap -->
+
+<!-- ── MODAL ──────────────────────────────────────────────── -->
+<div class="modal" id="modal">
+<div class="modal-box">
+<div class="modal-header">
+<span class="modal-title" id="modal-title">Nova Notícia</span>
+<button class="modal-close" onclick="closeModal()">&times;</button>
+</div>
+<div class="modal-body" id="modal-body"></div>
+<div class="modal-footer" id="modal-footer"></div>
+</div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ── SEARCH MODAL ─────────────────────────────────────── -->
+<div class="modal" id="search-modal">
+<div class="modal-box">
+<div class="modal-header">
+<span class="modal-title">Buscar</span>
+<button class="modal-close" onclick="document.getElementById('search-modal').classList.remove('show')">&times;</button>
+</div>
+<div class="modal-body" id="global-search-results"></div>
+</div>
+</div>
+
+<script>
+const STATE = { user: null };
+const ICONS={
+news:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 11h2a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2v3a2 2 0 002 2h2"/></svg>`,
+folder:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>`,
+doc:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
+user:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+edit:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`,
+trash:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>`,
+file:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`,
+};
+
+function getIcon(k){return ICONS[k]||ICONS.doc}
+
+// ── RELÓGIO ────────────────────────────────────────────
+function tick(){
+document.getElementById('clock').textContent=new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+tick();setInterval(tick,1000);
+
+// ── BOOT ────────────────────────────────────────────────
+function setBootProgress(pct,label){
+document.getElementById('boot-bar').style.width=pct+'%';
+if(label)document.getElementById('boot-label').textContent=label;
+}
+function hideBoot(){document.getElementById('boot').classList.add('hidden');}
+
+// ── TOAST ─────────────────────────────────────────────
+let _tt;
+function toast(msg,kind){
+const el=document.getElementById('toast');
+el.textContent=msg;el.className='show '+(kind||'');
+clearTimeout(_tt);_tt=setTimeout(()=>el.className='',4000);
+}
+
+// ── TAB NAVIGATION ─────────────────────────────────────
+function switchTab(tab){
+document.querySelectorAll('.sb-item').forEach(x=>x.classList.remove('active'));
+document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+document.querySelector('.sb-item[data-tab="'+tab+'"]').classList.add('active');
+document.getElementById('sec-'+tab).classList.add('active');
+}
+
+// ── AUTH ───────────────────────────────────────────────
+let isAdmin=false;
+let SETTINGS={};
+
+async function loadSettings(){
+    const r=await fetch('/api/settings',{credentials:'same-origin'});
+    const j=await r.json();
+    if(j.ok) SETTINGS=j.data;
+}
+
+function applySettings(){
+    if(SETTINGS.accent_color){
+        document.documentElement.style.setProperty('--accent', SETTINGS.accent_color);
+        // Gerar um tom mais claro para o accent-bg (HSL)
+        const hex = SETTINGS.accent_color;
+        document.documentElement.style.setProperty('--accent-bg', hex + '15'); // 15 = ~8% opacidade
+    }
+    if(SETTINGS.company_name){
+        document.getElementById('header-company-name').textContent = SETTINGS.company_name;
+    }
+    if(SETTINGS.header_logo_url){
+        document.getElementById('header-logo-svg').style.display = 'none';
+        const img = document.getElementById('header-logo-img');
+        img.src = SETTINGS.header_logo_url;
+        img.style.display = 'block';
+    }
+}
+
+async function openBrandingModal(){
+    document.getElementById('modal-title').textContent='Personalizar Intranet';
+    document.getElementById('modal-body').innerHTML=`
+    <div class="fg"><span class="fl">NOME DA EMPRESA</span><input class="fi" id="set-company-name" value="${SETTINGS.company_name||'HÉSTIA'}"></div>
+    <div class="fg"><span class="fl">COR DE DESTAQUE</span><input type="color" class="fi" id="set-accent-color" value="${SETTINGS.accent_color||'#059669'}" style="height:40px"></div>
+    <div class="fg"><span class="fl">LOGO DA EMPRESA</span><input type="file" class="fi" id="set-logo-file"></div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="closeModal()">Cancelar</button><button class="btn-login" onclick="saveBranding()">Salvar Mudanças</button>`;
+    document.getElementById('modal').classList.add('show');
+}
+
+async function saveBranding(){
+    const company_name = document.getElementById('set-company-name').value;
+    const accent_color = document.getElementById('set-accent-color').value;
+    const logoFile = document.getElementById('set-logo-file').files[0];
+    
+    // Salvar textos
+    await fetch('/api/settings', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        credentials:'same-origin',
+        body:JSON.stringify({company_name, accent_color})
+    });
+    
+    // Salvar logo se enviado
+    if(logoFile){
+        const fd = new FormData();
+        fd.append('file', logoFile);
+        await fetch('/api/settings/logo', {method:'POST', credentials:'same-origin', body:fd});
+    }
+    
+    toast('Identidade visual atualizada!', 'ok');
+    closeModal();
+    loadSettings();
+}
+function initials(nome){
+if(!nome)return'?';
+return nome.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+}
+function setUser(u){
+    STATE.user=u;
+    isAdmin = u && (u.funcoes?.includes('admin') || u.funcoes?.includes('administrador') || u.is_admin);
+    document.getElementById('user-avatar').textContent=initials(u.nome||u.email);
+    document.getElementById('user-name').textContent=u.nome||u.email;
+    document.getElementById('user-chip').style.display='flex';
+    document.getElementById('btn-new-news').style.display=isAdmin?'inline-flex':'none';
+    document.getElementById('btn-new-doc').style.display=isAdmin?'inline-flex':'none';
+    document.getElementById('btn-new-folder').style.display=isAdmin?'inline-flex':'none';
+    document.getElementById('btn-new-comm').style.display=isAdmin?'inline-flex':'none';
+    document.getElementById('btn-new-event').style.display=isAdmin?'inline-flex':'none';
+    document.getElementById('btn-sync-people').style.display=isAdmin?'inline-flex':'none';
+    const nav = document.getElementById('nav-branding');
+    if(nav) nav.style.display = isAdmin ? 'flex' : 'none';
+}
+function openSyncModal(){
+document.getElementById('modal-title').textContent='Sincronizar com Atlas';
+document.getElementById('modal-body').innerHTML=`
+<p style="font-size:.82rem;color:var(--text-mid)">Informe as credenciais de um administrador do Atlas para importar a lista de pessoas.</p>
+<div class="fg"><span class="fl">E-MAIL ATLAS</span><input class="fi" id="sync-email" type="email" placeholder="admin@exemplo.com"></div>
+<div class="fg"><span class="fl">SENHA ATLAS</span><input class="fi" id="sync-senha" type="password" placeholder="••••••••"></div>`;
+document.getElementById('modal-footer').innerHTML=`
+<button class="btn-action" onclick="closeModal()">Cancelar</button>
+<button class="btn-login" onclick="syncPeople()">Sincronizar</button>`;
+document.getElementById('modal').classList.add('show');
+}
+async function syncPeople(){
+const email=document.getElementById('sync-email')?.value.trim();
+const senha=document.getElementById('sync-senha')?.value;
+if(!email||!senha){toast('Preencha e-mail e senha do Atlas.','err');return;}
+const r=await fetch('/api/people/sync',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({email,senha})});
+const j=await r.json();
+if(j.ok){closeModal();toast(j.message||'Sincronizado!','ok');loadPeople();}
+else{toast(j.error,'err');}
+}
+function showLogin(){
+hideBoot();
+document.getElementById('login-screen').classList.remove('hidden');
+setTimeout(()=>document.getElementById('login-email').focus(),50);
+}
+function hideLogin(){
+document.getElementById('login-screen').classList.add('hidden');
+}
+
+async function doLogin(){
+const email=document.getElementById('login-email').value.trim();
+const senha=document.getElementById('login-senha').value;
+const errEl=document.getElementById('login-err');
+errEl.classList.remove('show');
+if(!email||!senha){errEl.textContent='Preencha e-mail e senha.';errEl.classList.add('show');return;}
+const r=await fetch('/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({email,password:senha})});
+const j=await r.json();
+if(r.ok&&j.ok){hideLogin();setUser(j.data);await loadAll();}
+else{errEl.textContent=j.error||'Credenciais inválidas.';errEl.classList.add('show');}
+}
+async function doLogout(){
+await fetch('/api/auth/logout',{method:'POST',credentials:'same-origin'});
+document.getElementById('user-chip').style.display='none';
+document.getElementById('btn-new-news').style.display='none';
+document.getElementById('news-list').innerHTML='';
+document.getElementById('people-list').innerHTML='';
+showLogin();
+}
+document.getElementById('login-senha').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ── NEWS ────────────────────────────────────────────────
+let currentNewsId=null;
+async function loadNews(){
+const r=await fetch('/api/news?limit=50',{credentials:'same-origin'});
+const j=await r.json();
+if(!j.ok) { console.error('Erro loadNews:', j.error); return; }
+const items=j.data||[];
+const el=document.getElementById('news-list');
+el.innerHTML='';
+if(items.length===0){el.innerHTML='<div style="color:var(--text-dim);text-align:center;padding:40px">Nenhuma notícia publicada.</div>';return;}
+for(const n of items){
+const div=document.createElement('div');
+div.className='news-item'+(n.pinned?' pinned':'');
+div.onclick = () => openNewsViewer(n.id);
+const date=new Date(n.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+div.innerHTML=`<div class="news-meta">${date} · ${n.author_name}</div>
+<div class="news-title">${n.title}</div>
+<div class="news-content">${n.content}</div>`;
+el.appendChild(div);
+}
+}
+function openNewsModal(){
+document.getElementById('modal-title').textContent='Publicar Notícia';
+document.getElementById('modal-body').innerHTML=`
+<div class="fg"><span class="fl">TÍTULO</span><input class="fi" id="news-title" placeholder="Título da notícia..."></div>
+<div class="fg"><span class="fl">CONTEÚDO (Markdown suportado)</span><textarea class="fi" id="news-content" rows="6" placeholder="Escreva aqui..."></textarea></div>
+<div class="fg"><span class="fl">ANEXO (Opcional)</span><input type="file" class="fi" id="news-file"></div>`;
+document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="closeModal()">Cancelar</button><button class="btn-login" onclick="saveNews()">Publicar</button>`;
+document.getElementById('modal').classList.add('show');
+}
+async function saveNews(){
+const title=document.getElementById('news-title').value.trim();
+const content=document.getElementById('news-content').value.trim();
+const fileInput=document.getElementById('news-file');
+if(!title||!content)return toast('Título e conteúdo obrigatórios','err');
+
+const r=await fetch('/api/news',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({title,content})});
+const j=await r.json();
+if(j.ok){
+    const nid=j.data.id;
+    if(fileInput.files.length>0){
+        toast('Subindo anexo...','ok');
+        const fd=new FormData();
+        fd.append('file',fileInput.files[0]);
+        await fetch(`/api/news/${nid}/attachments`,{method:'POST',credentials:'same-origin',body:fd});
+    }
+    closeModal(); toast('Notícia publicada','ok'); loadNews();
+} else {
+    toast(j.error,'err');
+}
+}
+async function openNewsViewer(id){
+const r=await fetch('/api/news/'+id,{credentials:'same-origin'});
+const j=await r.json();
+if(!j.ok)return toast(j.error,'err');
+const d=j.data;
+document.getElementById('modal-title').textContent=d.title;
+let attsHtml = '';
+if(d.attachments && d.attachments.length > 0){
+    attsHtml = `<div style="margin-top:20px; padding-top:15px; border-top:1px solid var(--border)">
+        <h4 style="margin-bottom:10px; font-size:0.9rem">Anexos:</h4>
+        <div style="display:flex; flex-direction:column; gap:8px">
+            ${d.attachments.map(a => `
+                <a href="/api/news/attachments/${a.id}" target="_blank" class="doc-item" style="padding:8px; text-decoration:none">
+                    <svg style="width:16px;height:16px;margin-right:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONS.file}</svg>
+                    ${a.filename} <span style="font-size:0.7rem; opacity:0.5; margin-left:auto">${(a.file_size/1024).toFixed(1)} KB</span>
+                </a>
+            `).join('')}
+        </div>
+    </div>`;
+}
+
+document.getElementById('modal-body').innerHTML=`
+<div class="doc-meta">Publicado por ${d.author_name} em ${new Date(d.created_at).toLocaleString()}</div>
+<div style="margin-top:15px; line-height:1.6">${d.content.replace(/\n/g,'<br>')}</div>
+${attsHtml}`;
+document.getElementById('modal-footer').innerHTML=`
+<button class="btn-action" onclick="closeModal()">Fechar</button>
+${isAdmin ? `<button class="btn-action" style="color:var(--err)" onclick="deleteNews(${d.id})">Remover</button>` : ''}`;
+document.getElementById('modal').classList.add('show');
+}
+async function deleteNews(id){
+if(!confirm('Excluir notícia?'))return;
+const r=await fetch('/api/news/'+id,{method:'DELETE',credentials:'same-origin'});
+const j=await r.json();
+if(j.ok){closeModal();toast('Notícia removida.','ok');loadNews();}
+else{toast(j.error,'err');}
+}
+
+// ── DOCUMENTS ────────────────────────────────────────
+let currentFolder=null;
+let allFolders=[];
+async function loadFolders(){
+const url=currentFolder?'/api/documents/folders?parent_id='+currentFolder:'/api/documents/folders';
+const r=await fetch(url,{credentials:'same-origin'});
+const j=await r.json();
+if(!j.ok) { console.error('Erro loadFolders:', j.error); return; }
+allFolders=j.data||[];
+const el=document.getElementById('folder-tree');
+el.innerHTML='';
+
+if(currentFolder){
+    const back=document.createElement('div');
+    back.className='doc-folder';
+    back.innerHTML=`<span style="margin-right:8px">⬅️</span> Voltar`;
+    back.onclick=async()=>{
+        const r2=await fetch('/api/documents/folders',{credentials:'same-origin'}); // Fetch all to find parent
+        const j2=await r2.json();
+        const all=j2.data||j2;
+        const curr=all.find(x=>x.id===currentFolder);
+        currentFolder=curr?curr.parent_id:null;
+        loadFolders(); loadDocs();
+    };
+    el.appendChild(back);
+}
+
+const root=document.createElement('div');
+root.className='doc-folder'+(!currentFolder?' active':'');
+root.innerHTML=`<svg class="doc-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONS.folder}</svg>Raiz`;
+root.onclick=()=>{currentFolder=null;loadFolders();loadDocs();};
+el.appendChild(root);
+
+for(const f of allFolders){
+    const div=document.createElement('div');
+    div.className='doc-folder'+(currentFolder===f.id?' active':'');
+    div.innerHTML=`<svg class="doc-folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${ICONS.folder}</svg>${f.name} <span style="margin-left:auto; font-size:0.7rem; opacity:0.5">📂</span>`;
+    div.onclick=()=>{currentFolder=f.id;loadFolders();loadDocs();};
+    el.appendChild(div);
+}
+}
+async function loadDocs(){
+try {
+const url=currentFolder?'/api/documents?folder_id='+currentFolder:'/api/documents';
+const r=await fetch(url,{credentials:'same-origin'});
+const j=await r.json();
+if(!j.ok) throw new Error(j.error || 'Erro API');
+const docs=j.data||[];
+const el=document.getElementById('doc-list');
+el.innerHTML='';
+for(const d of docs){
+const div=document.createElement('div');
+div.className='doc-card';
+const date=new Date(d.created_at).toLocaleDateString('pt-BR');
+div.innerHTML=`<div class="doc-icon">${ICONS.doc}</div>
+<div class="doc-info"><div class="doc-title">${d.title}</div><div class="doc-meta">${d.author_name} · ${date}</div></div>`;
+div.onclick=()=>openDocViewer(d.id);
+el.appendChild(div);
+}
+if(docs.length===0)el.innerHTML='<div style="color:var(--text-dim);padding:20px">Nenhum documento nesta pasta.</div>';
+} catch(e) { console.error(e); document.getElementById('doc-list').innerHTML='<div style="color:var(--danger)">Erro ao carregar documentos.</div>'; }
+}
+async function openDocViewer(id){
+const r=await fetch('/api/documents/'+id,{credentials:'same-origin'});
+const j=await r.json();
+const d=j.data;
+
+const rAtt=await fetch('/api/documents/'+id+'/attachments',{credentials:'same-origin'});
+const jAtt=await rAtt.json();
+const atts=jAtt.data||[];
+
+const rVer=await fetch('/api/documents/'+id+'/versions',{credentials:'same-origin'});
+const jVer=await rVer.json();
+const vers=jVer.data||[];
+
+let attHtml=atts.map(a=>`<div class="doc-meta" style="margin-top:5px"><a href="/api/attachments/${a.id}" target="_blank" style="color:var(--primary);text-decoration:none">📎 ${a.filename}</a> (${(a.file_size/1024).toFixed(1)} KB)</div>`).join('');
+if(atts.length===0) attHtml='<div class="doc-meta">Nenhum anexo.</div>';
+
+let verHtml=vers.map(v=>`<div class="doc-meta">v${v.version} - ${v.author_name} (${new Date(v.created_at).toLocaleDateString('pt-BR')})</div>`).join('');
+
+document.getElementById('modal-title').textContent=d.title;
+document.getElementById('modal-body').innerHTML=`
+<div class="news-meta">Autor: ${d.author_name} · Versão Atual: ${d.version}</div>
+<div class="news-content" style="white-space:pre-wrap; border-bottom:1px solid var(--border); padding-bottom:15px; margin-bottom:15px">${d.content}</div>
+<div style="margin-bottom:15px">
+    <div class="fl" style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">ANEXOS</div>
+    ${attHtml}
+    <div style="margin-top:10px">
+        <input type="file" id="file-upload" style="display:none" onchange="uploadAttachment(${d.id})">
+        <button class="btn-action" style="font-size:0.7rem; padding:4px 8px" onclick="document.getElementById('file-upload').click()">+ Anexar Arquivo</button>
+    </div>
+</div>
+<div>
+    <div class="fl" style="font-size:0.7rem; color:var(--text-dim); margin-bottom:5px">HISTÓRICO DE VERSÕES</div>
+    ${verHtml}
+</div>`;
+
+document.getElementById('modal-footer').innerHTML=`
+<button class="btn-action" onclick="closeModal()">Fechar</button>
+<button class="btn-login" onclick="openEditDocModal(${JSON.stringify(d).replace(/"/g, '&quot;')})">Editar Documento</button>`;
+document.getElementById('modal').classList.add('show');
+}
+
+async function uploadAttachment(did){
+const fileInput=document.getElementById('file-upload');
+if(!fileInput.files[0]) return;
+const formData=new FormData();
+formData.append('file', fileInput.files[0]);
+try {
+const r=await fetch(`/api/documents/${did}/attachments`, {method:'POST', body:formData, credentials:'same-origin'});
+const j=await r.json();
+if(j.ok){ toast('Arquivo anexado','ok'); openDocViewer(did); }
+else toast(j.error,'err');
+} catch(e){ toast('Erro no upload','err'); }
+}
+
+function openEditDocModal(d){
+document.getElementById('modal-title').textContent='Editar Documento';
+document.getElementById('modal-body').innerHTML=`
+<div class="fg"><span class="fl">TÍTULO</span><input class="fi" id="edit-doc-title" value="${d.title}"></div>
+<div class="fg"><span class="fl">CONTEÚDO</span><textarea class="fi" id="edit-doc-content" style="height:200px">${d.content}</textarea></div>`;
+document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="openDocViewer(${d.id})">Cancelar</button><button class="btn-login" onclick="updateDoc(${d.id})">Salvar Nova Versão</button>`;
+}
+
+async function updateDoc(id){
+const title=document.getElementById('edit-doc-title').value.trim();
+const content=document.getElementById('edit-doc-content').value.trim();
+if(!title) return toast('Título obrigatório','err');
+const r=await fetch('/api/documents/'+id, {method:'PUT', headers:{'Content-Type':'application/json'}, credentials:'same-origin', body:JSON.stringify({title,content})});
+const j=await r.json();
+if(j.ok){ toast('Documento atualizado (v+1)','ok'); openDocViewer(id); loadDocs(); }
+else toast(j.error,'err');
+}
+async function openFolderModal(){
+const r=await fetch('/api/departments',{credentials:'same-origin'});
+const j=await r.json();
+const depts=j.data||[];
+
+document.getElementById('modal-title').textContent='Nova Pasta / Subpasta';
+document.getElementById('modal-body').innerHTML=`
+<div class="fg"><span class="fl">NOME DA PASTA</span><input class="fi" id="folder-name" placeholder="Ex: Manuais, Políticas..."></div>
+<div class="fg">
+    <span class="fl">REGRAS DE ACESSO (Ex. Gestor - Financeiro)</span>
+    <div id="folder-rules-list">
+        <div class="rule-item" style="display:flex; gap:10px; margin-bottom:10px">
+            <select class="fi rule-role"><option value="">Qualquer Perfil</option><option value="admin">Admin</option><option value="manager">Gestor</option><option value="user">Colaborador</option></select>
+            <select class="fi rule-dept"><option value="">Qualquer Depto</option>${depts.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+        </div>
+    </div>
+    <button class="btn-action" style="font-size:0.7rem; padding:4px 8px" onclick="addFolderRule()">+ Adicionar Regra</button>
+    <div class="doc-meta" style="margin-top:10px">Se vazio, a pasta é pública. Se houver regras, o usuário deve atender a pelo menos uma (Role AND Depto).</div>
+</div>`;
+document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="closeModal()">Cancelar</button><button class="btn-login" onclick="saveFolder()">Criar</button>`;
+document.getElementById('modal').classList.add('show');
+}
+
+function addFolderRule(){
+const depts=Array.from(document.querySelectorAll('.rule-dept')[0].options).map(o=>o.value).filter(v=>v);
+const div=document.createElement('div');
+div.className='rule-item';
+div.style="display:flex; gap:10px; margin-bottom:10px";
+div.innerHTML=`
+    <select class="fi rule-role"><option value="">Qualquer Perfil</option><option value="admin">Admin</option><option value="manager">Gestor</option><option value="user">Colaborador</option></select>
+    <select class="fi rule-dept"><option value="">Qualquer Depto</option>${depts.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
+    <button class="btn-action" onclick="this.parentElement.remove()">❌</button>`;
+document.getElementById('folder-rules-list').appendChild(div);
+}
+
+async function saveFolder(){
+const name=document.getElementById('folder-name').value.trim();
+if(!name)return toast('Nome obrigatório','err');
+
+const rules=[];
+document.querySelectorAll('.rule-item').forEach(item=>{
+    const role=item.querySelector('.rule-role').value;
+    const dept=item.querySelector('.rule-dept').value;
+    if(role||dept) rules.push({role, dept});
+});
+
+const r=await fetch('/api/documents/folders',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({name,parent_id:currentFolder,rules})});
+const j=await r.json();
+if(j.ok){closeModal();toast('Pasta/Subpasta criada','ok');loadFolders();}
+else toast(j.error,'err');
+}
+function openDocModal(){
+const opts=allFolders.map(f=>`<option value="${f.id}" ${currentFolder==f.id?'selected':''}>${f.name}</option>`).join('');
+document.getElementById('modal-title').textContent='Novo Documento';
+document.getElementById('modal-body').innerHTML=`
+<div class="fg"><span class="fl">TÍTULO</span><input class="fi" id="doc-title" placeholder="Título do documento"></div>
+<div class="fg"><span class="fl">PASTA</span><select class="fi" id="doc-folder"><option value="">Raiz</option>${opts}</select></div>
+<div class="fg"><span class="fl">CONTEÚDO</span><textarea class="fi" id="doc-content" placeholder="Texto ou Markdown..." style="height:200px"></textarea></div>
+<div class="fg"><span class="fl">ANEXO (Opcional)</span><input type="file" class="fi" id="doc-file"></div>`;
+document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="closeModal()">Cancelar</button><button class="btn-login" onclick="saveDoc()">Salvar</button>`;
+document.getElementById('modal').classList.add('show');
+}
+async function saveDoc(){
+const title=document.getElementById('doc-title').value.trim();
+const content=document.getElementById('doc-content').value.trim();
+const folder_id=document.getElementById('doc-folder').value;
+const fileInput=document.getElementById('doc-file');
+if(!title)return toast('Título obrigatório','err');
+
+const r=await fetch('/api/documents',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({title,content,folder_id})});
+const j=await r.json();
+if(j.ok){
+    const did=j.data.id;
+    if(fileInput.files.length > 0){
+        toast('Subindo anexo...','ok');
+        const fd=new FormData();
+        fd.append('file', fileInput.files[0]);
+        await fetch(`/api/documents/${did}/attachments`, {method:'POST', credentials:'same-origin', body:fd});
+    }
+    closeModal(); toast('Documento salvo','ok'); loadDocs();
+} else {
+    toast(j.error,'err');
+}
+}
+
+// ── PEOPLE ───────────────────────────────────────────────
+async function loadPeople(){
+const r=await fetch('/api/people',{credentials:'same-origin'});
+if(r.status===401){showLogin();return;}
+const j=await r.json();
+const people=j.data||j;
+renderPeople(people);
+}
+function searchPeople(){
+const q=document.getElementById('people-search').value.toLowerCase();
+const r=document.querySelectorAll('.person-card');
+r.forEach(el=>{el.style.display=el.textContent.toLowerCase().includes(q)?'':'none';});
+}
+function renderPeople(people){
+const el=document.getElementById('people-list');
+el.innerHTML='';
+for(const p of people){
+const div=document.createElement('div');
+div.className='person-card';
+div.innerHTML=`<div class="person-avatar">${initials(p.nome)}</div>
+<div class="person-info">
+<div class="person-name">${p.nome}</div>
+<div class="person-role">${p.cargo||'—'}</div>
+<div class="person-email">${p.email||''}</div>
+</div>`;
+el.appendChild(div);
+}
+if(people.length===0)el.innerHTML='<div style="color:var(--text-dim);grid-column:1/-1;text-align:center;padding:40px">Nenhuma pessoa encontrada.</div>';
+}
+
+// ── COMMUNITIES ────────────────────────────────────────
+let currentCommId=null;
+let currentCommMessages={};
+let allComms=[];
+async function loadCommunities(){
+const r=await fetch('/api/communities',{credentials:'same-origin'});
+const j=await r.json();
+allComms=j.data||j;
+renderCommunities(allComms);
+}
+function renderCommunities(comms){
+const el=document.getElementById('comm-list');
+el.innerHTML='';
+for(const c of comms){
+const joined=localStorage.getItem('comm_'+c.id);
+const div=document.createElement('div');
+div.className='comm-card';
+div.innerHTML=`<div class="comm-name">${c.name}</div>
+<div class="comm-desc">${c.description||'—'}</div>
+<div class="comm-members"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${c.member_count||0} membros</div>
+<div class="comm-actions">
+<button class="btn-action" onclick="joinCommunity(${c.id})">${joined?'Sair':'Entrar'}</button>
+${isAdmin?`<button class="btn-action" onclick="editCommunity(${c.id})">${ICONS.edit} Editar</button><button class="btn-action" onclick="deleteCommunity(${c.id})">${ICONS.trash} Excluir</button>`:''}
+</div>
+<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+<div id="comm-msgs-${c.id}" style="max-height:150px;overflow-y:auto;margin-bottom:8px"></div>
+<div style="display:flex;gap:8px">
+<input class="fi" id="comm-msg-${c.id}" placeholder="Mensagem..." style="flex:1">
+<button class="btn-new" onclick="postCommMsg(${c.id})" style="padding:6px 12px;font-size:.7rem">Enviar</button>
+</div>
+</div>`;
+loadCommMessages(c.id);
+el.appendChild(div);
+}
+if(comms.length===0)el.innerHTML='<div style="color:var(--text-dim);grid-column:1/-1;text-align:center;padding:40px">Nenhuma comunidade criada.</div>';
+}
+async function loadCommMessages(cid){
+const r=await fetch('/api/communities/'+cid+'/messages',{credentials:'same-origin'});
+const j=await r.json();
+const msgs=j.data||j;
+const el=document.getElementById('comm-msgs-'+cid);
+el.innerHTML=msgs.slice(0,3).map(m=>`<div style="margin-bottom:8px;font-size:.8rem"><b>${m.author_name}:</b> ${m.message}</div>`).join('');
+}
+async function postCommMsg(cid){
+const msg=document.getElementById('comm-msg-'+cid).value.trim();
+if(!msg)return;
+await fetch('/api/communities/'+cid+'/messages',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({message:msg})});
+document.getElementById('comm-msg-'+cid).value='';
+loadCommMessages(cid);
+}
+async function deleteCommunity(id){
+if(!confirm('Excluir comunidade?'))return;
+const r=await fetch('/api/communities/'+id,{method:'DELETE',credentials:'same-origin'});
+const j=await r.json();
+if(j.ok){toast('Comunidade removida.','ok');loadCommunities();}
+else{toast(j.error,'err');}
+}
+async function joinCommunity(id){
+const joined=localStorage.getItem('comm_'+id);
+if(joined){
+await fetch('/api/communities/'+id+'/leave',{method:'POST',credentials:'same-origin'});
+localStorage.removeItem('comm_'+id);
+toast('Você saiu da comunidade.','ok');
+}else{
+await fetch('/api/communities/'+id+'/join',{method:'POST',credentials:'same-origin'});
+localStorage.setItem('comm_'+id,'1');
+toast('Você entrou na comunidade!','ok');
+}
+loadCommunities();
+}
+function editCommunity(id){
+const c=allComms.find(x=>x.id===id);
+if(!c)return;
+openCommModal(c.id,c.name,c.description||'');
+}
+function openCommModal(id=null,name='',desc=''){
+currentCommId=id;
+document.getElementById('modal-title').textContent=id?'Editar Comunidade':'Nova Comunidade';
+document.getElementById('modal-body').innerHTML=`<div class="fg"><span class="fl">NOME</span><input class="fi" id="comm-name" value="${name}"></div><div class="fg"><span class="fl">DESCRIÇÃO</span><textarea class="fi" id="comm-desc">${desc}</textarea></div>`;
+document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="closeModal()">Cancelar</button><button class="btn-login" onclick="saveCommunity()">${id?'Atualizar':'Criar'}</button>`;
+document.getElementById('modal').classList.add('show');
+}
+async function saveCommunity(){
+const name=document.getElementById('comm-name').value.trim();
+const desc=document.getElementById('comm-desc').value.trim();
+if(!name){toast('Nome obrigatório.','err');return;}
+const method=currentCommId?'PUT':'POST';
+const url=currentCommId?'/api/communities/'+currentCommId:'/api/communities';
+const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({name,description:desc})});
+const j=await r.json();
+if(j.ok){closeModal();toast(currentCommId?'Comunidade atualizada.':'Comunidade criada!','ok');loadCommunities();}
+else{toast(j.error,'err');}
+}
+
+// ── EVENTS ─────────────────────────────────────────────
+let currentEventId=null;
+let allEvents=[];
+async function loadEvents(){
+const r=await fetch('/api/events',{credentials:'same-origin'});
+const j=await r.json();
+allEvents=j.data||j;
+renderEvents(allEvents);
+}
+function renderEvents(events){
+const el=document.getElementById('event-list');
+el.innerHTML='';
+for(const e of events){
+const d=new Date(e.start_date);
+const day=d.getDate();
+const month=d.toLocaleString('pt-BR',{month:'short'}).toUpperCase();
+const time=d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const div=document.createElement('div');
+div.className='event-item';
+div.innerHTML=`<div class="event-date"><span class="event-day">${day}</span><span class="event-month">${month}</span></div>
+<div class="event-info">
+<div class="event-title">${e.title}</div>
+<div class="event-meta">
+<span>${time}</span>
+${e.location?'<span>'+e.location+'</span>':''}
+${e.meeting_link?'<a href="'+e.meeting_link+'" class="event-link" target="_blank">Entrar</a>':''}
+</div>
+</div>
+${isAdmin?`<div style="display:flex;gap:6px;margin-left:auto;flex-shrink:0">
+<button class="btn-action" onclick="editEvent(${e.id})">${ICONS.edit} Editar</button>
+<button class="btn-action" onclick="deleteEvent(${e.id})">${ICONS.trash} Excluir</button>
+</div>`:''}`;
+el.appendChild(div);
+}
+if(events.length===0)el.innerHTML='<div style="color:var(--text-dim);text-align:center;padding:40px">Nenhum evento agendado.</div>';
+}
+function editEvent(id){
+const e=allEvents.find(x=>x.id===id);
+if(!e)return;
+// formata datetime-local (YYYY-MM-DDTHH:MM)
+const fmtDt=s=>{if(!s)return'';const d=new Date(s);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+openEventModal(e.id,e.title,e.description||'',fmtDt(e.start_date),fmtDt(e.end_date),e.location||'',e.meeting_link||'');
+}
+async function deleteEvent(id){
+if(!confirm('Excluir este evento?'))return;
+const r=await fetch('/api/events/'+id,{method:'DELETE',credentials:'same-origin'});
+const j=await r.json();
+if(j.ok){toast('Evento removido.','ok');loadEvents();}
+else{toast(j.error,'err');}
+}
+function openEventModal(id=null,title='',desc='',start='',end='',loc='',link=''){
+currentEventId=id;
+document.getElementById('modal-title').textContent=id?'Editar Evento':'Novo Evento';
+document.getElementById('modal-body').innerHTML=`<div class="fg"><span class="fl">TÍTULO</span><input class="fi" id="event-title" value="${title}"></div>
+<div class="fg"><span class="fl">DESCRIÇÃO</span><textarea class="fi" id="event-desc">${desc}</textarea></div>
+<div style="display:flex;gap:12px"><div class="fg" style="flex:1"><span class="fl">INÍCIO</span><input class="fi" type="datetime-local" id="event-start" value="${start}"></div><div class="fg" style="flex:1"><span class="fl">FIM</span><input class="fi" type="datetime-local" id="event-end" value="${end}"></div></div>
+<div class="fg"><span class="fl">LOCAL</span><input class="fi" id="event-loc" value="${loc}" placeholder="Sala de reunião ou endereço"></div>
+<div class="fg"><span class="fl">LINK DA REUNIÃO</span><input class="fi" id="event-link" value="${link}" placeholder="https://..."></div>`;
+document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="closeModal()">Cancelar</button><button class="btn-login" onclick="saveEvent()">${id?'Atualizar':'Criar'}</button>`;
+document.getElementById('modal').classList.add('show');
+}
+async function saveEvent(){
+const title=document.getElementById('event-title').value.trim();
+const desc=document.getElementById('event-desc').value.trim();
+const start_date=document.getElementById('event-start').value;
+const end_date=document.getElementById('event-end').value;
+const location=document.getElementById('event-loc').value.trim();
+const meeting_link=document.getElementById('event-link').value.trim();
+if(!title||!start_date){toast('Título e data de início são obrigatórios.','err');return;}
+const method=currentEventId?'PUT':'POST';
+const url=currentEventId?'/api/events/'+currentEventId:'/api/events';
+const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({title,description:desc,start_date,end_date,location,meeting_link})});
+const j=await r.json();
+if(j.ok){closeModal();toast(currentEventId?'Evento atualizado.':'Evento criado!','ok');loadEvents();}
+else{toast(j.error,'err');}
+}
+
+// ── KUDOS ──────────────────────────────────────────────
+async function loadKudos(){
+const r=await fetch('/api/people/kudos?limit=30',{credentials:'same-origin'});
+const j=await r.json();
+const kudos=j.data||j;
+renderKudos(kudos);
+}
+
+// ── GLOBAL SEARCH ─────────────────────────────────────
+async function doGlobalSearch(q){
+if(!q||q.length<2)return;
+const results=document.getElementById('global-search-results');
+results.innerHTML='<div style="color:var(--text-dim);padding:20px">Buscando...</div>';
+document.getElementById('search-modal').classList.add('show');
+const [nj,dj,pj]=await Promise.all([
+fetch('/api/news?limit=5',{credentials:'same-origin'}).then(r=>r.json()),
+fetch('/api/documents',{credentials:'same-origin'}).then(r=>r.json()),
+fetch('/api/people?search='+encodeURIComponent(q),{credentials:'same-origin'}).then(r=>r.json())
+]);
+const news=nj.data||nj;
+const docs=dj.data||dj;
+const people=pj.data||pj;
+let html='<div style="display:flex;flex-direction:column;gap:12px">';
+if(news.length>0){html+='<div class="sec-label">Notícias</div>'+news.map(n=>'<div class="search-result" onclick="tab(\'news\')">'+n.title+'</div>').join('');}
+if(docs.length>0){html+='<div class="sec-label">Documentos</div>'+docs.map(d=>'<div class="search-result">'+d.title+'</div>').join('');}
+if(people.length>0){html+='<div class="sec-label">Pessoas</div>'+people.map(p=>'<div class="search-result">'+p.nome+(p.cargo?' - '+p.cargo:'')+'</div>').join('');}
+if(news.length===0&&docs.length===0&&people.length===0){html+='<div style="color:var(--text-dim);text-align:center;padding:20px">Nenhum resultado.</div>'}
+html+='</div>';
+results.innerHTML=html;
+}
+function tab(name){
+document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+document.querySelector('[data-tab="'+name+'"]').classList.add('active');
+document.getElementById('sec-'+name).classList.add('active');
+}
+function renderKudos(kudos){
+const el=document.getElementById('kudos-list');
+el.innerHTML='';
+for(const k of kudos){
+const div=document.createElement('div');
+div.className='kudos-item';
+const time=new Date(k.created_at).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+div.innerHTML=`<div class="kudos-header"><span class="kudos-from">${k.from_nome||k.from_user_id}</span><span class="kudos-arrow">→</span><span class="kudos-to">${k.to_nome||k.to_user_id}</span></div><div class="kudos-msg">${k.message}</div><div class="kudos-time">${time}</div>`;
+el.appendChild(div);
+}
+if(kudos.length===0)el.innerHTML='<div style="color:var(--text-dim);text-align:center;padding:40px">Nenhum kudos enviado ainda.</div>';
+}
+function openKudosModal(){
+document.getElementById('modal-title').textContent='Enviar Kudos';
+document.getElementById('modal-body').innerHTML=`<div class="fg"><span class="fl">PARA</span><input class="fi" id="kudos-to" placeholder="ID ou nome do colega"></div><div class="fg"><span class="fl">MENSAGEM</span><textarea class="fi" id="kudos-msg" placeholder="O que você gostaria de reconhecer?"></textarea></div>`;
+document.getElementById('modal-footer').innerHTML=`<button class="btn-action" onclick="closeModal()">Cancelar</button><button class="btn-login" onclick="saveKudos()">Enviar</button>`;
+document.getElementById('modal').classList.add('show');
+}
+async function saveKudos(){
+const to_user_id=document.getElementById('kudos-to').value.trim();
+const message=document.getElementById('kudos-msg').value.trim();
+if(!to_user_id||!message){toast('Preencha para quem e a mensagem.','err');return;}
+const r=await fetch('/api/people/kudos',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'same-origin',body:JSON.stringify({to_user_id,message})});
+const j=await r.json();
+if(j.ok){closeModal();toast('Kudos enviado!','ok');loadKudos();}
+else{toast(j.error,'err');}
+}
+
+// ── MODAL ───────────────────────────────────────────────
+function closeModal(){
+document.getElementById('modal').classList.remove('show');
+currentNewsId=null;
+}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();});
+
+// ── INIT ─────────────────────────────────────────────
+async function loadAll(){
+    console.log('Iniciando carregamento de dados...');
+    const tasks=[
+        {n:'Settings',f:loadSettings},
+        {n:'Notícias',f:loadNews},
+        {n:'Pastas',f:loadFolders},
+        {n:'Docs',f:loadDocs},
+        {n:'Pessoas',f:loadPeople},
+        {n:'Comunidades',f:loadCommunities},
+        {n:'Eventos',f:loadEvents},
+        {n:'Kudos',f:loadKudos}
+    ];
+    // Executar em paralelo para não travar se uma falhar
+    await Promise.all(tasks.map(async t => {
+        try { 
+            console.log('Carregando: ' + t.n);
+            await t.f(); 
+        } catch(e) { 
+            console.error('Falha crítica em ' + t.n, e); 
+        }
+    }));
+    applySettings();
+    console.log('Carregamento finalizado.');
+}
+async function init(){
+setBootProgress(30,'Verificando sessão...');
+const r=await fetch('/api/auth/status',{credentials:'same-origin'});
+if(r.ok){
+const j=await r.json();
+setBootProgress(70,'Carregando dados...');
+if(j.authenticated){
+    hideLogin();
+    setUser({nome:j.user?.nome,email:j.user?.email,funcoes:j.user?.funcoes,is_admin:j.is_admin});
+    await loadAll();
+}
+else{showLogin();}
+}else{showLogin();}
+setBootProgress(100,'Pronto!');
+setTimeout(hideBoot,300);
+}
+init();
+
+// Dark mode
+function toggleDark(){
+  document.body.classList.toggle('dark-mode');
+  try{localStorage.setItem('theme', document.body.classList.contains('dark-mode')?'dark':'light');}catch(e){}
+}
+(function(){
+  try{if(localStorage.getItem('theme')==='dark')document.body.classList.add('dark-mode');}catch(e){}
+})();
+</script>
+</body>
+</html>

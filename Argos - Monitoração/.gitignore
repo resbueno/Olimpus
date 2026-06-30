@@ -1,0 +1,5 @@
+argos.cfg
+secret.key
+auth.py
+monitor.db
+monitor.log

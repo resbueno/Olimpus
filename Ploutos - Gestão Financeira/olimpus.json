@@ -1,0 +1,9 @@
+{
+  "name":  "Ploutos",
+  "myth":  "Deus grego da riqueza — enxerga cada centavo com precisão",
+  "cat":   "Gestão Financeira",
+  "desc":  "Controle financeiro completo: lançamentos, contas a pagar/receber, fluxo de caixa e orçamentos.",
+  "color": "#ca8a04",
+  "icon":  "chart",
+  "port":  5080
+}

@@ -1,0 +1,129 @@
+Têmis – App Web de Gestão de Contratos
+Proposta Completa
+Descrição
+
+Têmis é a plataforma web de gestão completa do ciclo de vida de contratos com assinatura digital, IA para análise de cláusulas e rastreamento inteligente.
+
+Features Principais
+
+• Criação de contratos via template ou upload
+• Assinatura digital (certificado A1/A3 ou DocuSign-like)
+• Análise automática de riscos por IA
+• Alertas de vencimento e renovação
+• Versionamento completo + audit trail
+• Repositório central com busca full-text
+• Workflow de aprovação hierárquico
+• Integração com CRM e ERP
+
+Módulo Fiscal (NOVO)
+
+• Cadastro de obrigações fiscais vinculadas ao contrato
+• Associação de tributos (ISS, ICMS, PIS/COFINS, IRPJ, INSS, etc.)
+• Controle de retenções na fonte
+• Gestão de centros de custo e natureza financeira
+• Registro de valores previstos vs realizados
+• Geração de base para integração contábil/fiscal
+
+Telas Sugeridas
+Contratos (lista com filtro)
+Editor de Contrato (rich text + cláusulas)
+Detalhe do Contrato (timeline + status)
+Análise de Riscos (IA)
+Alertas e Vencimentos
+Painel Fiscal do Contrato (NOVO)
+Tributos vinculados
+Obrigações e vencimentos fiscais
+Histórico de pagamentos
+Divergências financeiras
+User Flow Principal
+
+Jurídico cria → Envia para aprovação → Assinatura → Arquiva → Sistema alerta vencimento 60 dias antes
+
+Fluxo Fiscal Integrado (NOVO)
+
+Contrato ativo → Sistema identifica obrigações fiscais → Agenda eventos → Envia alertas → Financeiro/Contábil executa → Registro de cumprimento → Auditoria
+
+Stack Tecnológica Sugerida
+
+• Frontend: Next.js + Tiptap (editor) + shadcn
+• Backend: NestJS
+• Banco: PostgreSQL
+• Assinatura: Assina Brasil ou Clicksign API
+• IA: Claude ou GPT-4o para análise de cláusulas
+• Armazenamento: AWS S3
+
+Documentação DDD – Têmis
+User Stories Principais
+
+• Como gestor jurídico, quero criar contrato a partir de template
+• Como signatário, quero assinar com certificado digital
+• Como gestor, quero ser alertado 60 dias antes do vencimento
+
+User Stories Fiscais (NOVO)
+
+• Como analista fiscal, quero vincular tributos a um contrato para garantir conformidade
+• Como financeiro, quero acompanhar valores previstos e realizados para evitar divergências
+• Como gestor, quero receber alertas de obrigações fiscais para não perder prazos
+• Como auditor, quero rastrear histórico fiscal do contrato
+
+Requisitos Não-Funcionais
+
+• Todos os documentos criptografados em repouso
+• Audit log imutável
+• Suporte a 5.000 contratos ativos
+
+Requisitos Fiscais (NOVO)
+
+• Conformidade com legislação tributária brasileira
+• Registro auditável de apuração e pagamento
+• Integração com sistemas contábeis (ex: ERP)
+• Controle de permissões por perfil (jurídico, fiscal, financeiro)
+
+Endpoints Principais
+
+POST /contracts
+GET /contracts/:id/analyze
+POST /contracts/:id/sign
+
+Endpoints Fiscais (NOVO)
+
+POST /contracts/:id/taxes
+GET /contracts/:id/fiscal
+POST /contracts/:id/fiscal/events
+GET /contracts/:id/fiscal/alerts
+
+Acompanhamento e Alertas por E-mail (NOVO)
+Tipos de Alertas
+
+• Vencimento de contrato (30, 60, 90 dias)
+• Obrigações fiscais próximas do prazo
+• Divergência entre valor contratado e faturado
+• Pendência de assinatura
+• Alterações contratuais relevantes
+
+Regras de Disparo
+
+• Configuráveis por tipo de contrato
+• Baseados em SLA (ex: alerta 7 dias antes do vencimento fiscal)
+• Escalonamento automático (analista → gestor → diretoria)
+
+Canais
+
+• E-mail (principal)
+• Notificação in-app
+• Webhook para integração com sistemas externos
+
+Conteúdo do E-mail
+
+• Identificação do contrato
+• Tipo de alerta
+• Prazo e criticidade
+• Ação recomendada
+• Link direto para o sistema
+
+MVP Roadmap
+
+Fase 1: Upload + Assinatura
+Fase 2: IA de análise
+Fase 3: Workflow + Alertas
+Fase 4: Módulo Fiscal + Alertas Inteligentes

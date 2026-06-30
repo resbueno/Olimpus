@@ -1,0 +1,33 @@
+Héstia – App Web de Intranet Corporativa
+Proposta Completa
+Descrição Héstia é o “lar digital” da empresa: portal interno moderno, centralizado e acolhedor que substitui e-mails, drives bagunçados e comunicações fragmentadas.
+Features Principais
+•	Feed de notícias interno
+•	Documentos centralizados (com versionamento)
+•	Diretório de funcionários + organograma
+•	Salas de reunião virtuais (integração Zoom/Teams)
+•	Calendário compartilhado
+•	Comunidades e grupos por área
+•	Aniversários, kudos e mural de avisos
+•	Busca global inteligente
+Telas Sugeridas
+1.	Home (feed + destaques)
+2.	Documentos
+3.	Pessoas
+4.	Comunidades
+5.	Eventos & Calendário
+User Flow Colaborador entra → vê anúncios importantes → acessa documento → marca aniversário → participa de comunidade.
+Stack Tecnológica
+•	Next.js + shadcn/ui
+•	Backend: Supabase ou NestJS
+•	Banco: PostgreSQL
+•	Armazenamento: S3
+•	Busca: Typesense ou Meilisearch
+
+Documentação DDD – Héstia
+User Stories
+•	Como colaborador, quero ver todas as informações da empresa em um só lugar
+•	Como gestor, quero publicar comunicado que todos leiam
+Requisitos Não-Funcionais
+•	Totalmente responsivo (mobile-first)
+•	Suporte offline para documentos principais

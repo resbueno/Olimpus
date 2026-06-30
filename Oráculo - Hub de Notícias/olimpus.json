@@ -1,0 +1,9 @@
+{
+  "name": "Oráculo",
+  "myth": "decifra dados e anuncia o futuro em cada KPI e notícia corporativa",
+  "cat": "Hub de Notícias",
+  "desc": "Central de inteligência corporativa: agrega notícias externas, KPIs internos e gera insights acionáveis. Distribui newsletters segmentadas por área e perfil.",
+  "color": "#0284c7",
+  "icon": "bolt",
+  "port": 5030
+}

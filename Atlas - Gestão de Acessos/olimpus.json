@@ -1,0 +1,9 @@
+{
+  "name": "Atlas",
+  "myth": "carrega o peso de cada identidade e permissão do Olimpus",
+  "cat": "Gestão de Acessos",
+  "desc": "Plataforma central de IAM — gerencia identidades, perfis e permissões de todos os sistemas do Olimpus.",
+  "color": "#7c3aed",
+  "icon": "shield",
+  "port": 5010
+}

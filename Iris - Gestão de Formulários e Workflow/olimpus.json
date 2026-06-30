@@ -1,0 +1,9 @@
+{
+  "name": "Iris",
+  "myth": "conecta aprovadores e etapas como pontes de luz entre o céu e a terra",
+  "cat": "Formulários e Workflow",
+  "desc": "Form Builder com Workflow Engine: crie formulários por drag-and-drop, defina fluxos de aprovação e acompanhe ordens de serviço do início ao fim com notificações automáticas.",
+  "color": "#7c3aed",
+  "icon": "tasks",
+  "port": 5070
+}

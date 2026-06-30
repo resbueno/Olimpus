@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARGOS — Monitoração de Aplicações WEB</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%232563eb'/><ellipse cx='16' cy='16' rx='11' ry='7' fill='none' stroke='white' stroke-width='2'/><circle cx='16' cy='16' r='3.5' fill='white'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #ffffff;
+  --bg-alt: #f8f9fa;
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --glass: rgba(255, 255, 255, 0.7);
+  --border: rgba(0, 0, 0, 0.08);
+  --border2: rgba(0, 0, 0, 0.12);
+  --accent: #1a73e8;
+  --accent2: #1557b0;
+  --accent-bg: rgba(26, 115, 232, 0.05);
+  --success: #0f9d58;
+  --success-bg: rgba(15, 157, 88, 0.05);
+  --danger: #d93025;
+  --danger-bg: rgba(217, 48, 37, 0.05);
+  --warn: #f4b400;
+  --warn-bg: rgba(244, 180, 0, 0.05);
+  --text: #1f1f1f;
+  --text-mid: #5f6368;
+  --text-dim: #70757a;
+  --sans: 'Outfit', sans-serif;
+  --display: 'Space Grotesk', sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --r: 12px;
+  --r2: 24px;
+  --radius: 24px;
+  --sh: 0 12px 40px rgba(0, 0, 0, 0.04);
+}
+
+body.dark-mode {
+  --bg: #0b0f1a;
+  --bg-alt: #111827;
+  --bg2: #1f2937;
+  --bg3: #374151;
+  --glass: rgba(17, 24, 39, 0.7);
+  --border: rgba(255, 255, 255, 0.08);
+  --border2: rgba(255, 255, 255, 0.12);
+  --text: #f3f4f6;
+  --text-mid: #9ca3af;
+  --text-dim: #6b7280;
+  --sh: 0 12px 40px rgba(0, 0, 0, 0.3);
+  --accent-bg: rgba(26, 115, 232, 0.15);
+  --success-bg: rgba(15, 157, 88, 0.15);
+  --danger-bg: rgba(217, 48, 37, 0.15);
+  --warn-bg: rgba(244, 180, 0, 0.15);
+}
+
+body.dark-mode .card, body.dark-mode .sidebar, body.dark-mode .kpi, body.dark-mode .topbar, body.dark-mode .mc, body.dark-mode .lp, body.dark-mode .modal {
+  background: var(--bg2);
+}
+
+.glass-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  box-shadow: var(--sh);
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0; -webkit-font-smoothing: antialiased;}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;overflow:hidden;transition:background-color 0.4s, color 0.4s;}
+a { color: inherit; text-decoration: none; }
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.08);border-radius:20px}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.15)}
+body.dark-mode ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);}
+
+/* Layout */
+.dashboard-layout {
+  padding: 24px;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+.main-area {
+  width: 100%;
+  max-width: 1400px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-alt);
+  border-radius: var(--radius);
+  border: none;
+  overflow: hidden;
+  position: relative;
+}
+.main-area::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 150px 80px var(--bg);
+  pointer-events: none;
+  z-index: 1;
+}
+.hero-blob {
+  position: absolute;
+  width: 800px;
+  height: 800px;
+  border-radius: 50%;
+  filter: blur(160px);
+  z-index: 0;
+  opacity: 0.15;
+  pointer-events: none;
+}
+.blob-1 { top: -200px; right: -200px; background: radial-gradient(circle, #4285f4, transparent); }
+.blob-2 { bottom: -100px; left: -100px; background: radial-gradient(circle, #34a853, transparent); }
+.blob-3 { top: 20%; left: 10%; background: radial-gradient(circle, #ea4335, transparent); width: 400px; height: 400px; }
+.blob-4 { bottom: 20%; right: 10%; background: radial-gradient(circle, #fbbc05, transparent); width: 300px; height: 300px; }
+
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  transition: all 0.3s;
+}
+.theme-toggle:hover { transform: scale(1.1); border-color: var(--accent); }
+
+
+/* LOGIN */
+#ls{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999}
+#ls.hidden{display:none}
+.lbg{position:absolute;inset:0;background:radial-gradient(ellipse 60% 50% at 20% 40%,#2563eb0c 0%,transparent 70%),radial-gradient(ellipse 50% 60% at 80% 60%,#16a34a08 0%,transparent 70%)}
+.lp{position:relative;width:400px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--sh);overflow:hidden}
+.lt{background:linear-gradient(135deg,#2563eb0c,#16a34a0a);border-bottom:1px solid var(--border);padding:32px 36px 28px;text-align:center}
+.llo{display:inline-flex;align-items:center;gap:14px;margin-bottom:8px}
+.leye{width:44px;height:44px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:50%;display:grid;place-items:center}
+.leye svg{width:22px;height:22px}
+.lbrand{font-size:1.8rem;font-weight:700;letter-spacing:.06em;color:var(--text)}
+.lsub{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.14em;margin-top:4px;text-transform:uppercase}
+.lf{padding:28px 36px 32px;display:flex;flex-direction:column;gap:16px}
+.lerr{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:8px 12px;font-size:.8rem;color:var(--danger);display:none}
+.lerr.show{display:block}
+.lfg{display:flex;flex-direction:column;gap:5px}
+.flab{font-size:.75rem;font-weight:600;color:var(--text-mid);letter-spacing:.02em;margin-bottom:4px;}
+.fi{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:1rem;padding:14px 18px;border-radius:16px;outline:none;transition:all 0.3s;width:100%}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-bg); background: var(--bg2);}
+.fi::placeholder{color:var(--text-dim)}
+.btn-login{background:var(--accent);border:none;color:#fff;font-family:var(--sans);font-size:1rem;font-weight:600;padding:14px;border-radius:16px;cursor:pointer;transition:all 0.3s;letter-spacing:.02em;margin-top:8px}
+.btn-login:hover{background:var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-bg);}
+.lhint{font-size:.75rem;color:var(--text-dim);text-align:center;font-family:var(--sans); margin-top: 12px;}
+
+/* APP */
+#app{display:flex;flex-direction:column;height:100%;z-index:2;position:relative;}
+.topbar{height:80px;background:transparent;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 40px;position:relative;z-index:100;flex-shrink:0}
+.tbl{display:flex;align-items:center;gap:16px}
+.bicon{width:36px;height:36px;border-radius:8px;display:grid;place-items:center}
+.bicon svg{width:36px;height:36px}
+.bname{font-family:var(--display);font-size:1.5rem;font-weight:700;letter-spacing:-0.01em}
+.bsep{width:1px;height:20px;background:var(--border)}
+.bmod{font-size:1rem;color:var(--text-dim);opacity:0.6;font-family:var(--sans);font-weight:400;letter-spacing:normal}
+.tbr{display:flex;align-items:center;gap:12px}
+.live{display:flex;align-items:center;gap:6px;background:var(--success-bg);border:1px solid var(--success);border-radius:20px;padding:3px 10px;font-family:var(--mono);font-size:.65rem;color:var(--success);letter-spacing:.1em}
+.ldot{width:6px;height:6px;background:var(--success);border-radius:50%;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.tclock{font-family:var(--mono);font-size:.78rem;color:var(--text-mid)}
+.btic{width:32px;height:32px;background:transparent;border:1px solid var(--border);border-radius:var(--r);color:var(--text-mid);cursor:pointer;display:grid;place-items:center;transition:all .15s;font-size:.9rem}
+.btic:hover{border-color:var(--border2);color:var(--text);background:var(--bg3)}
+
+/* KPI */
+.kpi{display:grid;grid-template-columns:repeat(6,1fr);border-bottom:1px solid var(--border);background:transparent;z-index:2;position:relative;}
+.kc{padding:14px 24px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:3px;transition: background 0.3s;}
+.kc:hover{background: var(--accent-bg);}
+.kc:last-child{border-right:none}
+.klb{font-size:.68rem;font-weight:600;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase}
+.kv{font-family:var(--display);font-size:1.6rem;font-weight:700;line-height:1;color:var(--text)}
+.kv.blue{color:var(--accent)}.kv.green{color:var(--success)}.kv.red{color:var(--danger)}.kv.warn{color:var(--warn)}
+
+/* BODY */
+.bwrap{display:flex;flex:1;overflow:hidden;height:0;}
+.sidebar{width:280px;min-width:280px;background: var(--glass); backdrop-filter: blur(8px); border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden; z-index: 3;}
+.sbhd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; background: var(--glass);}
+.sbttl{font-family: var(--display); font-size:.85rem;font-weight:700;color:var(--text-dim);letter-spacing:.05em;text-transform:uppercase}
+.btn-new{background:var(--accent);border:none;color:#fff;font-size:.75rem;font-weight:700;padding:8px 16px;border-radius:12px;cursor:pointer;transition:all 0.3s;}
+.btn-new:hover{background:var(--accent2); transform: scale(1.05);}
+.sblist{flex:1;overflow-y:auto; padding: 12px;}
+.si{padding:16px 20px; border-radius: 16px; border: 1px solid transparent; cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px; margin-bottom: 4px;}
+.si:hover{background:var(--bg3); transform: translateX(4px);}
+.si.sel{background:var(--bg2); border-color: var(--accent); box-shadow: var(--sh);}
+.ss{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.ss.ok{background:var(--success);box-shadow:0 0 8px var(--success)}
+.ss.fail{background:var(--danger);box-shadow:0 0 8px var(--danger)}
+.ss.off{background:var(--text-dim)}.ss.pend{background:var(--warn)}
+.si-info{flex:1;min-width:0}
+.si-name{font-size:.9rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.si-meta{font-family:var(--sans);font-size:.7rem;color:var(--text-dim);margin-top:2px; opacity: 0.8;}
+
+/* MAIN */
+.main{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text-dim);padding:60px 20px;text-align:center}
+.empty-ico{font-size:2.5rem;opacity:.2}
+
+/* PAGE HEAD */
+.phd{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.pey{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.ptit{font-family: var(--display); font-size:1.8rem;font-weight:700;letter-spacing:-0.01em}
+.arow{display:flex;gap:12px;flex-wrap:wrap}
+.btn{font-family:var(--sans);font-size:.85rem;font-weight:600;padding:10px 20px;border-radius:12px;border:1px solid;cursor:pointer;transition:all 0.3s;display:inline-flex;align-items:center;gap:8px;letter-spacing:.01em}
+.bp{background:var(--accent);border-color:var(--accent);color:#fff}.bp:hover{background:var(--accent2); transform: translateY(-2px); box-shadow: 0 8px 20px var(--accent-bg);}
+.bo{background:var(--bg2);border-color:var(--border);color:var(--text-mid)}.bo:hover{border-color:var(--accent);color:var(--accent);background:var(--bg3)}
+.bd{background:var(--bg2);border-color:var(--border);color:var(--text-mid)}.bd:hover{background:var(--danger-bg);border-color:var(--danger);color:var(--danger); transform: translateY(-2px);}
+.bw{background:var(--bg2);border-color:var(--border);color:var(--text-mid)}.bw:hover{background:var(--warn-bg);border-color:var(--warn);color:var(--warn); transform: translateY(-2px);}
+.bsuc{background:var(--bg2);border-color:var(--border);color:var(--text-mid)}.bsuc:hover{background:var(--success-bg);border-color:var(--success);color:var(--success); transform: translateY(-2px);}
+
+/* METRIC GRID */
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.mc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:24px;display:flex;flex-direction:column;gap:8px;transition: all 0.3s; box-shadow: var(--sh);}
+.mc:hover{transform: translateY(-4px); border-color: var(--accent);}
+.mlb{font-size:.7rem;font-weight:600;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase}
+.mv{font-family:var(--display);font-size:1.6rem;font-weight:700}
+.mv.blue{color:var(--accent)}.mv.green{color:var(--success)}.mv.red{color:var(--danger)}.mv.warn{color:var(--warn)}
+.msub{font-family:var(--sans);font-size:.75rem;color:var(--text-dim);margin-top:2px}
+
+/* CARD */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden; box-shadow: var(--sh);}
+.chd{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between; background: var(--bg-alt);}
+.cttl{font-family: var(--display); font-size:.95rem;font-weight:700;letter-spacing:.02em}
+.chint{font-family:var(--sans);font-size:.75rem;color:var(--text-dim)}
+.cbdy{padding:24px}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:.68rem;font-weight:600;padding:3px 9px;border-radius:3px;letter-spacing:.08em}
+.bok{background:var(--success-bg);color:var(--success);border:1px solid #16a34a40}
+.bfl{background:var(--danger-bg);color:var(--danger);border:1px solid #dc262640}
+.boff{background:transparent;color:var(--text-dim);border:1px solid var(--border)}
+
+/* TIMING */
+.ttrack{display:flex;height:28px;border-radius:var(--r);overflow:hidden;border:1px solid var(--border)}
+.tseg{height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:.65rem;transition:flex .4s ease;white-space:nowrap;overflow:hidden}
+.tseg.load{background:#2563eb14;color:var(--accent2);border-right:1px solid var(--border)}
+.tseg.lgn{background:#d9770614;color:var(--warn);border-right:1px solid var(--border)}
+.tseg.svc{background:#16a34a14;color:var(--success)}
+.tleg{display:flex;gap:20px;flex-wrap:wrap;margin-top:10px}
+.tli{font-family:var(--mono);font-size:.68rem;color:var(--text-dim);display:flex;align-items:center;gap:6px}
+.tld{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+/* CHART */
+.csvg{width:100%;display:block;height:120px}
+
+/* SCREENSHOT */
+.sswrap{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:#000;position:relative}
+.sswrap img{width:100%;display:block}
+.ssts{position:absolute;bottom:8px;right:10px;background:#000000aa;font-family:var(--mono);font-size:.62rem;color:var(--text-mid);padding:2px 6px;border-radius:3px}
+.ssph{height:140px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-family:var(--mono);font-size:.75rem;background:var(--bg3);border:1px dashed var(--border2);border-radius:var(--r)}
+
+/* TABLE */
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.68rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:9px 14px;background:var(--bg3);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle;font-size:.8rem}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--bg3)}
+.mcell{font-family:var(--mono);font-size:.76rem}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:#00000088;backdrop-filter:blur(3px);z-index:500;display:none;align-items:center;justify-content:center}
+.ov.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:var(--sh);animation:mup .18s ease}
+@keyframes mup{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.mhd{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.mttl{font-size:.88rem;font-weight:600}
+.mcls{background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.1rem;transition:color .12s}
+.mcls:hover{color:var(--danger)}
+.mbdy{padding:22px;display:flex;flex-direction:column;gap:16px}
+.mft{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.frow{display:flex;gap:14px}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1}
+.fl{font-size:.72rem;font-weight:500;color:var(--text-mid)}
+.finp{background:var(--bg3);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.82rem;padding:9px 12px;border-radius:var(--r);outline:none;width:100%;transition:border-color .14s,box-shadow .14s}
+.finp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.finp::placeholder{color:var(--text-dim)}
+select.finp{cursor:pointer}
+.fhint{font-size:.68rem;color:var(--text-dim);font-family:var(--mono)}
+.fck{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text-mid);cursor:pointer}
+.fck input{accent-color:var(--accent);width:15px;height:15px;cursor:pointer}
+.ssttl{font-size:.72rem;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:12px}
+
+/* TOAST */
+.ta{position:fixed;bottom:20px;right:20px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{font-size:.78rem;padding:10px 16px;border-radius:var(--r);border:1px solid;min-width:200px;display:flex;align-items:center;gap:8px;animation:tin .18s ease;box-shadow:0 2px 8px #00000030}
+@keyframes tin{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
+.tok{background:var(--success-bg);border-color:#16a34a60;color:var(--success)}
+.terr{background:var(--danger-bg);border-color:#dc262660;color:var(--danger)}
+.tinf{background:var(--accent-bg);border-color:#2563eb60;color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="ls" class="hidden">
+  <div class="lbg"></div>
+  <div class="lp">
+    <div class="lt">
+      <div style="text-align:right;margin-bottom:-16px"><button onclick="hideLoginOverlay()" style="background:none;border:none;color:var(--text-dim);cursor:pointer;font-size:1.1rem;line-height:1" title="Fechar">&#10005;</button></div>
+      <div class="llo">
+        <div class="leye" style="border-radius:12px; background: var(--accent); border: none;">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" style="width:32px;height:32px;">
+            <rect width="32" height="32" rx="8" fill="transparent" />
+            <ellipse cx="16" cy="16" rx="11" ry="7" fill="none" stroke="white" stroke-width="2"/>
+            <circle cx="16" cy="16" r="3.5" fill="white"/>
+          </svg>
+        </div>
+        <span class="lbrand" style="font-family: var(--display); font-weight: 700;">ARGOS</span>
+      </div>
+      <div class="lsub">Hub de Monitoração</div>
+    </div>
+    <div class="lf">
+      <div class="lerr" id="lerr">E-mail ou senha inválidos.</div>
+      <div class="lfg"><label class="flab">E-mail</label><input class="fi" id="liu" type="email" placeholder="seu@email.com" autocomplete="email"></div>
+      <div class="lfg"><label class="flab">Senha</label><input class="fi" id="lip" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn-login" onclick="doLogin()">Entrar via Atlas</button>
+      <div class="lhint" style="margin-top:8px">Acesso gerenciado pelo Atlas · porta 5010</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="dashboard-layout">
+<main class="main-area">
+  <div class="hero-blob blob-1"></div>
+  <div class="hero-blob blob-2"></div>
+  <div class="hero-blob blob-3"></div>
+  <div class="hero-blob blob-4"></div>
+<div id="app" style="display:flex">
+  <div class="topbar">
+    <div class="tbl">
+      <div class="bicon">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="#2563eb" />
+          <ellipse cx="16" cy="16" rx="11" ry="7" fill="none" stroke="white" stroke-width="2"/>
+          <circle cx="16" cy="16" r="3.5" fill="white"/>
+        </svg>
+      </div>
+      <span class="bname">ARGOS <span class="bmod" style="margin-left:4px;">— Monitoração de Aplicações</span></span>
+    </div>
+    <div class="tbr">
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+        <svg id="sun-icon" style="display:none" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg id="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <div class="live"><div class="ldot"></div>AO VIVO</div>
+      <div class="tclock" id="clk">--:--:--</div>
+      <button class="btic admin-only" onclick="openSettings()" title="Configurações">&#9881;</button>
+      <button id="btn-entrar" class="btic" onclick="showLoginOverlay()" title="Entrar como administrador" style="font-size:.7rem;font-family:var(--mono);width:auto;padding:0 10px;letter-spacing:.04em">Entrar</button>
+      <button class="btic admin-only" onclick="doLogout()" title="Sair">&#9211;</button>
+    </div>
+  </div>
+  <div class="kpi">
+    <div class="kc"><div class="klb">Monitores</div><div class="kv blue" id="k0">-</div></div>
+    <div class="kc"><div class="klb">Ativos</div><div class="kv green" id="k1">-</div></div>
+    <div class="kc"><div class="klb">Execuções</div><div class="kv" id="k2">-</div></div>
+    <div class="kc"><div class="klb">Disponibilidade</div><div class="kv green" id="k3">-</div></div>
+    <div class="kc"><div class="klb">Falhas</div><div class="kv red" id="k4">-</div></div>
+    <div class="kc"><div class="klb">Tempo Médio</div><div class="kv warn" id="k5">-</div></div>
+  </div>
+  <div class="bwrap">
+    <aside class="sidebar">
+      <div class="sbhd"><span class="sbttl">Serviços</span><button class="btn-new admin-only" onclick="openModal()">+ Novo</button></div>
+      <div class="sblist" id="sbl"></div>
+    </aside>
+    <div class="main" id="mn">
+      <div class="empty" id="emp">
+        <div class="empty-ico">&#9678;</div>
+        <p style="font-size:.9rem">Selecione um serviço ou cadastre um novo monitoramento.</p>
+        <button class="btn bp admin-only" onclick="openModal()">+ Cadastrar Monitoramento</button>
+      </div>
+      <div id="det" style="display:none;flex-direction:column;gap:20px">
+        <div class="phd">
+          <div><div class="pey" id="durl"></div><div class="ptit" id="dname"></div></div>
+          <div class="arow">
+            <button class="btn bp admin-only" id="btnrun" onclick="runNow()">Executar Agora</button>
+            <button class="btn bo admin-only" onclick="openModal(true)">&#9998; Editar</button>
+            <button class="btn bw admin-only" id="btntog" onclick="toggleActive()">Desativar</button>
+            <button class="btn bd admin-only" onclick="deleteMonitor()">&#10005; Remover</button>
+          </div>
+        </div>
+        <div class="mgrid">
+          <div class="mc"><div class="mlb">Status</div><div class="mv" id="ms0"></div></div>
+          <div class="mc"><div class="mlb">Disponibilidade</div><div class="mv green" id="ms1">-</div></div>
+          <div class="mc"><div class="mlb">Tempo Médio</div><div class="mv blue" id="ms2">-</div></div>
+          <div class="mc"><div class="mlb">Intervalo</div><div class="mv warn" id="ms3">-</div><div class="msub" id="ms3b">Próx.: -</div></div>
+          <div class="mc"><div class="mlb">Total Execuções</div><div class="mv" id="ms4">-</div></div>
+          <div class="mc"><div class="mlb">Falhas</div><div class="mv red" id="ms5">-</div></div>
+          <div class="mc"><div class="mlb">Mínimo</div><div class="mv green" id="ms6">-</div></div>
+          <div class="mc"><div class="mlb">Máximo</div><div class="mv red" id="ms7">-</div></div>
+        </div>
+        <div class="card">
+          <div class="chd"><span class="cttl">Breakdown da Última Jornada</span><span class="chint" id="dlast"></span></div>
+          <div class="cbdy">
+            <div class="ttrack" id="ttr"><div class="tseg load" style="flex:1">Carga</div><div class="tseg lgn" style="flex:1">Login</div><div class="tseg svc" style="flex:1">Servico</div></div>
+            <div class="tleg">
+              <div class="tli"><div class="tld" style="background:var(--accent2)"></div>Carga: <b id="tl0">-</b></div>
+              <div class="tli"><div class="tld" style="background:var(--warn)"></div>Login: <b id="tl1">-</b></div>
+              <div class="tli"><div class="tld" style="background:var(--success)"></div>Servico: <b id="tl2">-</b></div>
+              <div class="tli"><div class="tld" style="background:var(--text-mid)"></div>Total: <b id="tl3">-</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="chd"><span class="cttl">Histórico de Tempos (últimas 30 execuções)</span><span class="chint">&#9675; = falha</span></div>
+          <div class="cbdy" style="padding:12px 18px">
+            <svg id="hchart" class="csvg" viewBox="0 0 700 120" preserveAspectRatio="none"></svg>
+            <div style="display:flex;gap:20px;margin-top:8px;flex-wrap:wrap">
+              <span style="font-family:var(--mono);font-size:.65rem;color:#2563eb;display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:2px;background:#2563eb;border-radius:1px;flex-shrink:0"></span>Carga</span>
+              <span style="font-family:var(--mono);font-size:.65rem;color:#d97706;display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:2px;background:#d97706;border-radius:1px;flex-shrink:0"></span>Login</span>
+              <span style="font-family:var(--mono);font-size:.65rem;color:#16a34a;display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:18px;height:2px;background:#16a34a;border-radius:1px;flex-shrink:0"></span>Serviço</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="chd"><span class="cttl">Captura de Tela — Última Execução Bem-sucedida</span><span class="chint" id="ssts"></span></div>
+          <div class="cbdy"><div id="ssa"><div class="ssph">Nenhuma captura disponivel</div></div></div>
+        </div>
+        <div class="card">
+          <div class="chd"><span class="cttl">Log de Execuções</span><button class="btn bo" onclick="loadHistory()" style="font-size:.7rem;padding:4px 10px">&#8635; Atualizar</button></div>
+          <div class="twrap"><table><thead><tr><th>Data / Hora</th><th>Status</th><th>Carga</th><th>Login</th><th>Servico</th><th>Total</th><th>Ocorrencia</th></tr></thead><tbody id="htbody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+<footer style="padding:24px; text-align:center; font-size:0.75rem; color:var(--text-dim); border-top:1px solid var(--border); z-index:2; position:relative;">Desenvolvido por RBBrDev - Renato Bueno</footer>
+</div>
+</main>
+</div>
+
+<!-- MODAL MONITOR -->
+<div class="ov" id="mov" onclick="cov('mov',event)">
+  <div class="modal">
+    <div class="mhd"><span class="mttl" id="mttl">Novo Monitoramento</span><button class="mcls" onclick="cl('mov')">&#10005;</button></div>
+    <div class="mbdy">
+      <input type="hidden" id="fid">
+      <div class="frow">
+        <div class="fg"><label class="fl">Nome do Serviço *</label><input class="finp" id="fn" placeholder="ex: Portal RH"></div>
+        <div class="fg" style="max-width:140px"><label class="fl">Intervalo *</label>
+          <select class="finp" id="fiv"><option value="1">1 minuto</option><option value="5" selected>5 minutos</option><option value="15">15 minutos</option><option value="30">30 minutos</option><option value="60">60 minutos</option></select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">URL *</label><input class="finp" id="fu" type="url" placeholder="https://sistema.empresa.com/login"></div>
+      <div class="frow">
+        <div class="fg"><label class="fl">Usuário *</label><input class="finp" id="fus" placeholder="usuario@empresa.com" autocomplete="off"></div>
+        <div class="fg"><label class="fl">Senha *</label><input class="finp" id="fps" type="password" placeholder="..." autocomplete="new-password"></div>
+      </div>
+      <div class="fg"><label class="fl">Seletor / Menu Alvo *</label><input class="finp" id="fsel" placeholder="#menu-item  ou  Texto do Botão  ou  url:https://..."><div class="fhint">CSS selector, texto visível do elemento, ou url:https://... para navegação direta</div></div>
+      <div class="fg">
+        <label class="fl">Notificações por e-mail</label>
+        <input class="finp" id="fnotify" placeholder="email1@empresa.com, email2@empresa.com" style="margin-bottom:8px">
+        <div class="fhint" style="margin-bottom:10px">Separe múltiplos endereços com vírgula. Requer Gmail configurado nas Configurações.</div>
+        <div style="display:flex;flex-direction:column;gap:8px;padding:10px 12px;background:var(--bg3);border-radius:6px;border:1px solid var(--border)">
+          <div style="font-size:.75rem;color:var(--text-dim);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">Regras de envio</div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;color:var(--text-mid);cursor:pointer">
+            <input type="checkbox" id="fonfail" checked style="accent-color:var(--accent)">
+            Enviar quando o status for <strong style="color:#dc2626;margin-left:3px">FALHA</strong>
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;font-size:.83rem;color:var(--text-mid);cursor:pointer;flex-wrap:wrap">
+            <input type="checkbox" id="fonslowck" style="accent-color:var(--accent)" onchange="document.getElementById('fonslow').disabled=!this.checked">
+            Enviar quando o tempo total exceder
+            <input type="number" id="fonslow" min="100" step="100" placeholder="ex: 5000" disabled
+              style="width:90px;padding:3px 7px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:.83rem">
+            <span style="color:var(--text-dim)">ms</span>
+          </label>
+        </div>
+      </div>
+      <label class="fck"><input type="checkbox" id="f2step">Login em 2 etapas (usuário → Enter → tela de senha → Enter)<div class="fhint" style="margin-top:3px;margin-left:23px">Use quando o sistema exibe usuário e senha em telas separadas.</div></label>
+      <label class="fck"><input type="checkbox" id="fact" checked>Ativar monitoramento imediatamente após salvar</label>
+    </div>
+    <div class="mft"><button class="btn bo" onclick="cl('mov')">Cancelar</button><button class="btn bp" onclick="saveMonitor()">Salvar</button></div>
+  </div>
+</div>
+
+<!-- MODAL SETTINGS -->
+<div class="ov" id="sov" onclick="cov('sov',event)">
+  <div class="modal" style="width:460px">
+    <div class="mhd"><span class="mttl">Configurações do Painel</span><button class="mcls" onclick="cl('sov')">&#10005;</button></div>
+    <div class="mbdy">
+      <div><div class="ssttl">Identidade e Senha</div>
+        <div style="font-size:.8rem;color:var(--text-mid);background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;line-height:1.6">
+          Usuários e senhas são gerenciados centralmente pelo <strong>Atlas</strong>.<br>
+          Para alterar seus dados acesse:<br>
+          <a href="http://localhost:5010" target="_blank" style="color:var(--accent);font-family:var(--mono);font-size:.78rem">http://localhost:5010</a>
+        </div>
+      </div>
+      <div style="margin-top:20px"><div class="ssttl">Notificações por E-mail (Gmail)</div>
+        <div class="fg" style="margin-bottom:10px"><label class="fl">Conta Gmail (remetente)</label><input class="finp" id="cgmail" type="email" placeholder="seu@gmail.com"></div>
+        <div class="fg" style="margin-bottom:10px"><label class="fl">Senha de aplicativo</label><input class="finp" id="cgpass" type="password" placeholder="xxxx xxxx xxxx xxxx"><div class="fhint" style="margin-top:4px">Gere em: Conta Google → Segurança → Senhas de app</div></div>
+        <div class="frow" style="gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <button class="btn bo" onclick="saveEmailCfg()">Salvar configuração</button>
+          <div class="fg" style="flex-direction:row;gap:8px;align-items:center;flex:1;min-width:180px">
+            <input class="finp" id="ctestemail" type="email" placeholder="destino@empresa.com" style="flex:1">
+            <button class="btn bo" onclick="testEmail()" style="flex-shrink:0;white-space:nowrap">Testar envio</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="mft"><button class="btn bo" onclick="cl('sov')">Fechar</button></div>
+  </div>
+</div>
+
+<div class="ta" id="ta"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+function toggleTheme() {
+  const isDark = document.body.classList.toggle('dark-mode');
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  document.getElementById('sun-icon').style.display = isDark ? 'block' : 'none';
+  document.getElementById('moon-icon').style.display = isDark ? 'none' : 'block';
+}
+
+let monitors=[],selId=null,hdata=[],isAdmin=false;
+// Oculta controles admin antes da verificação de sessão (sem flash)
+document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
+
+// utils
+const fms=v=>v==null?'-':v>=1000?(v/1000).toFixed(1)+'s':v+'ms';
+const fdt=s=>s?new Date(s).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}):'-';
+function frelt(s){if(!s)return'-';const d=new Date(s),n=new Date(),df=n-d;if(df<60000)return'há '+Math.floor(df/1000)+'s';if(df<3600000)return'há '+Math.floor(df/60000)+'min';if(df<86400000)return'hoje '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});}
+const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function toast(m,t='ok'){const c=document.getElementById('ta');const el=document.createElement('div');el.className='toast t'+t;const ic={ok:'&#10003;',err:'&#10005;',inf:'&#9432;'};el.innerHTML=`<span>${ic[t]||'.'}</span><span>${m}</span>`;c.appendChild(el);setTimeout(()=>el.style.opacity='0',2800);setTimeout(()=>el.remove(),3200);}
+async function api(p,o={}){const r=await fetch(p,{headers:{'Content-Type':'application/json'},credentials:'same-origin',...o});const d=await r.json();if(d.auth_required&&o.method&&o.method!=='GET'){showLoginOverlay();toast('Faça login para realizar esta ação.','err');}return d;}
+const cl=id=>document.getElementById(id).classList.remove('open');
+function cov(id,e){if(e.target===document.getElementById(id))cl(id);}
+
+// auth
+function setAdminMode(val){
+  isAdmin=val;
+  document.querySelectorAll('.admin-only').forEach(el=>el.style.display=val?'':'none');
+  document.getElementById('btn-entrar').style.display=val?'none':'';
+}
+function showLoginOverlay(){document.getElementById('ls').classList.remove('hidden');}
+function hideLoginOverlay(){document.getElementById('ls').classList.add('hidden');document.getElementById('lerr').classList.remove('show');document.getElementById('liu').value='';document.getElementById('lip').value='';}
+async function doLogin(){
+  const u=document.getElementById('liu').value.trim(),p=document.getElementById('lip').value;
+  if(!u||!p){document.getElementById('lerr').classList.add('show');return;}
+  const r=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:u,password:p})});
+  if(r.ok){hideLoginOverlay();setAdminMode(true);toast('Acesso ativado — bem-vindo, '+(r.data?.nome||'usuário')+'.','ok');}
+  else{document.getElementById('lerr').classList.add('show');document.getElementById('lerr').textContent=r.error||'E-mail ou senha inválidos.';}
+}
+async function doLogout(){await api('/api/auth/logout',{method:'POST'});setAdminMode(false);toast('Sessão encerrada.','inf');}
+function openSettings(){
+  document.getElementById('sov').classList.add('open');
+  api('/api/config/email').then(r=>{if(r.ok){document.getElementById('cgmail').value=r.data.gmail_user||'';document.getElementById('cgpass').value='';}});
+}
+async function doChgPass(){
+  const c=document.getElementById('ccp').value,n=document.getElementById('cnp').value;
+  if(!c||!n){toast('Preencha todos os campos.','err');return;}
+  const r=await api('/api/auth/change-password',{method:'POST',body:JSON.stringify({current_password:c,new_password:n})});
+  if(r.ok){toast('Senha alterada.','ok');document.getElementById('ccp').value='';document.getElementById('cnp').value='';}
+  else toast(r.error||'Erro','err');
+}
+async function doChgUser(){
+  const n=document.getElementById('cnu').value.trim(),p=document.getElementById('cpu').value;
+  if(!n||!p){toast('Preencha todos os campos.','err');return;}
+  const r=await api('/api/auth/change-username',{method:'POST',body:JSON.stringify({new_username:n,password:p})});
+  if(r.ok){toast('Usuário alterado.','ok');document.getElementById('cnu').value='';document.getElementById('cpu').value='';}
+  else toast(r.error||'Erro','err');
+}
+async function saveEmailCfg(){
+  const u=document.getElementById('cgmail').value.trim(),p=document.getElementById('cgpass').value;
+  if(!u){toast('Informe o endereço Gmail.','err');return;}
+  const body={gmail_user:u};if(p)body.gmail_app_password=p;
+  const r=await api('/api/config/email',{method:'POST',body:JSON.stringify(body)});
+  if(r.ok){toast('Configurações de e-mail salvas.','ok');document.getElementById('cgpass').value='';}
+  else toast(r.error||'Erro','err');
+}
+async function testEmail(){
+  const to=document.getElementById('ctestemail').value.trim();
+  if(!to){toast('Informe um e-mail de destino.','err');return;}
+  const r=await api('/api/config/email/test',{method:'POST',body:JSON.stringify({to_email:to})});
+  if(r.ok)toast(r.message||'E-mail enviado!','ok');
+  else toast(r.error||'Erro ao enviar.','err');
+}
+
+// clock
+function startClock(){const e=document.getElementById('clk');setInterval(()=>e.textContent=new Date().toLocaleTimeString('pt-BR'),1000);}
+
+// data
+async function loadMonitors(){const r=await api('/api/monitors');if(!r.ok)return;monitors=r.data;renderSidebar();if(selId){const m=monitors.find(x=>x.id===selId);if(m)renderDetail(m);}}
+async function loadStats(){const r=await api('/api/stats');if(!r.ok)return;const d=r.data;document.getElementById('k0').textContent=d.total_monitors??'-';document.getElementById('k1').textContent=d.active_monitors??'-';document.getElementById('k2').textContent=d.total_executions??'-';document.getElementById('k3').textContent=d.availability!=null?d.availability+'%':'-';document.getElementById('k4').textContent=d.fail_executions??'-';document.getElementById('k5').textContent=d.avg_journey_ms!=null?fms(d.avg_journey_ms):'-';}
+async function loadHistory(){if(!selId)return;const r=await api(`/api/monitors/${selId}/history?limit=50`);if(!r.ok)return;hdata=r.data;renderHist(hdata);renderChart(hdata.slice().reverse().slice(-30));updTiming(hdata[0]);updScreenshot(hdata);}
+
+// sidebar
+function renderSidebar(){const e=document.getElementById('sbl');if(!monitors.length){e.innerHTML='<div style="padding:18px 16px;font-size:.75rem;color:var(--text-dim)">Nenhum monitor cadastrado.</div>';return;}e.innerHTML=monitors.map(m=>{const l=m.last_execution;const sc=!m.active?'off':!l?'pend':l.status==='SUCCESS'?'ok':'fail';const sl=selId===m.id?' sel':'';return`<div class="si${sl}" onclick="selectMonitor(${m.id})"><div class="ss ${sc}"></div><div class="si-info"><div class="si-name">${esc(m.name)}</div><div class="si-meta">${m.interval_minutes}min &middot; ${l?frelt(l.executed_at):'nunca'}</div></div></div>`;}).join('');}
+
+// select + detail
+async function selectMonitor(id){selId=id;document.getElementById('emp').style.display='none';document.getElementById('det').style.display='flex';renderSidebar();const m=monitors.find(x=>x.id===id);if(m)renderDetail(m);await loadHistory();}
+function renderDetail(m){
+  document.getElementById('dname').textContent=m.name;
+  document.getElementById('durl').textContent=m.url;
+  const a=Boolean(m.active),st=m.stats||{},j=m.job||{};
+  document.getElementById('ms0').innerHTML=`<span class="badge ${a?'bok':'boff'}">${a?'ATIVO':'INATIVO'}</span>`;
+  document.getElementById('ms1').textContent=st.availability!=null?st.availability+'%':'-';
+  document.getElementById('ms2').textContent=st.avg_ms!=null?fms(Math.round(st.avg_ms)):'-';
+  document.getElementById('ms3').textContent=m.interval_minutes+' min';
+  document.getElementById('ms3b').textContent='Próx.: '+(j.next_run?frelt(j.next_run):'-');
+  document.getElementById('ms4').textContent=st.total??'-';
+  document.getElementById('ms5').textContent=st.fail??'-';
+  document.getElementById('ms6').textContent=st.min_ms!=null?fms(st.min_ms):'-';
+  document.getElementById('ms7').textContent=st.max_ms!=null?fms(st.max_ms):'-';
+  const bt=document.getElementById('btntog');bt.textContent=a?'Desativar':'Ativar';bt.className='btn admin-only '+(a?'bw':'bsuc');if(!isAdmin)bt.style.display='none';
+}
+
+// timing
+function updTiming(last){
+  if(!last)return;
+  const l=last.initial_load_ms||0,g=last.login_ms||0,s=last.service_load_ms||0,t=l+g+s||1;
+  document.getElementById('ttr').innerHTML=`<div class="tseg load" style="flex:${l/t}">${l>60?fms(l):''}</div><div class="tseg lgn" style="flex:${g/t}">${g>60?fms(g):''}</div><div class="tseg svc" style="flex:${s/t}">${s>60?fms(s):''}</div>`;
+  document.getElementById('tl0').textContent=fms(l);document.getElementById('tl1').textContent=fms(g);document.getElementById('tl2').textContent=fms(s);document.getElementById('tl3').textContent=fms(last.total_journey_ms);
+  document.getElementById('dlast').textContent=last.executed_at?'Executado: '+frelt(last.executed_at):'';
+}
+
+// screenshot
+function updScreenshot(history){
+  const ar=document.getElementById('ssa'),ts=document.getElementById('ssts');
+  const ok=history.find(h=>h.status==='SUCCESS'&&h.screenshot_path);
+  if(!ok){ar.innerHTML='<div class="ssph">Nenhuma captura disponível — execute um monitoramento para gerar.</div>';ts.textContent='';return;}
+  ts.textContent=fdt(ok.executed_at);
+  ar.innerHTML=`<div class="sswrap"><img src="/screenshots/${esc(ok.screenshot_path)}" alt="Captura" onerror="this.parentElement.innerHTML='<div class=\\'ssph\\'>Captura não encontrada no servidor.</div>'"><div class="ssts">${fdt(ok.executed_at)}</div></div>`;
+}
+
+// chart
+function renderChart(data){
+  const sv=document.getElementById('hchart');
+  if(!data.length){sv.innerHTML='';return;}
+  const W=700,H=120,PX=16,PY=10,n=data.length;
+  const xOf=i=>PX+(i/Math.max(n-1,1))*(W-PX*2);
+  const allVals=data.flatMap(d=>[d.initial_load_ms||0,d.login_ms||0,d.service_load_ms||0]);
+  const mx=Math.max(...allVals,1);
+  const yOf=v=>PY+(1-(v/mx))*(H-PY*2);
+  const series=[
+    {key:'initial_load_ms',color:'#2563eb',label:'Carga'},
+    {key:'login_ms',       color:'#d97706',label:'Login'},
+    {key:'service_load_ms',color:'#16a34a',label:'Serviço'},
+  ];
+  let svg='';
+  for(const s of series){
+    const pts=data.map((d,i)=>({x:xOf(i),y:yOf(d[s.key]||0),v:d[s.key]||0,ok:d.status==='SUCCESS'}));
+    const path=pts.map((p,i)=>(i===0?`M${p.x},${p.y}`:`L${p.x},${p.y}`)).join(' ');
+    svg+=`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="1.5" opacity=".85"/>`;
+    svg+=pts.map(p=>p.ok
+      ?`<circle cx="${p.x}" cy="${p.y}" r="3" fill="${s.color}" opacity=".9"><title>${s.label}: ${fms(p.v)}</title></circle>`
+      :`<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="transparent" stroke="#dc2626" stroke-width="1.5" opacity=".9"><title>${s.label}: ${fms(p.v)} (FALHA)</title></circle>`
+    ).join('');
+  }
+  sv.innerHTML=svg;
+}
+
+// hist table
+function renderHist(history){
+  const tb=document.getElementById('htbody');
+  if(!history.length){tb.innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--text-dim);padding:24px;font-family:var(--mono);font-size:.75rem">Sem registros de execução</td></tr>`;return;}
+  tb.innerHTML=history.map(h=>`<tr><td class="mcell" style="white-space:nowrap">${fdt(h.executed_at)}</td><td><span class="badge ${h.status==='SUCCESS'?'bok':'bfl'}">${h.status}</span></td><td class="mcell">${fms(h.initial_load_ms)}</td><td class="mcell">${fms(h.login_ms)}</td><td class="mcell">${fms(h.service_load_ms)}</td><td class="mcell" style="color:${h.status==='SUCCESS'?'var(--success)':'var(--danger)'};font-weight:600">${fms(h.total_journey_ms)}</td><td style="font-family:var(--mono);font-size:.68rem;color:var(--danger);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(h.error_message||'')}">${h.error_message?h.error_message.substring(0,70)+(h.error_message.length>70?'...':''):'—'}</td></tr>`).join('');
+}
+
+// actions
+async function runNow(){if(!selId)return;const b=document.getElementById('btnrun');b.textContent='Executando...';b.disabled=true;const r=await api(`/api/monitors/${selId}/run`,{method:'POST'});setTimeout(()=>{b.textContent='Executar Agora';b.disabled=false;},3000);if(r.ok){toast('Execucao iniciada. Aguarde o resultado.','inf');setTimeout(async()=>{await loadHistory();await loadStats();await loadMonitors();},5000);}else toast(r.error||'Erro','err');}
+async function toggleActive(){if(!selId)return;const r=await api(`/api/monitors/${selId}/toggle`,{method:'POST'});if(r.ok){toast(r.data.active?'Monitor ativado.':'Monitor desativado.','ok');await loadMonitors();}else toast(r.error||'Erro','err');}
+async function deleteMonitor(){if(!selId)return;const m=monitors.find(x=>x.id===selId);if(!confirm('Remover "'+m?.name+'"? Esta ação é irreversível.'))return;const r=await api(`/api/monitors/${selId}`,{method:'DELETE'});if(r.ok){toast('Monitor removido.','ok');selId=null;document.getElementById('det').style.display='none';document.getElementById('emp').style.display='flex';await loadMonitors();await loadStats();}else toast(r.error||'Erro','err');}
+
+// modal
+function openModal(ed=false){
+  document.getElementById('mttl').textContent=ed?'Editar Monitoramento':'Novo Monitoramento';
+  if(!ed){
+    ['fid','fn','fu','fus','fps','fsel','fnotify','fonslow'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('fiv').value='5';
+    document.getElementById('f2step').checked=false;
+    document.getElementById('fact').checked=true;
+    document.getElementById('fonfail').checked=true;
+    document.getElementById('fonslowck').checked=false;
+    document.getElementById('fonslow').disabled=true;
+  } else {
+    const m=monitors.find(x=>x.id===selId);if(!m)return;
+    document.getElementById('fid').value=m.id;
+    document.getElementById('fn').value=m.name;
+    document.getElementById('fu').value=m.url;
+    document.getElementById('fus').value=m.username;
+    document.getElementById('fps').value='';
+    document.getElementById('fsel').value=m.target_menu_selector;
+    document.getElementById('fiv').value=m.interval_minutes;
+    document.getElementById('f2step').checked=Boolean(m.two_step_login);
+    document.getElementById('fact').checked=Boolean(m.active);
+    document.getElementById('fnotify').value=m.notify_emails||'';
+    document.getElementById('fonfail').checked=m.notify_on_fail!==0;
+    const slowMs=m.notify_on_slow_ms||null;
+    document.getElementById('fonslowck').checked=Boolean(slowMs);
+    document.getElementById('fonslow').disabled=!slowMs;
+    document.getElementById('fonslow').value=slowMs||'';
+  }
+  document.getElementById('mov').classList.add('open');
+  setTimeout(()=>document.getElementById('fn').focus(),100);
+}
+async function saveMonitor(){
+  const id=document.getElementById('fid').value;
+  const _slowCk=document.getElementById('fonslowck').checked,_slowVal=parseInt(document.getElementById('fonslow').value)||null;
+  const p={name:document.getElementById('fn').value.trim(),url:document.getElementById('fu').value.trim(),username:document.getElementById('fus').value.trim(),password:document.getElementById('fps').value,target_menu_selector:document.getElementById('fsel').value.trim(),interval_minutes:parseInt(document.getElementById('fiv').value),two_step_login:document.getElementById('f2step').checked?1:0,active:document.getElementById('fact').checked?1:0,notify_emails:document.getElementById('fnotify').value.trim(),notify_on_fail:document.getElementById('fonfail').checked?1:0,notify_on_slow_ms:_slowCk&&_slowVal?_slowVal:null};
+  for(const f of['name','url','username','target_menu_selector']){if(!p[f]){toast('Campo obrigatorio: '+f,'err');return;}}
+  if(!id&&!p.password){toast('Senha obrigatoria.','err');return;}
+  const r=await api(id?`/api/monitors/${id}`:'/api/monitors',{method:id?'PUT':'POST',body:JSON.stringify(p)});
+  if(r.ok){toast(id?'Monitor atualizado.':'Monitor criado!','ok');cl('mov');await loadMonitors();await loadStats();if(!id&&r.data?.id)selectMonitor(r.data.id);}
+  else toast(r.error||'Erro ao salvar.','err');
+}
+
+// keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){cl('mov');cl('sov');hideLoginOverlay();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='Enter'&&document.getElementById('mov').classList.contains('open'))saveMonitor();
+});
+document.getElementById('lip').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// init
+async function init(){
+  const savedTheme = localStorage.getItem('theme');
+  if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
+    document.getElementById('sun-icon').style.display = 'block';
+    document.getElementById('moon-icon').style.display = 'none';
+  }
+  if (window.gsap) {
+    gsap.to('.blob-1', { x: -100, y: 100, duration: 20, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    gsap.to('.blob-2', { x: 100, y: -100, duration: 25, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    gsap.to('.blob-3', { x: 50, scale: 1.2, duration: 15, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+    gsap.to('.blob-4', { y: -50, scale: 0.8, duration: 18, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+  }
+  startClock();await loadMonitors();await loadStats();setInterval(async()=>{await loadMonitors();await loadStats();if(selId)await loadHistory();},30000);
+}
+(async()=>{
+  // Dashboard sempre visível; verifica se já está autenticado para ativar modo admin
+  const r=await fetch('/api/auth/status',{credentials:'same-origin'});
+  const d=await r.json();
+  setAdminMode(d.ok&&d.data?.authenticated);
+  init();
+})();
+</script>
+</body>
+</html>

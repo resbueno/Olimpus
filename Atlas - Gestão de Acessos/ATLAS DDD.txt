@@ -1,0 +1,435 @@
+# ATLAS — Documento Completo de Product Definition + Document Driven Development (DDD)
+
+## 1. Visão Geral do Produto
+
+**Nome do sistema:** Atlas
+**Conceito:** Guardião dos acessos, inspirado no porteiro dos portões do Olimpo.
+**Objetivo:** Centralizar a gestão de acessos a sistemas corporativos, desde a solicitação até a aprovação, provisionamento, auditoria e revogação.
+
+O Atlas será uma plataforma de **IAM (Identity and Access Management)** com foco em:
+
+* governança de acessos
+* workflow de aprovação
+* trilha de auditoria
+* revisão periódica
+* segregação de função
+* integração com sistemas internos e terceiros
+
+---
+
+## 2. Problema de Negócio
+
+Empresas possuem múltiplos sistemas com processos descentralizados de concessão de acesso.
+
+Principais dores:
+
+* solicitações por e-mail ou chat
+* ausência de trilha auditável
+* aprovações informais
+* acessos órfãos
+* demora no provisionamento
+* risco de compliance
+
+O Atlas resolve esse problema por meio de um fluxo estruturado ponta a ponta.
+
+---
+
+## 3. Objetivos Funcionais
+
+1. Solicitar acesso a qualquer sistema cadastrado
+2. Aprovar ou reprovar por níveis hierárquicos
+3. Provisionar acesso manual ou automático
+4. Registrar auditoria completa
+5. Revisar acessos periodicamente
+6. Revogar acessos automaticamente
+7. Integrar com AD, LDAP, APIs e SaaS
+
+---
+
+## 4. Personas
+
+### Solicitante
+
+Usuário final que necessita acesso.
+
+### Gestor Aprovador
+
+Responsável por aprovar acessos do time.
+
+### Owner do Sistema
+
+Dono funcional da aplicação.
+
+### Segurança / Compliance
+
+Responsável por auditoria e governança.
+
+### Administrador IAM
+
+Administra catálogo, perfis e regras.
+
+---
+
+## 5. Módulos do Sistema
+
+## 5.1 Catálogo de Sistemas
+
+Cadastro de aplicações:
+
+* nome
+* URL
+* owner
+* criticidade
+* tipo de autenticação
+* integração
+* perfis disponíveis
+
+## 5.2 Gestão de Perfis
+
+Exemplo:
+
+* leitura
+* operador
+* aprovador
+* administrador
+
+## 5.3 Solicitação de Acesso
+
+Campos:
+
+* usuário solicitante
+* sistema
+* perfil
+* justificativa
+* prazo
+* centro de custo
+
+## 5.4 Workflow de Aprovação
+
+Etapas:
+
+1. gestor imediato
+2. owner do sistema
+3. segurança (opcional)
+4. provisionamento
+
+## 5.5 Provisionamento
+
+* manual
+* API
+* LDAP/AD
+* webhook
+* RPA
+
+## 5.6 Auditoria
+
+Registro de:
+
+* quem solicitou
+* quem aprovou
+* data/hora
+* IP
+* alteração realizada
+
+## 5.7 Recertificação
+
+Campanhas periódicas:
+
+* 30 dias
+* 90 dias
+* 180 dias
+* anual
+
+---
+
+## 6. Fluxo Macro (BPM)
+
+```text
+Solicitação -> Validação -> Aprovação Gestor -> Aprovação Owner -> Provisionamento -> Confirmação -> Auditoria -> Recertificação
+```
+
+---
+
+## 7. Requisitos Funcionais
+
+### RF001
+
+Cadastrar sistema
+
+### RF002
+
+Cadastrar perfis
+
+### RF003
+
+Solicitar acesso
+
+### RF004
+
+Aprovar solicitação
+
+### RF005
+
+Reprovar com justificativa
+
+### RF006
+
+Provisionar acesso
+
+### RF007
+
+Revogar acesso
+
+### RF008
+
+Executar revisão periódica
+
+### RF009
+
+Emitir relatório de auditoria
+
+### RF010
+
+Notificações automáticas
+
+---
+
+## 8. Requisitos Não Funcionais
+
+* autenticação SSO
+* MFA
+* LGPD
+* logs imutáveis
+* disponibilidade 99.9%
+* resposta < 2s
+* criptografia AES-256
+
+---
+
+## 9. Modelo de Dados (alto nível)
+
+### Entidades
+
+### USERS
+
+* id
+* nome
+* email
+* gestor_id
+* status
+
+### SYSTEMS
+
+* id
+* nome
+* url
+* owner_id
+
+### ACCESS_REQUESTS
+
+* id
+* user_id
+* system_id
+* profile_id
+* status
+* created_at
+
+### APPROVALS
+
+* id
+* request_id
+* approver_id
+* decision
+
+### AUDIT_LOGS
+
+* id
+* action
+* actor
+* timestamp
+
+---
+
+## 10. API Contract (inicial)
+
+### POST /access-requests
+
+Cria solicitação
+
+### GET /access-requests/{id}
+
+Consulta status
+
+### POST /approvals/{id}/approve
+
+Aprovação
+
+### POST /approvals/{id}/reject
+
+Reprovação
+
+### POST /provisioning/run
+
+Provisionamento
+
+### GET /audit/logs
+
+Consulta auditoria
+
+---
+
+## 11. Épicos
+
+### EPIC 1 — Catálogo
+
+Como administrador, quero cadastrar sistemas.
+
+### EPIC 2 — Solicitação
+
+Como usuário, quero solicitar acessos.
+
+### EPIC 3 — Aprovação
+
+Como gestor, quero aprovar solicitações.
+
+### EPIC 4 — Auditoria
+
+Como compliance, quero rastrear eventos.
+
+---
+
+## 12. User Stories
+
+### US001
+
+Como usuário, quero solicitar acesso a um sistema para executar minhas atividades.
+
+**Critérios de aceite**
+
+* sistema listado no catálogo
+* perfil obrigatório
+* justificativa obrigatória
+* protocolo gerado
+
+### US002
+
+Como gestor, quero aprovar acesso do colaborador.
+
+**Critérios**
+
+* aprovar ou reprovar
+* comentário obrigatório na reprovação
+* SLA monitorado
+
+---
+
+## 13. Plano de Testes
+
+## Testes Funcionais
+
+* criação de solicitação
+* múltiplos aprovadores
+* reprovação
+* provisionamento
+
+## Testes de Segurança
+
+* bypass de aprovação
+* privilege escalation
+* acesso direto por URL
+* sessão expirada
+
+## Testes de Performance
+
+* 10.000 solicitações simultâneas
+* 1.000 aprovações por minuto
+
+---
+
+## 14. Arquitetura Recomendada
+
+### Frontend
+
+* React
+* TypeScript
+* Tailwind
+
+### Backend
+
+* Java Spring Boot
+  ou
+* Node.js NestJS
+
+### Banco
+
+* PostgreSQL
+
+### Mensageria
+
+* RabbitMQ
+
+### Observabilidade
+
+* Grafana
+* Prometheus
+* ELK
+
+---
+
+## 15. Roadmap MVP
+
+### Fase 1
+
+* catálogo
+* solicitação
+* aprovação
+* auditoria
+
+### Fase 2
+
+* integração AD
+* APIs
+* recertificação
+
+### Fase 3
+
+* IA para risco de acesso
+* aprovação inteligente
+
+---
+
+## 16. Definição Técnica para Squad
+
+### Sprint 1
+
+* modelagem banco
+* APIs base
+* autenticação
+
+### Sprint 2
+
+* workflow
+* telas
+* notificações
+
+### Sprint 3
+
+* auditoria
+* dashboards
+* testes integrados
+
+---
+
+## 17. KPIs
+
+* tempo médio de aprovação
+* tempo médio de provisionamento
+* acessos expirados
+* acessos órfãos
+* SLA
+
+---
+
+## 18. Visão Executiva
+
+**Atlas** será a camada central de governança de acessos da organização, garantindo segurança, rastreabilidade e eficiência operacional.

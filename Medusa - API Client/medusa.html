@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MEDUSA — Criação de APIs</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%2310b981'/><path d='M16 6c-3 0-5 2-5 5 0 2 1 3 1 5s-2 2-2 4 2 4 6 4 6-2 6-4-2-2-2-4 1-3 1-5c0-3-2-5-5-5z' fill='none' stroke='white' stroke-width='2' stroke-linejoin='round'/><circle cx='13' cy='12' r='1' fill='white'/><circle cx='19' cy='12' r='1' fill='white'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#ffffff;--bg2:#ffffff;--bg3:#f8f9fa;--bg-alt:#f8f9fa;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.13);
+  --accent:#10b981;--accent2:#059669;--accent-bg:rgba(16,185,129,0.08);
+  --success:#16a34a;--success-bg:rgba(22,163,74,0.07);
+  --danger:#dc2626;--danger-bg:rgba(220,38,38,0.07);
+  --warn:#d97706;--warn-bg:rgba(217,119,6,0.07);
+  --info:#2563eb;--info-bg:rgba(37,99,235,0.07);
+  --text:#1f1f1f;--text-mid:#5f6368;--text-dim:#9ca3af;
+  --sans:'Outfit',sans-serif;--display:'Space Grotesk',sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --r:12px;--r2:20px;--sh:0 4px 20px rgba(0,0,0,0.06);
+}
+body.dark-mode{
+  --bg:#0b0f1a;--bg2:#1f2937;--bg3:#111827;--bg-alt:#111827;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);
+  --text:#f3f4f6;--text-mid:#9ca3af;--text-dim:#6b7280;
+  --sh:0 4px 20px rgba(0,0,0,0.3);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.13);border-radius:20px}
+body.dark-mode ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.13)}
+*{scrollbar-width:thin}
+button{font-family:inherit}
+a{color:var(--accent)}
+
+/* TOPBAR */
+.topbar{height:56px;background:var(--bg);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;flex-shrink:0}
+.tbl{display:flex;align-items:center;gap:14px}
+.bicon{width:34px;height:34px;background:var(--accent-bg);border:1px solid var(--accent);border-radius:8px;display:grid;place-items:center}
+.bicon svg{width:20px;height:20px}
+.bname{font-family:var(--display);font-size:1.15rem;font-weight:700;letter-spacing:.1em}
+.bmod{font-family:var(--mono);font-size:.66rem;color:var(--text-dim);letter-spacing:.12em;text-transform:uppercase}
+.tbr{display:flex;align-items:center;gap:8px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--text-mid);font-size:.8rem;font-weight:500;padding:7px 12px;border-radius:var(--r);cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+.btn svg{width:14px;height:14px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent2);color:#fff}
+.btn.danger:hover{border-color:var(--danger);color:var(--danger);background:var(--danger-bg)}
+.btn.sm{padding:4px 9px;font-size:.72rem}
+.btn.ghost{border-color:transparent;background:transparent}
+.icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);display:grid;place-items:center;cursor:pointer;color:var(--text-mid);transition:all .15s}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent)}
+.icon-btn svg{width:17px;height:17px}
+
+/* LAYOUT */
+.wrap{display:flex;flex:1;overflow:hidden;min-height:0}
+.sidebar{width:270px;min-width:270px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sbhd{padding:13px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.sbttl{font-size:.7rem;font-weight:600;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase}
+.sblist{flex:1;overflow-y:auto;padding:8px;min-height:0}
+.q-item{padding:10px 11px;border-radius:var(--r);cursor:pointer;border:1px solid transparent;transition:all .12s;margin-bottom:4px}
+.q-item:hover{background:var(--bg3)}
+.q-item.active{background:var(--accent-bg);border-color:var(--accent)}
+.q-name{font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:6px}
+.q-meta{font-family:var(--mono);font-size:.66rem;color:var(--text-dim);margin-top:3px;display:flex;align-items:center;gap:6px}
+.q-meth{font-weight:700;padding:1px 5px;border-radius:4px;font-size:.6rem}
+.m-GET{background:var(--info-bg);color:var(--info)}
+.m-POST{background:var(--success-bg);color:var(--success)}
+.m-PUT{background:var(--warn-bg);color:var(--warn)}
+.m-DELETE{background:var(--danger-bg);color:var(--danger)}
+.m-PATCH{background:var(--accent-bg);color:var(--accent)}
+.q-actions{display:flex;gap:4px;margin-top:7px;opacity:0;transition:opacity .12s}
+.q-item:hover .q-actions,.q-item.active .q-actions{opacity:1}
+.empty{padding:30px 16px;text-align:center;color:var(--text-dim);font-size:.8rem}
+
+.main{flex:1;overflow-y:auto;min-height:0;display:flex;flex-direction:column}
+.tabs{display:flex;gap:2px;padding:0 18px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:50;flex-shrink:0;overflow-x:auto}
+.tab{padding:13px 16px;font-size:.85rem;font-weight:600;color:var(--text-mid);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:7px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .badge{background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:.62rem;padding:0 6px;font-family:var(--mono)}
+.panel{padding:22px 26px;display:none;flex:1}
+.panel.active{display:block}
+.panel-narrow{max-width:1080px}
+
+/* FORM */
+.field{margin-bottom:16px}
+.lab{display:block;font-size:.74rem;font-weight:600;color:var(--text-mid);letter-spacing:.03em;margin-bottom:6px}
+.lab .hint{font-weight:400;color:var(--text-dim);font-family:var(--mono);font-size:.68rem;margin-left:6px}
+.inp,.ta,select{width:100%;background:var(--bg-alt);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:.88rem;padding:10px 13px;border-radius:var(--r);outline:none;transition:border-color .15s,box-shadow .15s}
+.inp:focus,.ta:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-bg)}
+.ta{font-family:var(--mono);font-size:.82rem;resize:vertical;min-height:120px;line-height:1.55}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+.url-row{display:flex;gap:8px;align-items:stretch}
+.url-row select{width:110px;flex:none;font-weight:700;font-family:var(--mono)}
+.url-row .inp{flex:1}
+
+/* KV EDITOR */
+.kv{display:flex;flex-direction:column;gap:6px}
+.kv-row{display:flex;gap:8px;align-items:center}
+.kv-row input{flex:1}
+.kv-row .kv-k{flex:0 0 34%}
+.kv-row .kv-toggle{flex:none}
+.chk{width:18px;height:18px;cursor:pointer;accent-color:var(--accent)}
+.del-x{flex:none;width:30px;height:30px;border:1px solid var(--border);background:var(--bg2);border-radius:8px;color:var(--text-dim);cursor:pointer;display:grid;place-items:center}
+.del-x:hover{border-color:var(--danger);color:var(--danger)}
+
+/* CARD / SECTION */
+.sec{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:18px 20px;margin-bottom:18px;box-shadow:var(--sh)}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.sec-ttl{font-family:var(--display);font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:8px}
+.sec-ttl svg{width:16px;height:16px;color:var(--accent)}
+.sec-desc{font-size:.78rem;color:var(--text-dim);margin-bottom:14px;line-height:1.5}
+
+/* TOOLBAR (results) */
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.spacer{flex:1}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:.72rem;padding:4px 10px;border-radius:20px;border:1px solid var(--border)}
+.pill.ok{background:var(--success-bg);color:var(--success);border-color:var(--success)}
+.pill.err{background:var(--danger-bg);color:var(--danger);border-color:var(--danger)}
+.pill.run{background:var(--info-bg);color:var(--info);border-color:var(--info)}
+
+/* CODE / JSON */
+.codebox{background:var(--bg-alt);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-family:var(--mono);font-size:.78rem;line-height:1.6;white-space:pre;overflow:auto;max-height:520px}
+.codebox .k{color:var(--accent2)}
+.codebox .s{color:var(--info)}
+.codebox .n{color:var(--warn)}
+.codebox .b{color:var(--danger)}
+body.dark-mode .codebox .k{color:#34d399}
+body.dark-mode .codebox .s{color:#60a5fa}
+
+/* TABLE */
+.tbl-wrap{overflow:auto;border:1px solid var(--border);border-radius:var(--r);max-height:520px}
+table.data{border-collapse:collapse;width:100%;font-size:.8rem}
+table.data th{position:sticky;top:0;background:var(--bg3);text-align:left;padding:9px 12px;font-weight:600;border-bottom:1px solid var(--border2);white-space:nowrap;font-family:var(--mono);font-size:.72rem;z-index:2}
+table.data td{padding:7px 12px;border-bottom:1px solid var(--border);white-space:nowrap;max-width:340px;overflow:hidden;text-overflow:ellipsis}
+table.data tr:hover td{background:var(--bg3)}
+table.data td.idx{color:var(--text-dim);font-family:var(--mono);font-size:.7rem}
+
+/* ERRORS */
+.err-list{display:flex;flex-direction:column;gap:8px}
+.err-card{background:var(--danger-bg);border:1px solid var(--danger);border-radius:var(--r);padding:11px 14px;font-size:.82rem}
+.err-card .et{font-weight:600;color:var(--danger);display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.err-card .em{font-family:var(--mono);font-size:.74rem;color:var(--text-mid);word-break:break-word}
+
+/* PROGRESS */
+.prog{height:6px;background:var(--bg3);border-radius:20px;overflow:hidden;margin:4px 0 12px}
+.prog>div{height:100%;background:var(--accent);width:0;transition:width .2s}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);padding:11px 20px;border-radius:var(--r);font-size:.85rem;font-weight:500;opacity:0;pointer-events:none;transition:all .25s;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--danger);color:#fff}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:500;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);width:440px;max-width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.modal-hd{padding:18px 22px;border-bottom:1px solid var(--border);font-family:var(--display);font-weight:600}
+.modal-bd{padding:20px 22px}
+.modal-ft{padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+
+.help{background:var(--info-bg);border:1px solid var(--info);border-radius:var(--r);padding:11px 14px;font-size:.78rem;color:var(--text-mid);line-height:1.6;margin-bottom:14px}
+.help code{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-family:var(--mono);font-size:.74rem;color:var(--accent2)}
+.help-sec{border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:11px;font-size:.83rem;line-height:1.6;color:var(--text-mid)}
+.help-sec b{color:var(--text)}
+.help-sec code{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-family:var(--mono);font-size:.74rem;color:var(--accent2)}
+.help-h{font-family:var(--display);font-weight:600;font-size:.92rem;color:var(--text);display:flex;align-items:center;gap:9px;margin-bottom:7px}
+.help-n{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:.78rem;font-weight:700;flex:none}
+.help-h .tag{margin-left:auto;font-weight:400}
+.muted{color:var(--text-dim);font-size:.78rem}
+.flex{display:flex;align-items:center;gap:10px}
+.tag{font-family:var(--mono);font-size:.66rem;padding:2px 7px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);color:var(--text-mid)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tbl">
+    <div class="bicon"><svg viewBox="0 0 32 32"><path d="M16 6c-3 0-5 2-5 5 0 2 1 3 1 5s-2 2-2 4 2 4 6 4 6-2 6-4-2-2-2-4 1-3 1-5c0-3-2-5-5-5z" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/><circle cx="13" cy="12" r="1.2" fill="var(--accent)"/><circle cx="19" cy="12" r="1.2" fill="var(--accent)"/></svg></div>
+    <div>
+      <div class="bname">MEDUSA</div>
+      <div class="bmod">API Builder · Olimpus</div>
+    </div>
+  </div>
+  <div class="tbr">
+    <button class="btn" id="btnHelp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg>Como usar</button>
+    <button class="btn" id="btnNew"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Nova consulta</button>
+    <button class="btn" id="btnImport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Importar</button>
+    <button class="btn" id="btnExport"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5-5 5 5M12 5v10"/></svg>Exportar</button>
+    <button class="btn primary" id="btnSave"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>Salvar</button>
+    <button class="icon-btn" id="btnTheme" title="Tema"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
+  </div>
+</div>
+
+<div class="wrap">
+  <!-- SIDEBAR: saved queries -->
+  <div class="sidebar">
+    <div class="sbhd">
+      <span class="sbttl">Consultas salvas</span>
+      <span class="tag" id="qCount">0</span>
+    </div>
+    <div class="sblist" id="qList"></div>
+    <div style="padding:10px;border-top:1px solid var(--border)">
+      <button class="btn" id="btnSaveDir" style="width:100%;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Salvar em pasta local</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active" data-tab="req"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M5 19a1 1 0 1 0 0 .01"/></svg>Requisição</div>
+      <div class="tab" data-tab="auto"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>Auto-config</div>
+      <div class="tab" data-tab="har"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>HAR <span class="badge" id="hBadge">0</span></div>
+      <div class="tab" data-tab="workers"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="3"/><path d="M3 21v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1M16 11l2 2 4-4"/></svg>Workers <span class="badge" id="wBadge">1</span></div>
+      <div class="tab" data-tab="result"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"/></svg>Resultado <span class="badge" id="rBadge">0</span></div>
+    </div>
+
+    <!-- ============ REQUISIÇÃO ============ -->
+    <div class="panel active panel-narrow" data-panel="req">
+      <div class="sec">
+        <div class="field">
+          <label class="lab">Nome da consulta</label>
+          <input class="inp" id="qTitle" placeholder="Ex.: Buscar clientes por CPF">
+        </div>
+        <div class="field">
+          <label class="lab">Endpoint <span class="hint">use {param} para injetar parâmetros dos workers</span></label>
+          <div class="url-row">
+            <select id="method">
+              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option><option>HEAD</option>
+            </select>
+            <input class="inp" id="url" placeholder="https://api.exemplo.com/v1/clientes/{param}">
+          </div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd">
+          <div class="sec-ttl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Headers</div>
+          <button class="btn sm" id="addHeader"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Header</button>
+        </div>
+        <div class="kv" id="headers"></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd">
+          <div class="sec-ttl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.22A1 1 0 0 0 20 12h-1V7a2 2 0 0 0-2-2h-5V4a1 1 0 0 0-1.78-.63L3 12l6.22 8.63A1 1 0 0 0 11 20v-1h5a2 2 0 0 0 2-2v-5h1a1 1 0 0 0 .9-.78z"/></svg>Query params</div>
+          <button class="btn sm" id="addParam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Param</button>
+        </div>
+        <div class="kv" id="params"></div>
+      </div>
+
+      <div class="sec">
+        <div class="sec-hd">
+          <div class="sec-ttl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6"/></svg>Payload / Body</div>
+          <div class="flex">
+            <select id="bodyType" style="width:auto;padding:5px 9px;font-size:.78rem">
+              <option value="json">JSON</option>
+              <option value="raw">Raw / texto</option>
+              <option value="none">Sem corpo</option>
+            </select>
+            <button class="btn sm" id="fmtBody">Formatar JSON</button>
+          </div>
+        </div>
+        <textarea class="ta" id="body" placeholder='{ "cpf": "{param}" }'></textarea>
+      </div>
+    </div>
+
+    <!-- ============ AUTO-CONFIG ============ -->
+    <div class="panel panel-narrow" data-panel="auto">
+      <div class="help">
+        Cole abaixo o <b>cabeçalho bruto de uma requisição</b>, um comando <code>cURL</code> ou um snippet <code>fetch()</code> (ex.: "Copiar como cURL" / "Copiar como fetch" do DevTools do navegador). O Medusa detecta o formato e preenche automaticamente método, URL, headers e payload.
+      </div>
+      <div class="sec">
+        <div class="field">
+          <label class="lab">Cabeçalho / cURL / fetch</label>
+          <textarea class="ta" id="autoIn" style="min-height:240px" placeholder="curl 'https://api.exemplo.com/v1/clientes' \&#10;  -H 'Authorization: Bearer xxx' \&#10;  -H 'Content-Type: application/json' \&#10;  --data-raw '{&quot;cpf&quot;:&quot;000&quot;}'&#10;&#10;— ou —&#10;&#10;POST /v1/clientes HTTP/1.1&#10;Host: api.exemplo.com&#10;Authorization: Bearer xxx&#10;Content-Type: application/json"></textarea>
+        </div>
+        <div class="toolbar">
+          <button class="btn primary" id="btnAuto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg>Auto-configurar</button>
+          <button class="btn" id="btnAutoClear">Limpar</button>
+          <span class="muted" id="autoMsg"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ HAR ============ -->
+    <div class="panel" data-panel="har">
+      <div class="help">
+        Suba um arquivo <b>.har</b> (no DevTools do navegador → aba <b>Network</b> → botão <b>↓ Export HAR / "Salvar tudo como HAR com conteúdo"</b>). O Medusa lê todas as requisições capturadas e identifica as <b>APIs</b> (XHR/fetch, respostas JSON/XML, rotas <code>/api</code>, <code>/v1</code>, GraphQL…). Clique em <b>Usar</b> para carregar qualquer uma na aba Requisição, ou selecione várias e exporte a lista de URLs.
+      </div>
+
+      <div class="sec" id="harDrop">
+        <div style="text-align:center;padding:26px 16px;cursor:pointer" id="harDropInner">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--accent)" stroke-width="1.6" style="margin-bottom:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <div style="font-weight:600;font-size:.95rem">Arraste o arquivo .har aqui ou clique para selecionar</div>
+          <div class="muted" id="harFileName" style="margin-top:6px">Nenhum arquivo carregado</div>
+        </div>
+        <input type="file" id="harInput" accept=".har,.json,application/json" style="display:none">
+      </div>
+
+      <div class="sec" id="harResultSec" style="display:none">
+        <div class="toolbar">
+          <input class="inp" id="harSearch" placeholder="Filtrar por URL ou método…" style="max-width:340px">
+          <label class="flex" style="gap:6px;font-size:.8rem;cursor:pointer"><input type="checkbox" id="harOnlyApi" class="chk" checked> Somente APIs</label>
+          <span class="spacer"></span>
+          <span class="pill" id="harStats">0</span>
+          <button class="btn sm" id="harSelAll">Selecionar todos</button>
+          <button class="btn sm" id="harExportUrls"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5-5 5 5M12 5v10"/></svg>Exportar URLs</button>
+          <button class="btn sm" id="harToWorkers">Selecionadas → Workers</button>
+        </div>
+        <div class="tbl-wrap" style="max-height:560px">
+          <table class="data" id="harTable"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ WORKERS ============ -->
+    <div class="panel panel-narrow" data-panel="workers">
+      <div class="help">
+        Cada <b>parâmetro</b> da lista é processado por um worker que injeta o valor em <code>{param}</code> na URL, headers e body.
+        Os <b>workers</b> definem quantas requisições rodam em paralelo. Para múltiplos campos, use uma linha JSON por item
+        (ex.: <code>{"id":1,"uf":"SP"}</code>) e injete <code>{id}</code>, <code>{uf}</code>.
+      </div>
+      <div class="sec">
+        <div class="row" style="margin-bottom:16px">
+          <div class="field" style="margin:0">
+            <label class="lab">Workers paralelos <span class="hint">1–50</span></label>
+            <input class="inp" id="wCount" type="number" min="1" max="50" value="1">
+          </div>
+          <div class="field" style="margin:0">
+            <label class="lab">Token de injeção</label>
+            <input class="inp" id="wToken" value="param" placeholder="param">
+          </div>
+          <div class="field" style="margin:0">
+            <label class="lab">Atraso entre lotes (ms)</label>
+            <input class="inp" id="wDelay" type="number" min="0" value="0">
+          </div>
+        </div>
+        <div class="field" style="margin:0">
+          <label class="lab">Lista de parâmetros <span class="hint">um por linha</span></label>
+          <textarea class="ta" id="wParams" style="min-height:220px" placeholder="11111111111&#10;22222222222&#10;{&quot;id&quot;:1,&quot;uf&quot;:&quot;SP&quot;}"></textarea>
+        </div>
+        <div class="toolbar" style="margin-top:14px">
+          <span class="pill" id="wInfo">0 parâmetros</span>
+          <button class="btn sm" id="wDedup">Remover duplicados</button>
+          <button class="btn sm" id="wTrim">Limpar vazios</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RESULTADO ============ -->
+    <div class="panel" data-panel="result">
+      <div class="toolbar">
+        <button class="btn primary" id="btnRun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>Executar consulta</button>
+        <button class="btn danger" id="btnStop" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>Parar</button>
+        <span class="pill run" id="statPill" style="display:none">pronto</span>
+        <span class="spacer"></span>
+        <div class="flex" id="viewToggle" style="display:none">
+          <button class="btn sm active-view" data-view="json" id="vJson">JSON original</button>
+          <button class="btn sm" data-view="table" id="vTable">Tabela</button>
+        </div>
+        <label class="flex" id="expandWrap" style="display:none;gap:6px;font-size:.8rem;cursor:pointer;align-items:center;margin-left:10px" title="Expande objetos e listas de objetos aninhados (ex.: [{&quot;codEstrutura&quot;:6817,...}]) em colunas próprias, como coluna.0.codEstrutura"><input type="checkbox" id="expandNested" class="chk"> Considerar subdicionários</label>
+      </div>
+
+      <div class="prog" id="progWrap" style="display:none"><div id="progBar"></div></div>
+
+      <div id="errBox" style="display:none;margin-bottom:18px">
+        <div class="sec-ttl" style="margin-bottom:10px;color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--danger)"><path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>Erros da API <span class="tag" id="errCount">0</span></div>
+        <div class="err-list" id="errList"></div>
+      </div>
+
+      <div id="resultArea" style="display:none">
+        <div class="toolbar">
+          <button class="btn" id="dlExcel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l6 4M15 13l-6 4"/></svg>Baixar Excel</button>
+          <button class="btn" id="dlCsv">Baixar CSV</button>
+          <button class="btn" id="dlJson">Baixar JSON</button>
+          <button class="btn" id="copyJson">Copiar JSON</button>
+          <span class="spacer"></span>
+          <span class="muted" id="rowInfo"></span>
+        </div>
+        <div id="jsonView"><pre class="codebox" id="jsonOut"></pre></div>
+        <div id="tableView" style="display:none">
+          <div class="tbl-wrap"><table class="data" id="dataTable"></table></div>
+        </div>
+      </div>
+
+      <div class="empty" id="resEmpty">Configure a requisição e clique em <b>Executar consulta</b>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-bg" id="saveModal">
+  <div class="modal">
+    <div class="modal-hd">Salvar consulta</div>
+    <div class="modal-bd">
+      <div class="field" style="margin:0">
+        <label class="lab">Nome</label>
+        <input class="inp" id="saveName" placeholder="Nome da consulta">
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn" onclick="closeModal('saveModal')">Cancelar</button>
+      <button class="btn primary" id="confirmSave">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP / INSTRUCTIONS MODAL -->
+<div class="modal-bg" id="helpModal">
+  <div class="modal" style="width:720px;max-height:88vh;display:flex;flex-direction:column">
+    <div class="modal-hd" style="display:flex;align-items:center;justify-content:space-between">
+      <span>📖 Como usar o Medusa</span>
+      <button class="icon-btn" onclick="closeModal('helpModal')" style="width:28px;height:28px"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="modal-bd" style="overflow-y:auto">
+      <p class="muted" style="margin-bottom:16px">O Medusa é um construtor de consultas a APIs. Tudo roda no seu navegador — nada é enviado a servidores do Olimpus. As consultas ficam salvas localmente.</p>
+
+      <div class="help-sec"><div class="help-h"><span class="help-n">1</span> Montar a requisição <span class="tag">aba Requisição</span></div>
+        Defina <b>método</b> e <b>URL</b>. Adicione <b>headers</b> e <b>query params</b> (use o ✓ para ligar/desligar cada um) e o <b>payload</b> (JSON, raw ou sem corpo). Em qualquer campo, escreva <code>{param}</code> onde quiser injetar valores dos workers.
+      </div>
+
+      <div class="help-sec"><div class="help-h"><span class="help-n">2</span> Auto-config <span class="tag">aba Auto-config</span></div>
+        Cole e clique <b>Auto-configurar</b>. Detecta automaticamente 4 formatos: <code>cURL</code>, <code>fetch()</code>, <b>cabeçalho bruto</b> (<code>Chave: Valor</code>) e o painel <b>"Cabeçalhos" do DevTools</b> (formato em duas linhas, com <code>:authority</code>/<code>:path</code>). Preenche método, URL, headers e body para você.
+      </div>
+
+      <div class="help-sec"><div class="help-h"><span class="help-n">3</span> Importar de um HAR <span class="tag">aba HAR</span></div>
+        No navegador: <b>DevTools → Network → Export HAR</b>. Arraste o <code>.har</code> na aba HAR. O Medusa lista todas as requisições e <b>identifica as APIs</b> (XHR/fetch, JSON/XML, rotas <code>/api</code>, <code>/v1</code>, GraphQL…). Filtre, marque <b>Somente APIs</b>, clique <b>Usar</b> para carregar uma na requisição, ou selecione várias e mande para os Workers / exporte as URLs.
+      </div>
+
+      <div class="help-sec"><div class="help-h"><span class="help-n">4</span> Workers e parâmetros <span class="tag">aba Workers</span></div>
+        Coloque a <b>lista de parâmetros</b> (um por linha) — cada linha vira uma requisição com <code>{param}</code> substituído. Defina quantos <b>workers</b> rodam em paralelo (1–50) e um <b>atraso entre lotes</b> se a API tiver limite. Para múltiplos campos, use uma linha JSON por item, ex.: <code>{"id":1,"uf":"SP"}</code>, e injete <code>{id}</code>, <code>{uf}</code>. O <b>token</b> padrão é <code>param</code>, mas pode trocar.
+      </div>
+
+      <div class="help-sec"><div class="help-h"><span class="help-n">5</span> Executar e tratar o retorno <span class="tag">aba Resultado</span></div>
+        Clique <b>Executar consulta</b>. Veja o <b>JSON original</b> ou em <b>Tabela</b>. <b>Erros da API</b> aparecem em destaque, por requisição. Baixe o resultado em <b>Excel</b> (colunas ordenadas conforme os campos do JSON, objetos aninhados achatados como <code>a.b</code>), <b>CSV</b> ou <b>JSON</b>.
+      </div>
+
+      <div class="help-sec"><div class="help-h"><span class="help-n">6</span> Salvar, clonar, exportar</div>
+        <b>Salvar</b> guarda a consulta na barra lateral (no navegador). <b>Clonar</b> duplica. <b>Exportar/Importar</b> trocam a config como arquivo <code>.medusa.json</code>. <b>Salvar em pasta local</b> grava no diretório que você escolher (navegadores Chromium).
+      </div>
+
+      <div class="help" style="margin:14px 0 0;border-color:var(--warn);background:var(--warn-bg)">
+        ⚠ <b>CORS:</b> por ser uma página no navegador, APIs que não liberam CORS bloquearão a chamada (aparece na lista de erros). Headers como <code>Origin</code>, <code>Referer</code>, <code>User-Agent</code> e <code>Cookie</code> são gerenciados pelo navegador e não podem ser definidos por script — são ignorados silenciosamente.
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn primary" onclick="closeModal('helpModal')">Entendi</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json" style="display:none">
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ====================== STATE ====================== */
+const LS_KEY = "medusa_queries_v1";
+let queries = [];        // saved queries library
+let currentId = null;    // id of currently loaded/editing query
+let lastResults = [];    // [{param,status,ok,data,error,ms}]
+let lastFlat = [];       // flattened rows for table/excel
+let lastCols = [];       // ordered columns
+let expandNested = false;// expandir subdicionários (objetos/arrays de objetos) em colunas
+let aborter = null;      // AbortController for running batch
+let running = false;
+
+/* ====================== UTIL ====================== */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function toast(msg, isErr){ const t=$("#toast"); t.textContent=msg; t.className="show"+(isErr?" err":""); clearTimeout(t._t); t._t=setTimeout(()=>t.className="",2600); }
+function openModal(id){ $("#"+id).classList.add("show"); }
+function closeModal(id){ $("#"+id).classList.remove("show"); }
+window.closeModal = closeModal;
+
+/* ====================== KV EDITOR ====================== */
+function addKV(container, k="", v="", enabled=true){
+  const row = document.createElement("div");
+  row.className = "kv-row";
+  row.innerHTML = `
+    <input class="inp kv-toggle" type="checkbox" ${enabled?"checked":""} style="width:18px;flex:none;height:18px;padding:0;accent-color:var(--accent)">
+    <input class="inp kv-k" placeholder="Chave" value="${esc(k).replace(/"/g,'&quot;')}">
+    <input class="inp kv-v" placeholder="Valor" value="${esc(v).replace(/"/g,'&quot;')}">
+    <button class="del-x" title="Remover"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`;
+  row.querySelector(".del-x").onclick = () => row.remove();
+  container.appendChild(row);
+  return row;
+}
+function readKV(container){
+  const out = [];
+  $$(`#${container.id} .kv-row`).forEach(r => {
+    const k = r.querySelector(".kv-k").value.trim();
+    const v = r.querySelector(".kv-v").value;
+    const on = r.querySelector(".kv-toggle").checked;
+    if(k) out.push({k, v, on});
+  });
+  return out;
+}
+function setKV(container, arr){
+  container.innerHTML = "";
+  (arr||[]).forEach(o => addKV(container, o.k, o.v, o.on!==false));
+}
+
+/* ====================== CONFIG <-> UI ====================== */
+function gatherConfig(){
+  return {
+    title: $("#qTitle").value.trim(),
+    method: $("#method").value,
+    url: $("#url").value.trim(),
+    headers: readKV($("#headers")),
+    params: readKV($("#params")),
+    bodyType: $("#bodyType").value,
+    body: $("#body").value,
+    workers: clampInt($("#wCount").value,1,50,1),
+    token: $("#wToken").value.trim() || "param",
+    delay: clampInt($("#wDelay").value,0,600000,0),
+    paramList: $("#wParams").value
+  };
+}
+function applyConfig(c){
+  c = c || {};
+  $("#qTitle").value = c.title || "";
+  $("#method").value = c.method || "GET";
+  $("#url").value = c.url || "";
+  setKV($("#headers"), c.headers && c.headers.length ? c.headers : [{k:"",v:"",on:true}]);
+  setKV($("#params"), c.params && c.params.length ? c.params : [{k:"",v:"",on:true}]);
+  $("#bodyType").value = c.bodyType || "json";
+  $("#body").value = c.body || "";
+  $("#wCount").value = c.workers || 1;
+  $("#wToken").value = c.token || "param";
+  $("#wDelay").value = c.delay || 0;
+  $("#wParams").value = c.paramList || "";
+  refreshWorkerInfo();
+}
+const clampInt = (v,min,max,def)=>{ let n=parseInt(v,10); if(isNaN(n))n=def; return Math.max(min,Math.min(max,n)); };
+
+/* ====================== PERSISTENCE ====================== */
+function loadLibrary(){
+  try{ queries = JSON.parse(localStorage.getItem(LS_KEY)) || []; }catch(e){ queries = []; }
+  renderLibrary();
+}
+function persistLibrary(){ localStorage.setItem(LS_KEY, JSON.stringify(queries)); renderLibrary(); }
+function renderLibrary(){
+  const list = $("#qList"); $("#qCount").textContent = queries.length;
+  if(!queries.length){ list.innerHTML = `<div class="empty">Nenhuma consulta salva ainda.<br>Configure e clique em <b>Salvar</b>.</div>`; return; }
+  list.innerHTML = "";
+  queries.slice().sort((a,b)=>b.updatedAt-a.updatedAt).forEach(q => {
+    const d = document.createElement("div");
+    d.className = "q-item" + (q.id===currentId?" active":"");
+    const dt = new Date(q.updatedAt).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+    d.innerHTML = `
+      <div class="q-name">${esc(q.config.title || "Sem nome")}</div>
+      <div class="q-meta"><span class="q-meth m-${q.config.method||'GET'}">${q.config.method||'GET'}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(shortUrl(q.config.url))}</span></div>
+      <div class="q-meta">${dt}</div>
+      <div class="q-actions">
+        <button class="btn sm" data-act="load">Abrir</button>
+        <button class="btn sm" data-act="clone">Clonar</button>
+        <button class="btn sm danger" data-act="del">Excluir</button>
+      </div>`;
+    d.querySelector('[data-act="load"]').onclick = e => { e.stopPropagation(); loadQuery(q.id); };
+    d.querySelector('[data-act="clone"]').onclick = e => { e.stopPropagation(); cloneQuery(q.id); };
+    d.querySelector('[data-act="del"]').onclick = e => { e.stopPropagation(); delQuery(q.id); };
+    d.onclick = () => loadQuery(q.id);
+    list.appendChild(d);
+  });
+}
+const shortUrl = u => { if(!u) return "—"; try{ const x=new URL(u); return x.host+x.pathname; }catch(e){ return u.slice(0,46); } };
+
+function loadQuery(id){
+  const q = queries.find(x=>x.id===id); if(!q) return;
+  currentId = id; applyConfig(q.config); renderLibrary();
+  switchTab("req"); toast("Consulta carregada");
+}
+function cloneQuery(id){
+  const q = queries.find(x=>x.id===id); if(!q) return;
+  const copy = { id: uid(), createdAt: Date.now(), updatedAt: Date.now(), config: JSON.parse(JSON.stringify(q.config)) };
+  copy.config.title = (q.config.title || "Sem nome") + " (cópia)";
+  queries.push(copy); currentId = copy.id; persistLibrary(); applyConfig(copy.config);
+  toast("Consulta clonada");
+}
+function delQuery(id){
+  if(!confirm("Excluir esta consulta salva?")) return;
+  queries = queries.filter(x=>x.id!==id);
+  if(currentId===id) currentId=null;
+  persistLibrary(); toast("Consulta excluída");
+}
+function saveCurrent(name){
+  const cfg = gatherConfig();
+  cfg.title = name || cfg.title || "Sem nome";
+  $("#qTitle").value = cfg.title;
+  let q = queries.find(x=>x.id===currentId);
+  if(q){ q.config = cfg; q.updatedAt = Date.now(); }
+  else { q = { id: uid(), createdAt: Date.now(), updatedAt: Date.now(), config: cfg }; queries.push(q); currentId = q.id; }
+  persistLibrary(); toast("Consulta salva");
+}
+
+/* ====================== SAVE TO LOCAL FOLDER (File System Access API) ====================== */
+async function saveToDirectory(){
+  const cfg = gatherConfig();
+  const fname = (cfg.title || "consulta").replace(/[^\w\-]+/g,"_") + ".medusa.json";
+  const blob = JSON.stringify({ medusa:1, exportedAt:new Date().toISOString(), query:cfg }, null, 2);
+  if(window.showSaveFilePicker){
+    try{
+      const h = await window.showSaveFilePicker({ suggestedName: fname, types:[{description:"Medusa query",accept:{"application/json":[".json"]}}] });
+      const w = await h.createWritable(); await w.write(blob); await w.close();
+      toast("Salvo no diretório local"); return;
+    }catch(e){ if(e.name==="AbortError") return; }
+  }
+  downloadBlob(blob, fname, "application/json");
+  toast("Baixado (navegador sem acesso a pastas)");
+}
+
+/* ====================== IMPORT / EXPORT ====================== */
+function exportCurrent(){
+  const cfg = gatherConfig();
+  const fname = (cfg.title || "consulta").replace(/[^\w\-]+/g,"_") + ".medusa.json";
+  downloadBlob(JSON.stringify({ medusa:1, exportedAt:new Date().toISOString(), query:cfg }, null, 2), fname, "application/json");
+  toast("Consulta exportada");
+}
+function importFile(file){
+  const r = new FileReader();
+  r.onload = () => {
+    try{
+      const obj = JSON.parse(r.result);
+      const cfg = obj.query || obj.config || obj;
+      currentId = null; applyConfig(cfg); switchTab("req");
+      toast("Consulta importada — clique em Salvar para guardar");
+    }catch(e){ toast("Arquivo inválido", true); }
+  };
+  r.readAsText(file);
+}
+
+/* ====================== AUTO-CONFIG PARSER ====================== */
+function autoConfigure(){
+  const raw = $("#autoIn").value.trim();
+  if(!raw){ $("#autoMsg").textContent="Cole algo primeiro."; return; }
+  let cfg;
+  if(/^\s*curl\b/.test(raw)) cfg = parseCurl(raw);
+  else if(/fetch\s*\(/.test(raw)) cfg = parseFetch(raw);
+  else if(looksLikeDevtools(raw)) cfg = parseDevtools(raw);
+  else cfg = parseRawHeaders(raw);
+  if(!cfg || !cfg.url){ $("#autoMsg").textContent="Não consegui detectar a URL."; toast("Falha ao auto-configurar",true); return; }
+  // merge into UI, keeping current title
+  cfg.title = $("#qTitle").value;
+  cfg.workers = $("#wCount").value; cfg.token = $("#wToken").value; cfg.paramList = $("#wParams").value;
+  applyConfig(cfg);
+  $("#autoMsg").textContent = `OK — ${cfg.method} · ${(cfg.headers||[]).length} headers`;
+  switchTab("req"); toast("Configurado automaticamente");
+}
+function parseCurl(raw){
+  const c = { headers:[], params:[], bodyType:"none", body:"", method:"GET" };
+  // join line continuations
+  let s = raw.replace(/\\\r?\n/g," ").replace(/\r?\n/g," ").trim();
+  // tokenize respecting quotes
+  const toks = s.match(/'[^']*'|"[^"]*"|\S+/g) || [];
+  for(let i=0;i<toks.length;i++){
+    let t = toks[i];
+    const unq = x => x.replace(/^['"]|['"]$/g,"");
+    if(t==="-X"||t==="--request"){ c.method = unq(toks[++i]||"GET").toUpperCase(); }
+    else if(t==="-H"||t==="--header"){ const h=unq(toks[++i]||""); const idx=h.indexOf(":"); if(idx>0) c.headers.push({k:h.slice(0,idx).trim(), v:h.slice(idx+1).trim(), on:true}); }
+    else if(t==="-d"||t==="--data"||t==="--data-raw"||t==="--data-binary"||t==="--data-ascii"){ c.body=unq(toks[++i]||""); c.bodyType="json"; if(c.method==="GET")c.method="POST"; }
+    else if(t==="-b"||t==="--cookie"){ c.headers.push({k:"Cookie",v:unq(toks[++i]||""),on:true}); }
+    else if(t==="--url"){ c.url=unq(toks[++i]||""); }
+    else if(t==="--compressed"||t.startsWith("-")){ /* skip flags */ }
+    else if(/^https?:\/\//.test(unq(t)) && !c.url){ c.url=unq(t); }
+  }
+  detectBodyType(c); splitQuery(c); return c;
+}
+function parseFetch(raw){
+  const c = { headers:[], params:[], bodyType:"none", body:"", method:"GET" };
+  const urlM = raw.match(/fetch\s*\(\s*["'`]([^"'`]+)["'`]/);
+  if(urlM) c.url = urlM[1];
+  const optM = raw.match(/fetch\s*\([^,]+,\s*(\{[\s\S]*\})\s*\)\s*;?/);
+  let opts = null;
+  if(optM){ try{ opts = looseJson(optM[1]); }catch(e){ opts = null; } }
+  if(opts){
+    if(opts.method) c.method = String(opts.method).toUpperCase();
+    if(opts.headers && typeof opts.headers==="object") for(const k in opts.headers) c.headers.push({k, v:String(opts.headers[k]), on:true});
+    if(opts.body!=null && opts.body!=="null"){ c.body = typeof opts.body==="string"?opts.body:JSON.stringify(opts.body); c.bodyType="json"; if(c.method==="GET")c.method="POST"; }
+  }
+  detectBodyType(c); splitQuery(c); return c;
+}
+function parseRawHeaders(raw){
+  const c = { headers:[], params:[], bodyType:"none", body:"", method:"GET" };
+  const lines = raw.split(/\r?\n/);
+  let path="", host="", scheme="https", inBody=false, bodyLines=[];
+  const reqLine = lines[0].match(/^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)\s+(\S+)\s+HTTP/i);
+  let start = 0;
+  if(reqLine){ c.method = reqLine[1].toUpperCase(); path = reqLine[2]; start = 1; }
+  for(let i=start;i<lines.length;i++){
+    const ln = lines[i];
+    if(inBody){ bodyLines.push(ln); continue; }
+    if(ln.trim()===""){ inBody=true; continue; }
+    const idx = ln.indexOf(":");
+    if(idx>0){
+      const k = ln.slice(0,idx).trim(), v = ln.slice(idx+1).trim();
+      if(/^host$/i.test(k)) host = v;
+      else if(/^:authority$/i.test(k)) host = v;
+      else if(/^:path$/i.test(k)) path = v;
+      else if(/^:method$/i.test(k)) c.method = v.toUpperCase();
+      else if(/^:scheme$/i.test(k)) scheme = v;
+      else if(k.startsWith(":")) {}
+      else c.headers.push({k, v, on:true});
+    }
+  }
+  if(bodyLines.length){ c.body = bodyLines.join("\n").trim(); if(c.body){ c.bodyType="json"; if(c.method==="GET")c.method="POST"; } }
+  if(/^https?:\/\//i.test(path)) c.url = path;
+  else if(host) c.url = scheme+"://"+host+(path.startsWith("/")?path:"/"+path);
+  else if(path) c.url = path;
+  detectBodyType(c); splitQuery(c); return c;
+}
+/* DevTools "Headers" panel format (two-line name/value, localized labels, :pseudo-headers) */
+function looksLikeDevtools(raw){
+  return /^\s*:(authority|method|path|scheme)\s*$/mi.test(raw)
+      || /url da solicit|url da requis|request url|m[eé]todo da solicit|m[eé]todo da requis|request method/i.test(raw);
+}
+function parseDevtools(raw){
+  const c = { headers:[], params:[], bodyType:"none", body:"", method:"GET" };
+  const lines = raw.split(/\r?\n/).map(s=>s.trim()).filter(s=>s!=="");
+  const URLK = ["url da solicitação","url da requisição","request url"];
+  const METHK = ["método da solicitação","metodo da solicitação","método da requisição","request method"];
+  const SKIP = ["código de status","codigo de status","status code","endereço remoto","endereco remoto","remote address","política do referenciador","politica do referenciador","referrer policy","versão http","versao http","http version"];
+  const SECTION = ["cabeçalhos gerais","cabecalhos gerais","general","cabeçalhos de resposta","cabecalhos de resposta","response headers","cabeçalhos de solicitação","cabecalhos de solicitacao","request headers","cabeçalhos","cabecalhos","headers","payload","carga útil","carga util"];
+  const RESP_BLOCK = new Set(["access-control-allow-origin","access-control-allow-credentials","access-control-allow-methods","access-control-allow-headers","access-control-expose-headers","content-length","content-encoding","date","server","set-cookie","strict-transport-security","cache-control","age","etag","expires","last-modified","vary","x-cache","x-served-by","report-to","nel","cf-ray","alt-svc","via","connection"]);
+  let scheme="https", authority="", path="", seenPseudo=false;
+  const allHeaders=[];
+  for(let i=0;i<lines.length;i++){
+    const name = lines[i], lname = name.toLowerCase();
+    if(SECTION.includes(lname)) continue;              // divider line, no value
+    const val = lines[i+1]!==undefined ? lines[i+1] : "";
+    if(URLK.includes(lname)){ c.url = val; i++; continue; }
+    if(METHK.includes(lname)){ c.method = (val||"GET").toUpperCase(); i++; continue; }
+    if(SKIP.includes(lname)){ i++; continue; }
+    if(name.startsWith(":")){
+      seenPseudo = true;
+      const pn = lname.slice(1);
+      if(pn==="authority") authority = val;
+      else if(pn==="path") path = val;
+      else if(pn==="scheme") scheme = val;
+      else if(pn==="method") c.method = (val||c.method).toUpperCase();
+      i++; continue;
+    }
+    allHeaders.push({ k:name, v:val, after:seenPseudo }); i++;
+  }
+  // Request headers only: those after the :pseudo block; else fall back to non-response headers
+  const chosen = seenPseudo ? allHeaders.filter(h=>h.after) : allHeaders.filter(h=>!RESP_BLOCK.has(h.k.toLowerCase()));
+  c.headers = chosen.map(h=>({ k:h.k, v:h.v, on:true }));
+  if(!c.url && authority) c.url = scheme+"://"+authority+(path||"");
+  detectBodyType(c); splitQuery(c); return c;
+}
+function detectBodyType(c){
+  if(!c.body){ c.bodyType="none"; return; }
+  try{ const o=JSON.parse(c.body); c.body=JSON.stringify(o,null,2); c.bodyType="json"; }catch(e){ c.bodyType="raw"; }
+}
+function splitQuery(c){
+  if(!c.url) return;
+  const qi = c.url.indexOf("?"); if(qi<0) return;
+  const qs = c.url.slice(qi+1); c.url = c.url.slice(0,qi);
+  qs.split("&").forEach(p => { if(!p) return; const eq=p.indexOf("="); const k=decodeURIComponent(eq<0?p:p.slice(0,eq)); const v=eq<0?"":decodeURIComponent(p.slice(eq+1)); c.params.push({k,v,on:true}); });
+}
+function looseJson(s){
+  // tolerant parse for fetch options (single quotes, trailing commas)
+  try{ return JSON.parse(s); }catch(e){}
+  let t = s.replace(/([{,]\s*)([A-Za-z_$][\w$]*)\s*:/g,'$1"$2":').replace(/'/g,'"').replace(/,(\s*[}\]])/g,"$1");
+  return JSON.parse(t);
+}
+
+/* ====================== HAR ANALYSIS ====================== */
+let harEntries = [];      // normalized entries [{method,url,status,mime,type,size,raw}]
+const STATIC_EXT = /\.(?:js|mjs|cjs|css|png|jpe?g|gif|svg|webp|avif|ico|bmp|woff2?|ttf|eot|otf|mp4|webm|ogg|mp3|wav|m4a|map|html?|xml\.gz|wasm)(?:$|[?#])/i;
+const STATIC_TYPES = new Set(["script","stylesheet","image","font","media","manifest","texttrack","ping","beacon"]);
+function harIsApi(e){
+  const t = (e.type||"").toLowerCase();
+  if(t==="xhr"||t==="fetch") return true;
+  if(STATIC_TYPES.has(t)) return false;
+  const path = (e.url||"").split("?")[0].toLowerCase();
+  if(STATIC_EXT.test(path)) return false;
+  if(/json|xml|graphql|grpc|protobuf|x-protobuf|x-www-form-urlencoded|x-ndjson|x-amz-json/i.test(e.mime||"")) return true;
+  if(/\/(?:api|apis|v\d+|rest|graphql|gql|rpc|service|services|gateway|query|data|ajax|backend|edge|geo|sync|track|collect|event|metrics|config)\b/i.test(path)) return true;
+  if(t==="document") return false;
+  return false;
+}
+function loadHar(text, fname){
+  let har;
+  try{ har = JSON.parse(text); }catch(e){ toast("HAR inválido (JSON)", true); return; }
+  const entries = (har.log && har.log.entries) || har.entries;
+  if(!Array.isArray(entries)){ toast("Estrutura HAR não reconhecida", true); return; }
+  harEntries = entries.map(en => {
+    const req = en.request || {}, res = en.response || {}, cont = res.content || {};
+    return {
+      method: (req.method||"GET").toUpperCase(),
+      url: req.url || "",
+      status: res.status || 0,
+      statusText: res.statusText || "",
+      mime: cont.mimeType || (res.headers||[]).find(h=>/content-type/i.test(h.name))?.value || "",
+      type: en._resourceType || en.resourceType || "",
+      size: cont.size>0 ? cont.size : (res.bodySize>0 ? res.bodySize : 0),
+      time: Math.round(en.time||0),
+      raw: en
+    };
+  }).filter(e=>e.url);
+  $("#harFileName").textContent = `${fname} · ${harEntries.length} requisições`;
+  $("#harResultSec").style.display = "block";
+  $("#harSearch").value = "";
+  renderHar();
+  const apis = harEntries.filter(harIsApi).length;
+  $("#hBadge").textContent = apis;
+  toast(`${apis} API(s) identificada(s) de ${harEntries.length} requisições`);
+}
+function filteredHar(){
+  const q = ($("#harSearch").value||"").toLowerCase();
+  const onlyApi = $("#harOnlyApi").checked;
+  return harEntries
+    .map((e,i)=>({e,i}))
+    .filter(({e}) => (!onlyApi || harIsApi(e)) && (!q || (e.url.toLowerCase().includes(q) || e.method.toLowerCase().includes(q))));
+}
+function renderHar(){
+  const t = $("#harTable");
+  const rows = filteredHar();
+  const apis = harEntries.filter(harIsApi).length;
+  $("#harStats").textContent = `${rows.length} exibida(s) · ${apis} API(s) · ${harEntries.length} total`;
+  if(!rows.length){ t.innerHTML = `<tr><td style="padding:20px;color:var(--text-dim)">Nenhuma requisição corresponde ao filtro.</td></tr>`; return; }
+  let h = `<thead><tr><th style="width:34px"><input type="checkbox" id="harHeadChk" class="chk"></th><th>Método</th><th>Endpoint</th><th>Status</th><th>Tipo</th><th>Content-Type</th><th></th></tr></thead><tbody>`;
+  rows.forEach(({e,i}) => {
+    let host="",path=e.url;
+    try{ const u=new URL(e.url); host=u.host; path=u.pathname+(u.search||""); }catch(_){}
+    const stCls = e.status>=200&&e.status<300?"m-GET":(e.status>=400||e.status===0?"m-DELETE":"m-PUT");
+    h += `<tr data-i="${i}">
+      <td><input type="checkbox" class="chk har-chk" data-i="${i}"></td>
+      <td><span class="q-meth m-${e.method}">${e.method}</span></td>
+      <td title="${esc(e.url).replace(/"/g,'&quot;')}"><div style="font-weight:600;max-width:420px;overflow:hidden;text-overflow:ellipsis">${esc(path)}</div><div class="muted" style="font-family:var(--mono);font-size:.66rem">${esc(host)}</div></td>
+      <td><span class="q-meth ${stCls}">${e.status||"—"}</span></td>
+      <td><span class="tag">${esc(e.type||"—")}</span></td>
+      <td class="muted" style="font-family:var(--mono);font-size:.68rem;max-width:200px;overflow:hidden;text-overflow:ellipsis">${esc((e.mime||"").split(";")[0])}</td>
+      <td><button class="btn sm primary har-use" data-i="${i}">Usar</button></td>
+    </tr>`;
+  });
+  h += "</tbody>";
+  t.innerHTML = h;
+  $$("#harTable .har-use").forEach(b => b.onclick = () => harUse(+b.dataset.i));
+  const head = $("#harHeadChk"); if(head) head.onclick = () => $$("#harTable .har-chk").forEach(c=>c.checked=head.checked);
+}
+function harEntryToConfig(e){
+  const req = e.raw.request || {};
+  const c = { headers:[], params:[], bodyType:"none", body:"", method:e.method, url:req.url||e.url };
+  (req.headers||[]).forEach(h => { if(h.name && !h.name.startsWith(":")) c.headers.push({ k:h.name, v:h.value, on:true }); });
+  if(req.postData && (req.postData.text || (req.postData.params||[]).length)){
+    if(req.postData.text) c.body = req.postData.text;
+    else c.body = (req.postData.params||[]).map(p=>encodeURIComponent(p.name)+"="+encodeURIComponent(p.value||"")).join("&");
+    detectBodyType(c);
+  }
+  splitQuery(c);
+  return c;
+}
+function harUse(i){
+  const e = harEntries[i]; if(!e) return;
+  const cfg = harEntryToConfig(e);
+  cfg.title = $("#qTitle").value || (()=>{ try{ return new URL(e.url).pathname.split("/").filter(Boolean).pop()||"Consulta HAR"; }catch(_){ return "Consulta HAR"; } })();
+  cfg.workers = $("#wCount").value; cfg.token = $("#wToken").value; cfg.delay = $("#wDelay").value; cfg.paramList = $("#wParams").value;
+  currentId = null; applyConfig(cfg); switchTab("req");
+  toast("Requisição carregada do HAR");
+}
+function harSelectedUrls(){
+  const sel = $$("#harTable .har-chk:checked").map(c=>harEntries[+c.dataset.i]).filter(Boolean);
+  const src = sel.length ? sel : filteredHar().map(r=>r.e);
+  return [...new Set(src.map(e=>e.url))];
+}
+
+/* ====================== EXECUTION (workers) ====================== */
+function injectToken(str, token, value){
+  if(str==null) return str;
+  // {param} substitution + named fields if value is JSON object
+  let out = str.split("{"+token+"}").join(value==null?"":value);
+  if(value && typeof value==="object"){
+    for(const k in value) out = out.split("{"+k+"}").join(value[k]==null?"":value[k]);
+  }
+  return out;
+}
+function buildRequest(cfg, rawParam){
+  let pval = rawParam;
+  // try JSON object param
+  if(typeof rawParam==="string"){ const t=rawParam.trim(); if(t.startsWith("{")){ try{ pval=JSON.parse(t); }catch(e){ pval=rawParam; } } }
+  let url = injectToken(cfg.url, cfg.token, pval);
+  // append query params
+  const qp = cfg.params.filter(p=>p.on).map(p => encodeURIComponent(injectToken(p.k,cfg.token,pval)) + "=" + encodeURIComponent(injectToken(p.v,cfg.token,pval)));
+  if(qp.length) url += (url.includes("?")?"&":"?") + qp.join("&");
+  const headers = {};
+  cfg.headers.filter(h=>h.on).forEach(h => headers[injectToken(h.k,cfg.token,pval)] = injectToken(h.v,cfg.token,pval));
+  let body = null;
+  if(cfg.bodyType!=="none" && cfg.method!=="GET" && cfg.method!=="HEAD"){
+    body = injectToken(cfg.body, cfg.token, pval);
+    if(cfg.bodyType==="json" && !Object.keys(headers).some(k=>k.toLowerCase()==="content-type")) headers["Content-Type"]="application/json";
+  }
+  return { url, headers, body };
+}
+function getParamList(cfg){
+  const lines = (cfg.paramList||"").split(/\r?\n/).map(s=>s).filter(s=>s.trim()!=="");
+  return lines.length ? lines : [null]; // null = single request without param
+}
+
+async function runBatch(){
+  if(running) return;
+  const cfg = gatherConfig();
+  if(!cfg.url){ toast("Informe a URL", true); switchTab("req"); return; }
+  const list = getParamList(cfg);
+  running = true; aborter = new AbortController();
+  lastResults = []; renderErrors([]);
+  $("#btnRun").style.display="none"; $("#btnStop").style.display="inline-flex";
+  $("#resEmpty").style.display="none"; $("#resultArea").style.display="none";
+  $("#progWrap").style.display = list.length>1?"block":"none";
+  const pill = $("#statPill"); pill.style.display="inline-flex"; pill.className="pill run";
+
+  const total = list.length; let done=0, okC=0, errC=0;
+  const results = new Array(total);
+  let cursor = 0;
+  const workers = Math.min(cfg.workers, total);
+
+  async function worker(){
+    while(cursor < total){
+      if(aborter.signal.aborted) return;
+      const i = cursor++;
+      const param = list[i];
+      const t0 = performance.now();
+      try{
+        const rq = buildRequest(cfg, param);
+        const resp = await fetch(rq.url, { method:cfg.method, headers:rq.headers, body:rq.body, signal:aborter.signal });
+        const text = await resp.text();
+        let data; try{ data = JSON.parse(text); }catch(e){ data = text; }
+        const ms = Math.round(performance.now()-t0);
+        if(resp.ok){ okC++; results[i]={param,status:resp.status,ok:true,data,ms}; }
+        else { errC++; results[i]={param,status:resp.status,ok:false,data,error:`HTTP ${resp.status} ${resp.statusText}`,ms}; }
+      }catch(e){
+        if(e.name==="AbortError"){ return; }
+        errC++; results[i]={param,status:0,ok:false,error:e.message||String(e),ms:Math.round(performance.now()-t0)};
+      }
+      done++;
+      $("#progBar").style.width = (done/total*100)+"%";
+      pill.textContent = `${done}/${total} · ${okC} ok · ${errC} erro`;
+    }
+  }
+  await Promise.all(Array.from({length:Math.max(1,workers)}, ()=>worker()).map(async (p,idx)=>{
+    // stagger with delay between batches if requested
+    if(cfg.delay && idx>0) await new Promise(r=>setTimeout(r, cfg.delay*idx));
+    return p;
+  }));
+
+  lastResults = results.filter(Boolean);
+  running=false; aborter=null;
+  $("#btnRun").style.display="inline-flex"; $("#btnStop").style.display="none";
+  pill.className = errC ? (okC?"pill run":"pill err") : "pill ok";
+  pill.textContent = `Concluído · ${okC} ok · ${errC} erro`;
+  $("#rBadge").textContent = lastResults.length;
+  renderResults();
+}
+function stopBatch(){ if(aborter){ aborter.abort(); running=false; $("#btnRun").style.display="inline-flex"; $("#btnStop").style.display="none"; toast("Execução interrompida"); } }
+
+/* ====================== RESULTS RENDER ====================== */
+function renderResults(){
+  const errs = lastResults.filter(r=>!r.ok);
+  renderErrors(errs);
+  const okResults = lastResults.filter(r=>r.ok);
+  // Build combined JSON (original)
+  let combined;
+  if(okResults.length===1 && lastResults.length===1) combined = okResults[0].data;
+  else combined = lastResults.map(r => ({ param:r.param, status:r.status, ok:r.ok, ms:r.ms, ...(r.ok?{data:r.data}:{error:r.error,data:r.data}) }));
+  $("#jsonOut").innerHTML = highlightJson(combined);
+  $("#jsonOut")._raw = JSON.stringify(combined, null, 2);
+
+  // Flatten for table/excel — ordered columns by first appearance
+  const { rows, cols } = flattenResults(okResults);
+  lastFlat = rows; lastCols = cols;
+  buildTable(rows, cols);
+  $("#rowInfo").textContent = `${rows.length} linha(s) · ${cols.length} coluna(s)`;
+  $("#resultArea").style.display = "block";
+  $("#viewToggle").style.display = "flex";
+  $("#expandWrap").style.display = "flex";
+  $("#resEmpty").style.display = "none";
+}
+function renderErrors(errs){
+  const box=$("#errBox"), list=$("#errList");
+  if(!errs.length){ box.style.display="none"; list.innerHTML=""; return; }
+  box.style.display="block"; $("#errCount").textContent=errs.length; list.innerHTML="";
+  errs.slice(0,200).forEach(r => {
+    const d=document.createElement("div"); d.className="err-card";
+    const detail = r.data ? (typeof r.data==="string"?r.data:JSON.stringify(r.data)) : "";
+    d.innerHTML = `<div class="et">⚠ ${esc(r.error||("HTTP "+r.status))} ${r.param!=null?`· param: ${esc(String(typeof r.param==="object"?JSON.stringify(r.param):r.param))}`:""}</div>${detail?`<div class="em">${esc(detail.slice(0,500))}</div>`:""}`;
+    list.appendChild(d);
+  });
+}
+// subdicionários: quando expandNested está ligado, arrays de objetos viram linhas (cross-join)
+const hasObject = arr => Array.isArray(arr) && arr.length>0 && arr.some(el=>el!==null && typeof el==="object");
+function handleArray(arr, key, out, colset){
+  out[key]=JSON.stringify(arr); pushCol(colset,key);
+}
+function flattenObject(obj, prefix, out, colset){
+  if(obj===null || typeof obj!=="object"){ const key=prefix||"valor"; if(!(key in out)){ out[key]=obj; pushCol(colset,key); } return; }
+  if(Array.isArray(obj)){ handleArray(obj, prefix||"valor", out, colset); return; }
+  for(const k in obj){
+    const key = prefix ? prefix+"."+k : k;
+    const v = obj[k];
+    if(v!==null && typeof v==="object" && !Array.isArray(v)) flattenObject(v, key, out, colset);
+    else if(Array.isArray(v)) handleArray(v, key, out, colset);
+    else { out[key]=v; pushCol(colset,key); }
+  }
+}
+function pushCol(colset,k){ if(!colset.set.has(k)){ colset.set.add(k); colset.order.push(k); } }
+
+// explodeObject: retorna array de linhas achatadas; arrays de objetos geram linhas extras (cross-join)
+function explodeObject(obj, prefix, colset){
+  if(obj===null || typeof obj!=="object"){
+    const key=prefix||"valor"; pushCol(colset,key); return [{[key]:obj}];
+  }
+  if(Array.isArray(obj)){
+    if(hasObject(obj)){
+      const allRows=[];
+      obj.forEach(el => explodeObject(el, prefix, colset).forEach(r => allRows.push(r)));
+      return allRows.length ? allRows : [{}];
+    }
+    const key=prefix||"valor"; pushCol(colset,key); return [{[key]:JSON.stringify(obj)}];
+  }
+  // plain object: cross-join each field's rows
+  let result=[{}];
+  for(const k in obj){
+    const key = prefix ? prefix+"."+k : k;
+    const v = obj[k];
+    let fieldRows;
+    if(v!==null && typeof v==="object" && !Array.isArray(v)){
+      fieldRows = explodeObject(v, key, colset);
+    } else if(Array.isArray(v) && hasObject(v)){
+      fieldRows=[];
+      v.forEach(el => explodeObject(el, key, colset).forEach(r => fieldRows.push(r)));
+      if(!fieldRows.length) fieldRows=[{}];
+    } else if(Array.isArray(v)){
+      pushCol(colset,key); fieldRows=[{[key]:JSON.stringify(v)}];
+    } else {
+      pushCol(colset,key); fieldRows=[{[key]:v}];
+    }
+    const newResult=[];
+    result.forEach(base => fieldRows.forEach(fr => newResult.push({...base,...fr})));
+    result=newResult;
+  }
+  return result;
+}
+
+function extractRows(data){
+  // find row array: data itself, or first array property, or {data:[...]}, {items:[...]}, {results:[...]}
+  if(Array.isArray(data)) return data;
+  if(data && typeof data==="object"){
+    for(const key of ["data","items","results","records","rows","content","value","list"]) if(Array.isArray(data[key])) return data[key];
+    // else single object => one row
+    return [data];
+  }
+  return [{ valor:data }];
+}
+function flattenResults(okResults){
+  const colset = { set:new Set(), order:[] };
+  let rows = [];
+  okResults.forEach(r => {
+    const items = extractRows(r.data);
+    items.forEach(it => {
+      let itemRows;
+      if(expandNested){
+        itemRows = explodeObject(it, "", colset);
+      } else {
+        const flat={};
+        flattenObject(it, "", flat, colset);
+        itemRows=[flat];
+      }
+      itemRows.forEach(flat => {
+        if(r.param!=null && typeof r.param!=="object"){ flat["_param"]=r.param; pushCol(colset,"_param"); }
+        rows.push(flat);
+      });
+    });
+  });
+  // ensure _param first if present
+  let cols = colset.order;
+  if(cols.includes("_param")) cols = ["_param", ...cols.filter(c=>c!=="_param")];
+  return { rows, cols };
+}
+function buildTable(rows, cols){
+  const t=$("#dataTable");
+  if(!rows.length){ t.innerHTML=`<tr><td style="padding:20px;color:var(--text-dim)">Sem linhas (verifique os erros acima).</td></tr>`; return; }
+  let h="<thead><tr><th>#</th>"+cols.map(c=>`<th>${esc(c)}</th>`).join("")+"</tr></thead><tbody>";
+  rows.slice(0,1000).forEach((r,i)=>{
+    h+=`<tr><td class="idx">${i+1}</td>`+cols.map(c=>{ let v=r[c]; if(v===undefined)v=""; if(v===null)v="null"; if(typeof v==="object")v=JSON.stringify(v); return `<td title="${esc(String(v)).replace(/"/g,'&quot;')}">${esc(String(v))}</td>`; }).join("")+"</tr>";
+  });
+  h+="</tbody>"; t.innerHTML=h;
+  if(rows.length>1000){ const tb=t.querySelector("tbody"); const tr=document.createElement("tr"); tr.innerHTML=`<td colspan="${cols.length+1}" style="color:var(--text-dim);padding:10px">+ ${rows.length-1000} linhas (visualização limitada; export completo)</td>`; tb.appendChild(tr); }
+}
+
+/* ====================== EXPORTS ====================== */
+function downloadBlob(content, filename, type){
+  const blob = content instanceof Blob ? content : new Blob([content], {type});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+function baseName(){ return (gatherConfig().title || "medusa").replace(/[^\w\-]+/g,"_") || "medusa"; }
+function nowStamp(){ const d=new Date(), p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}-${p(d.getSeconds())}`; }
+function exportName(ext, suffix){ return baseName()+(suffix?"_"+suffix:"")+"_"+nowStamp()+"."+ext; }
+function exportExcel(){
+  if(!lastFlat.length){ toast("Nada para exportar", true); return; }
+  const fname = exportName("xlsx");
+  const XL_MAX=32767; let cut=0;  // limite de caracteres por célula do Excel
+  const flat = v => { if(typeof v!=="string") return v; v=v.replace(/\s*[\r\n]+\s*/g," "); if(v.length>XL_MAX){ cut++; v=v.slice(0,XL_MAX-11)+"…[truncado]"; } return v; };
+  if(window.XLSX){
+    const aoa = [lastCols, ...lastFlat.map(r => lastCols.map(c => { let v=r[c]; if(v===undefined||v===null)return ""; if(typeof v==="object")return flat(JSON.stringify(v)); return flat(v); }))];
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws["!cols"] = lastCols.map(c => ({ wch: Math.min(50, Math.max(c.length+2, 12)) }));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Resultado");
+    XLSX.writeFile(wb, fname); toast(cut?`Excel gerado — ${cut} célula(s) truncada(s) no limite do Excel (32.767 car.)`:"Excel gerado"); return;
+  }
+  // Fallback: HTML-table .xls
+  let html = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table border="1"><tr>'+lastCols.map(c=>`<th>${esc(c)}</th>`).join("")+"</tr>";
+  lastFlat.forEach(r=>{ html+="<tr>"+lastCols.map(c=>{ let v=r[c]; if(v===undefined||v===null)v=""; if(typeof v==="object")v=JSON.stringify(v); return `<td>${esc(flat(String(v)))}</td>`; }).join("")+"</tr>"; });
+  html+="</table></body></html>";
+  downloadBlob(html, exportName("xls"), "application/vnd.ms-excel"); toast(cut?`Excel gerado (modo compatível) — ${cut} célula(s) truncada(s)`:"Excel gerado (modo compatível)");
+}
+function exportCsv(){
+  if(!lastFlat.length){ toast("Nada para exportar", true); return; }
+  // Achata quebras de linha dentro dos valores para 1 espaço, garantindo 1 registro por linha física.
+  const q = s => { s=String(s==null?"":s).replace(/\s*[\r\n]+\s*/g," "); return /[";]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  let csv = lastCols.map(q).join(";")+"\r\n";
+  lastFlat.forEach(r=>{ csv += lastCols.map(c=>{ let v=r[c]; if(typeof v==="object"&&v!==null)v=JSON.stringify(v); return q(v); }).join(";")+"\r\n"; });
+  downloadBlob("﻿"+csv, exportName("csv"), "text/csv;charset=utf-8"); toast("CSV gerado");
+}
+function exportJsonResult(){
+  if(!lastResults.length){ toast("Nada para exportar", true); return; }
+  downloadBlob($("#jsonOut")._raw || "[]", exportName("json","resultado"), "application/json"); toast("JSON exportado");
+}
+
+/* ====================== JSON HIGHLIGHT ====================== */
+function highlightJson(obj){
+  let json = JSON.stringify(obj, null, 2);
+  if(json===undefined) return "";
+  json = json.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+\-]?\d+)?)/g, m=>{
+    let cls="n";
+    if(/^"/.test(m)) cls = /:$/.test(m) ? "k" : "s";
+    else if(/true|false|null/.test(m)) cls="b";
+    return `<span class="${cls}">${m}</span>`;
+  });
+}
+
+/* ====================== WORKERS INFO ====================== */
+function refreshWorkerInfo(){
+  const lines = ($("#wParams").value||"").split(/\r?\n/).filter(s=>s.trim()!=="");
+  $("#wInfo").textContent = `${lines.length} parâmetro(s)`;
+  $("#wBadge").textContent = $("#wCount").value || 1;
+}
+
+/* ====================== TABS ====================== */
+function switchTab(name){
+  $$(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===name));
+  $$(".panel").forEach(p=>p.classList.toggle("active", p.dataset.panel===name));
+}
+
+/* ====================== EVENTS ====================== */
+$$(".tab").forEach(t=>t.onclick=()=>switchTab(t.dataset.tab));
+$("#addHeader").onclick=()=>addKV($("#headers"));
+$("#addParam").onclick=()=>addKV($("#params"));
+$("#btnNew").onclick=()=>{ currentId=null; applyConfig({}); renderLibrary(); switchTab("req"); toast("Nova consulta"); };
+$("#btnSave").onclick=()=>{ $("#saveName").value=$("#qTitle").value||""; openModal("saveModal"); $("#saveName").focus(); };
+$("#confirmSave").onclick=()=>{ saveCurrent($("#saveName").value.trim()); closeModal("saveModal"); };
+$("#saveName").addEventListener("keydown",e=>{ if(e.key==="Enter"){ $("#confirmSave").click(); }});
+$("#btnExport").onclick=exportCurrent;
+$("#btnImport").onclick=()=>$("#fileInput").click();
+$("#fileInput").onchange=e=>{ if(e.target.files[0]) importFile(e.target.files[0]); e.target.value=""; };
+$("#btnSaveDir").onclick=saveToDirectory;
+$("#btnAuto").onclick=autoConfigure;
+$("#btnAutoClear").onclick=()=>{ $("#autoIn").value=""; $("#autoMsg").textContent=""; };
+$("#btnRun").onclick=runBatch;
+$("#btnStop").onclick=stopBatch;
+$("#dlExcel").onclick=exportExcel;
+$("#dlCsv").onclick=exportCsv;
+$("#dlJson").onclick=exportJsonResult;
+$("#copyJson").onclick=()=>{ navigator.clipboard.writeText($("#jsonOut")._raw||"").then(()=>toast("JSON copiado")); };
+$("#fmtBody").onclick=()=>{ try{ $("#body").value=JSON.stringify(JSON.parse($("#body").value),null,2); toast("JSON formatado"); }catch(e){ toast("JSON inválido",true); } };
+$("#wParams").addEventListener("input",refreshWorkerInfo);
+$("#wCount").addEventListener("input",refreshWorkerInfo);
+$("#wDedup").onclick=()=>{ const seen=new Set(); $("#wParams").value=$("#wParams").value.split(/\r?\n/).filter(l=>{ const k=l.trim(); if(k===""||seen.has(k))return false; seen.add(k); return true; }).join("\n"); refreshWorkerInfo(); };
+$("#wTrim").onclick=()=>{ $("#wParams").value=$("#wParams").value.split(/\r?\n/).filter(l=>l.trim()!=="").join("\n"); refreshWorkerInfo(); };
+function setView(v){
+  $$('#viewToggle .btn').forEach(x=>x.classList.toggle("active-view", x.dataset.view===v));
+  $("#jsonView").style.display = v==="json"?"block":"none";
+  $("#tableView").style.display = v==="table"?"block":"none";
+}
+$$('#viewToggle .btn').forEach(b=>b.onclick=()=> setView(b.dataset.view));
+$("#expandNested").addEventListener("change", e=>{
+  expandNested = e.target.checked;
+  localStorage.setItem("medusa_expand_nested", expandNested?"1":"0");
+  if(lastResults.length){ renderResults(); setView("table"); }
+});
+$("#btnTheme").onclick=()=>{ document.body.classList.toggle("dark-mode"); localStorage.setItem("medusa_theme", document.body.classList.contains("dark-mode")?"dark":"light"); };
+$("#btnHelp").onclick=()=>openModal("helpModal");
+
+/* HAR events */
+function handleHarFile(file){ if(!file) return; const r=new FileReader(); r.onload=()=>loadHar(r.result, file.name); r.readAsText(file); }
+$("#harDropInner").onclick=()=>$("#harInput").click();
+$("#harInput").onchange=e=>{ handleHarFile(e.target.files[0]); e.target.value=""; };
+const harDrop=$("#harDrop");
+["dragenter","dragover"].forEach(ev=>harDrop.addEventListener(ev,e=>{ e.preventDefault(); harDrop.style.borderColor="var(--accent)"; harDrop.style.background="var(--accent-bg)"; }));
+["dragleave","drop"].forEach(ev=>harDrop.addEventListener(ev,e=>{ e.preventDefault(); harDrop.style.borderColor=""; harDrop.style.background=""; }));
+harDrop.addEventListener("drop",e=>handleHarFile(e.dataTransfer.files[0]));
+$("#harSearch").addEventListener("input",renderHar);
+$("#harOnlyApi").addEventListener("change",renderHar);
+$("#harSelAll").onclick=()=>{ const all=$$("#harTable .har-chk"); const any=all.some(c=>!c.checked); all.forEach(c=>c.checked=any); const head=$("#harHeadChk"); if(head)head.checked=any; };
+$("#harExportUrls").onclick=()=>{ const urls=harSelectedUrls(); if(!urls.length){ toast("Nada para exportar",true); return; } downloadBlob(urls.join("\n"), "apis.txt", "text/plain"); toast(`${urls.length} URL(s) exportada(s)`); };
+$("#harToWorkers").onclick=()=>{ const urls=harSelectedUrls(); if(!urls.length){ toast("Selecione requisições",true); return; } $("#wParams").value=urls.join("\n"); refreshWorkerInfo(); switchTab("workers"); toast(`${urls.length} URL(s) → lista de parâmetros`); };
+
+/* active-view styling */
+const sty=document.createElement("style"); sty.textContent=".active-view{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}"; document.head.appendChild(sty);
+
+
+/* ====================== SEED (claude) ====================== */
+function seedClaudeQueries(){
+  try{
+    var SEED = {"title": "Detalhes os Usuários (claude)", "method": "GET", "url": "https://os.acto.net.br/api/Usuario/PesquisarDadosUsuario?codUsuario={param}", "headers": [{"k": "Authorization", "v": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJDT0RJR09fVVNVQVJJTyI6IjE3NDI4IiwiQVBQX0lEIChJTklDSUFMKSI6Ijg2YmY5ZmM2LTc4YWQtNGE2NS04OWU4LThjOTFmOGVhYzQzZCIsIkxPR0lOIjoicmVuYXRvLmJ1ZW5vIiwiSVBBRERSRVNTIjoiMTg3LjMyLjc0LjIzNyIsIlVJUF9JRCI6IjRlZTdkYmUyLTk0Y2UtNGU2Ny04M2FkLTQzOTAzZDE2YWY4ZCIsIkNDVE9LRU4iOiIiLCJuYmYiOjE3ODIxMzE1NjQsImV4cCI6MTc4MjIwMzYyNCwiaWF0IjoxNzgyMTMxNjI0LCJpc3MiOiJodHRwOi8vd3d3LmNvZGVjaXBoZXJzLmNvbSIsImF1ZCI6WyJodHRwOi8vd3d3LmNvZGVjaXBoZXJzLmNvbSIsImh0dHA6Ly93d3cuY29kZWNpcGhlcnMuY29tIl0sIkFQUF9JRCI6Ijg2YmY5ZmM2LTc4YWQtNGE2NS04OWU4LThjOTFmOGVhYzQzZCIsIlBBUkFNX0xPR0lOIjoiW3tcImlkXCI6NDg2MSxcInRpcG9cIjpcIkNvZENsaWVudGVcIixcImNoYXZlXCI6XCJQcmVmZWl0dXJhIE11bmljaXBhbCBkZSBPc2FzY29cIixcInZhbG9yXCI6XCIxOTFcIn1dIiwiUEFSQU1fUFJJViI6IjEiLCJGVU5DQU8iOlsiXzExLTYiLCJfMTAtNSIsIl81LTUiLCJfNi01IiwiXzctNSIsIjEwLTE1IiwiMTAwLTEiLCIxMDEtMTUiLCIxMDgtNSIsIjExLTE1IiwiMTEzLTE1IiwiMTE5LTEiLCIxMi0xNSIsIjEyMC0xNSIsIjEyMS0xIiwiMTMtMTUiLCIxMzEtMTUiLCIxMzMtMTUiLCIxMzUtMTUiLCIxNC0xNSIsIjE0NC0xNSIsIjE0NS0xNSIsIjE0Ni0xNSIsIjE1MC0xNSIsIjE1MS01IiwiMTUyLTUiLCIxNTctMSIsIjE1OC0xIiwiMTYtMTUiLCIxNjQtMSIsIjE4LTUiLCIxOS01IiwiMjAtNSIsIjIxLTUiLCIyMi01IiwiMjMtMTUiLCIyNi01IiwiMjctNSIsIjI5LTUiLCI0My0xNyIsIjQ0LTE3IiwiNDctNSIsIjQ4LTUiLCI0OS01IiwiNS0xNSIsIjUwLTUiLCI1My01IiwiNTQtNSIsIjU1LTUiLCI1Ny01IiwiNTgtNSIsIjYtMTUiLCI2MC0xNSIsIjY0LTE1IiwiNjYtMTciLCI2Ny01IiwiNjktMjkiLCI3LTE1IiwiNzAtMTUiLCI3MS0xIiwiNzYtMSIsIjc5LTUiLCI4LTE1IiwiODEtMTMiLCI4Mi0xMyIsIjgzLTEzIiwiODUtMSIsIjg3LTE1IiwiOS0xNSIsIjkwLTE1IiwiOTEtMTciLCJfMS01IiwiXzExLTUiLCJfMTItNSIsIl8xNC01IiwiXzItNSIsIl8zLTUiLCJfNC01IiwiXzgtNSIsIl85LTUiLCIxNDgtMSIsIjE1NS0xIl19.9BLOBHBdH02mkajIV-TFC4PzXGeV3K2flC6OwwoByNk", "on": true}, {"k": "Accept", "v": "application/json, text/plain, */*", "on": true}], "params": [], "bodyType": "json", "body": "", "workers": 5, "token": "param", "delay": 0, "paramList": "25049\n606662\n604783\n23148\n618396\n618399\n49668\n618355\n605358\n232749\n232653\n616256\n62227\n27174\n602177\n602277\n602176\n602174\n67852\n235113\n602182\n617535\n601660\n605937\n615900\n601897\n618284\n618275\n201505\n618271\n53671\n66919\n66918\n605347\n617532\n205877\n235158\n618172\n618128\n618121\n618114\n617527\n24120\n618059\n24142\n618055\n201516\n617546\n617537\n617945\n617545\n616353\n617663\n28600\n617397\n614884\n615327\n617405\n219971\n204340\n202442\n612367\n617499\n617469\n617409\n617457\n617453\n48122\n617450\n617422\n617420\n617415\n617413\n617412\n617411\n617410\n53677\n617392\n24080\n220434\n612472\n39744\n615184\n616322\n615804\n616318\n605063\n63696\n616916\n215500\n616718\n614904\n37402\n37273\n614378\n614380\n616362\n201522\n614372\n614375\n615174\n201494\n616311\n616304\n201512\n201511\n605062\n615188\n615186\n615169\n24063\n24021\n234538\n24090\n615845\n25048\n614957\n24067\n615171\n55534\n615383\n615384\n615326\n24034\n232270\n612364\n29273\n64608\n615035\n615033\n615034\n615032\n614936\n64185\n24094\n614932\n614912\n64589\n227404\n614797\n24110\n214969\n614381\n223271\n24106\n24902\n236752\n24089\n24140\n613299\n48881\n609586\n614170\n24036\n614017\n613946\n613834\n235114\n24005\n613835\n602652\n24013\n201509\n608734\n24007\n42020\n230746\n202692\n24068\n53688\n202351\n209667\n612792\n612722\n610649\n200778\n610489\n610469\n610458\n605289\n610443\n611629\n610417\n611628\n612579\n212336\n207133\n23987\n228377\n605339\n206626\n24035\n53675\n204039\n24039\n207134\n24025\n24031\n207540\n209916\n24137\n53657\n602280\n204290\n24004\n24129\n18320\n204335\n232271\n23989\n207562\n32166\n23981\n24069\n610646\n236500\n24032\n53679\n53680\n53681\n605361\n608732\n602328\n230744\n605081\n605083\n17481\n607865\n602255\n23990\n602289\n607548\n607529\n53664\n607310\n24012\n24020\n66365\n228370\n604315\n24054\n23999\n65805\n19464\n17479\n606752\n53667\n207577\n24076\n24038\n226133\n606256\n17483\n201957\n201959\n605336\n605334\n66753\n37262\n602649\n24808\n19797\n605539\n605345\n63685\n601626\n605449\n225752\n605393\n235240\n605376\n605369\n605366\n605359\n605354\n602184\n605329\n605328\n605285\n52188\n42448\n51494\n604776\n604775\n604774\n204110\n204109\n604770\n24126\n604316\n24147\n24148\n603411\n602517\n229885\n208139\n604330\n604327\n604324\n604321\n604323\n604318\n604317\n208878\n218113\n61900\n16681\n21700\n53659\n24118\n225392\n24027\n55526\n228376\n23988\n208123\n24057\n25044\n24042\n24124\n602768\n205845\n67847\n201468\n24086\n64967\n201958\n24303\n46785\n602323\n602322\n602320\n602317\n602318\n602312\n602311\n602310\n47979\n602281\n602284\n602288\n602286\n602285\n602279\n37989\n602278\n602275\n38068\n45195\n602254\n602253\n602252\n602232\n602235\n602231\n227357\n602225\n602222\n602219\n602212\n602187\n602181\n602183\n24008\n601931\n201628\n601802\n201607\n601910\n61672\n24114\n203912\n601602\n21692\n601601\n601599\n601600\n600760\n24116\n18438\n24043\n207546\n600747\n600776\n600990\n600989\n600724\n600551\n68513\n68511\n24074\n24060\n24082\n35649\n66758\n24101\n230926\n24003\n235861\n234882\n24105\n24108\n24070\n24122\n231751\n25401\n68099\n36531\n24026\n53676\n63684\n228102\n213895\n213892\n213891\n231247\n230755\n201815\n230516\n229364\n228368\n37442\n24001\n226175\n221565\n224562\n223795\n223793\n221563\n221564\n214039\n213864\n221711\n220407\n220343\n220276\n220277\n220275\n220273\n220272\n56779\n41037\n41989\n209668\n24109\n17497\n218114\n204292\n217313\n215980\n215981\n215979\n24084\n24144\n207039\n205961\n20559\n55539\n211444\n24098\n203578\n64843\n24113\n207579\n207576\n207575\n24023\n209931\n209857\n203561\n209673\n204291\n204339\n47292\n24030\n204289\n24107\n24150\n24028\n204308\n24130\n204314\n50912\n62806\n24903\n204332\n24133\n204380\n24127\n207132\n53683\n208004\n53665\n53670\n201525\n207545\n207034\n207036\n206885\n24061\n206586\n202753\n53663\n205876\n205875\n24002\n203570\n204333\n204043\n28597\n37392\n65006\n203625\n18433\n44271\n202837\n24139\n53685\n21790\n201781\n201523\n201520\n201517\n201514\n201513\n201506\n201504\n68508\n67444\n66953\n24051\n66917\n66916\n66913\n66911\n66756\n66751\n28565\n24102\n28592\n24093\n24092\n24087\n24077\n64992\n64989\n43686\n44698\n64988\n46209\n64983\n64223\n64217\n19461\n62885\n24064\n53721\n53672\n53673\n24041\n28828\n24897\n24079\n24117\n24071\n24141\n24096\n24010\n24103\n52647\n36800\n51161\n48225\n49322\n47505\n42192\n38028\n29737\n29739\n29738\n28603\n28599\n28591\n28595\n28594\n28590\n28588\n28587\n28586\n28584\n28583\n28582\n28577\n28578\n28575\n28571\n28573\n28570\n28568\n23416\n28566\n19790\n26671\n25036\n24996\n24075\n24085\n24009\n24088\n23417\n20073\n24056\n24059\n24066\n48232\n53661\n36799\n24149"};
+    if(!queries.some(function(q){return q.config && q.config.title===SEED.title;})){
+      var now=Date.now();
+      queries.push({ id: uid(), createdAt: now, updatedAt: now, config: SEED });
+      persistLibrary();
+    }
+  }catch(e){ console.warn('seedClaudeQueries falhou', e); }
+}
+
+/* ====================== INIT ====================== */
+(function init(){
+  if(localStorage.getItem("medusa_theme")==="dark") document.body.classList.add("dark-mode");
+  expandNested = localStorage.getItem("medusa_expand_nested")==="1";
+  $("#expandNested").checked = expandNested;
+  applyConfig({});
+  loadLibrary();
+  seedClaudeQueries();
+  refreshWorkerInfo();
+  if(!localStorage.getItem("medusa_seen_help")){ openModal("helpModal"); localStorage.setItem("medusa_seen_help","1"); }
+})();
+</script>
+</body>
+</html>
