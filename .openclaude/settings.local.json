@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(python -c \"import database; print\\(''Database module imports successfully''\\)\")",
-      "Bash(/model)"
-    ]
-  }
-}
